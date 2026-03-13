@@ -23,6 +23,7 @@ Follow the repo rules strictly:
 - deciding which session must run next
 - deciding which sessions can run in parallel and which must wait
 - pinning a reproducible `BASE_SHA` before parallel high-rigor waves
+- recomputing and persisting normalized control state after meaningful artifact or task changes
 - generating full prompts for implement, spec-test-design, test, review, and verdict sessions
 - suggesting the model and reasoning setting for each session
 - telling the user exactly which artifacts to paste back from each session
@@ -52,6 +53,7 @@ Read these first, in order:
 Then read:
 
 - the current phase spec
+- the latest control-state report, if one exists in the active plan reports path
 - any implementation summary
 - any test-design report
 - any test report
@@ -63,7 +65,8 @@ Then read:
 When current repo docs and control-agent prompt files differ, use this order:
 
 1. `README.md` plus current repo docs under `docs/`
-2. this skill and `.agents/skills/control-agent/agents/openai.yaml` for control-agent-specific routing and output shape
+2. the latest durable control-state report in the active plan reports path, when one exists
+3. this skill and `.agents/skills/control-agent/agents/openai.yaml` for control-agent-specific routing and output shape
 
 Do not preserve stale control-agent wording when the current repo docs define newer CodexKit positioning, NFR gates, architecture direction, or roadmap state.
 
@@ -122,6 +125,8 @@ When the user pastes a session result back into the control session:
 
 If the artifact is too long, summarize the relevant parts and reference the report path if one exists.
 
+If the pasted result changes phase state, runnable dependencies, or the next wave shape, recompute control state before emitting any new runnable downstream prompt.
+
 ## Dependency Gating Rule
 
 When a planned session depends on an earlier session artifact that is not yet available in the control session:
@@ -145,6 +150,30 @@ When the user pastes a meaningful session result back into the control session:
 - if no durable path is known yet, say plainly that the artifact currently exists only in the control-session context and may need to be persisted before a future fresh session
 
 This includes Session B0 test-design artifacts and verification-owned test plans.
+
+## Control State Persistence Rule
+
+Chat context alone is not sufficient to hold orchestration state across long-running delivery waves.
+
+When the user pastes a meaningful session result, or states a material task, phase, dependency, or rigor-mode change:
+
+- ingest the new artifact or task delta
+- recompute normalized control state before emitting any new runnable downstream prompt
+- if an active plan directory or canonical report path is already in scope, persist a concise `control-state` snapshot under `plans/<active-plan>/reports/` before rerouting
+- update active `plan.md` references or progress notes when the recomputed state changes the current phase, runnable wave, or required artifacts
+- if no durable path is known yet, say plainly that the updated control state currently exists only in the control-session context
+
+The normalized `control-state` snapshot should include:
+
+- current objective or task framing
+- current phase and rigor mode
+- pinned `BASE_SHA`, if any
+- candidate ref, if any
+- completed artifacts and durable paths when known
+- waiting dependencies and blocked sessions
+- next runnable sessions
+- reduced-rigor decisions or policy exceptions
+- unresolved questions or blockers
 
 ## Verification Source Of Truth Rule
 
@@ -214,12 +243,14 @@ Treat model selection as advice only. Do not imply that the prompt itself can ch
    - test report
    - review report
    - e2e or lead verdict
-6. Carry forward any session results the user has already pasted back.
-7. Map missing artifacts to the next required sessions.
-8. Decide which sessions can run in parallel and which must wait on prior artifacts.
-9. Pick the recommended role, optional modal hint, skill route, model, and reasoning setting for each session.
-10. Define the exact paste-back template for each session.
-11. Emit:
+6. Carry forward any session results the user has already pasted back and detect whether they changed phase state, runnable dependencies, or task framing.
+7. Recompute normalized control state before routing new runnable sessions.
+8. If a durable plan or report path is already in scope, persist the updated control state before emitting new runnable downstream prompts.
+9. Map missing artifacts to the next required sessions.
+10. Decide which sessions can run in parallel and which must wait on prior artifacts.
+11. Pick the recommended role, optional modal hint, skill route, model, and reasoning setting for each session.
+12. Define the exact paste-back template for each session.
+13. Emit:
    - current phase summary
    - execution plan grouped into waves or dependency order
    - a session card for each session
@@ -230,6 +261,8 @@ Treat model selection as advice only. Do not imply that the prompt itself can ch
    - pass/fail rule for advancement
 
 If phase docs or public behavior contracts changed, require a fresh spec-test-design pass before the next final tester execution.
+
+If a material task change or artifact ingest occurred, do not emit a new runnable downstream prompt until control state has been recomputed and, when a durable path is already in scope, persisted.
 
 If production code changed after testing or review, require a fresh test pass, a fresh review pass when behavior or invariants changed, and then a fresh lead verdict.
 

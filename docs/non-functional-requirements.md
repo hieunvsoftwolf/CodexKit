@@ -27,6 +27,7 @@ Functional parity alone is insufficient. A workflow, phase, or release may be ca
 - "Sequential baseline" means the same fixture, verification scope, and task graph are executed with parallel features disabled.
 - A "typed diagnostic" includes a stable error code or category, a plain-language cause, the blocking path, tool, or run when relevant, and one concrete next step or next command.
 - A "silent downgrade" is any fallback from a requested capability to a narrower mode without an explicit terminal notice that names the missing capability and the effective fallback or blocked state.
+- A "control-state snapshot" is the durable orchestration summary for an active control session. It must include current objective, current phase, rigor mode, pinned `BASE_SHA` when present, candidate ref when present, completed artifacts, waiting dependencies, next runnable sessions, reduced-rigor decisions, and unresolved questions or blockers.
 
 ## 3) Supported Fixture Matrix
 
@@ -41,6 +42,7 @@ Functional parity alone is insufficient. A workflow, phase, or release may be ca
 | `interrupted-run` | run interrupted by daemon stop, worker crash, or pending approval | supported resume and reclaim target | `NFR-1`, `NFR-5` |
 | `retained-failed-worker` | failed worker with retained worktree and logs | supported inspection and recovery target | `NFR-2`, `NFR-5` |
 | `fresh-session-handoff` | downstream workflow starts from compiled bundle without the upstream transcript | supported handoff quality target | `NFR-6` |
+| `task-change-reroute` | control session receives a new artifact or task delta after prior routing already existed | recompute and persist updated control state before new runnable downstream routing | `NFR-5`, `NFR-6` |
 | `parallelizable-repo` | repo fixture with at least four independent executable work items and fixed verification scope | supported throughput benchmark target | `NFR-7` |
 | `host-capability-gap` | supported repo running on unsupported or partially capable Codex host features | must degrade explicitly or fail before misleading execution | `NFR-4`, `NFR-8` |
 
@@ -123,6 +125,7 @@ When a new terminal workflow enters scope in a later phase, `NFR-5.2` immediatel
 | `NFR-5.3` | `100%` of artifacts, approvals, and checkpoint transitions are traceable to `run_id`; task-scoped records also carry `task_id` | 1 | ledger traceability tests |
 | `NFR-5.4` | `100%` of worker or daemon crash fixtures retain the last durable checkpoint, supervisor logs, and recovery state for inspection | 2 | chaos recovery suite |
 | `NFR-5.5` | `100%` of reclaim or resume blockers surface the current blocking resource and one concrete recovery action in terminal output | 8 | recovery diagnostics suite |
+| `NFR-5.6` | `100%` of `task-change-reroute` fixtures with a durable plan or report path already in scope persist a refreshed control-state snapshot before any new runnable downstream prompt is emitted | 5 | control-state persistence suite |
 
 ## 10) `NFR-6` Context Fidelity and Handoff Quality
 
@@ -134,6 +137,7 @@ CodexKit must preserve enough intent, decisions, and blockers in compiled contex
 | `NFR-6.2` | `>=90%` of `fresh-session-handoff` fixtures pass the blinded evaluator sufficiency rubric without access to the upstream transcript | 5 | comparative handoff review suite |
 | `NFR-6.3` | `0` operator restatement events occur on golden core handoff fixtures for previously accepted decisions already present upstream | 5 | fresh-session continuation suite |
 | `NFR-6.4` | `100%` of blocked or approval-pending continuations surface unresolved questions and blocking approvals in handoff or resume output | 8 | blocked-handoff and resume suite |
+| `NFR-6.5` | `100%` of persisted control-state snapshots include every required control-state field and correctly name the next runnable sessions and waiting dependencies on `task-change-reroute` fixtures | 5 | control-state schema and reroute suite |
 
 ## 11) `NFR-7` Throughput and Parallel Payoff
 

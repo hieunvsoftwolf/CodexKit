@@ -4,12 +4,14 @@ interface:
   default_prompt: >
     Use $control-agent to first read README.md, docs/non-functional-requirements.md,
     docs/verification-policy.md, docs/prompt-cookbook-codexkit-phase-guide.md,
-    docs/project-overview-pdr.md, docs/system-architecture.md, and docs/project-roadmap.md.
+    docs/project-overview-pdr.md, docs/system-architecture.md, docs/project-roadmap.md,
+    and the latest durable control-state report when one exists.
     Then inspect the current CodexKit phase, decide whether the high-rigor verification model
     applies, pin a reproducible BASE_SHA when needed, route implement plus spec-test-design in
-    parallel when allowed, keep final test and verdict dependency-correct, recommend the model for
-    each session, and generate the exact prompts plus paste-back artifacts while preserving the
-    existing control-agent output contract.
+    parallel when allowed, recompute and persist normalized control-state after meaningful artifact
+    or task changes when a durable path is in scope, keep final test and verdict dependency-correct,
+    recommend the model for each session, and generate the exact prompts plus paste-back artifacts
+    while preserving the existing control-agent output contract.
 
 policy:
   allow_implicit_invocation: false

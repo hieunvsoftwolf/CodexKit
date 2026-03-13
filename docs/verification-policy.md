@@ -147,6 +147,7 @@ The control agent is responsible for:
 - choosing the current phase
 - selecting the required session model
 - pinning a reproducible `BASE_SHA` before any high-rigor parallel implementation and test-design wave
+- recomputing and persisting normalized control state after meaningful artifact ingest or task change before emitting new downstream routing
 - emitting prompts for Sessions A, B0, B, C, and D
 - deciding which sessions can run in parallel and which must wait
 - recommending the model and reasoning setting for each session
@@ -235,7 +236,27 @@ Because chat context is not durable enough for long workflows:
 - update `plan.md` artifact references or progress notes when the new result changes phase state
 - if no durable path is known yet, the control agent should say so explicitly
 
-## 4D. Base Ref And Isolation Rule
+## 4D. Control State Persistence Rule
+
+When the user pastes a meaningful session result back into the control session, or states a material task, phase, dependency, or rigor-mode change, the control agent should:
+- ingest the new artifact or task delta
+- recompute the normalized control state before routing any new downstream session
+- if an active plan directory or canonical report path is already in scope, persist a concise `control-state` snapshot under `plans/<active-plan>/reports/` before emitting new runnable downstream prompts
+- update the active `plan.md` references or progress notes when the recomputed state changes the current phase, runnable wave, or required artifacts
+- if no durable path is known yet, say plainly that the updated control state currently exists only in the control-session context
+
+The normalized `control-state` snapshot should include:
+- current objective or task framing
+- current phase and rigor mode
+- pinned `BASE_SHA`, if any
+- candidate ref, if any
+- completed artifacts and their durable paths when known
+- waiting dependencies and blocked sessions
+- next runnable sessions
+- reduced-rigor decisions or policy exceptions
+- unresolved questions or blockers
+
+## 4E. Base Ref And Isolation Rule
 
 For meaningful code phases using the high-rigor default model:
 - the control agent should capture `BASE_SHA` before Session A and Session B0 start
@@ -251,6 +272,7 @@ A meaningful code phase must not advance without:
 - test report
 - review report
 - e2e or phase verdict
+- durable control-state when a canonical plan or report path is already in scope
 
 If any artifact is missing, the next session must be verification-focused, not new implementation.
 
@@ -260,6 +282,11 @@ Run a new Session B0 spec-test-design session when:
 - phase docs, exit criteria, or public behavior contracts changed materially
 - the pinned `BASE_SHA` for the phase was reset
 - the previous Session B0 artifact was based on superseded scope
+
+Recompute and persist control state again when:
+- a new session result changes runnable dependencies
+- the user updates the task framing or acceptance target
+- the control agent records a reduced-rigor decision or reverses one
 
 Run a new tester or reviewer session when:
 - production code changed after Session B or C
@@ -280,6 +307,7 @@ Every new session should start by reading:
 - `docs/verification-policy.md`
 - `docs/prompt-cookbook-codexkit-phase-guide.md`
 - the current phase spec
+- the latest control-state report, if one exists in the active plan reports path
 
 Recommended bootstrap prompt:
 
@@ -289,6 +317,7 @@ Recommended bootstrap prompt:
 2. docs/verification-policy.md
 3. docs/prompt-cookbook-codexkit-phase-guide.md
 4. <current phase doc>
+5. <latest control-state report path if available>
 
 Current phase: <phase>
 Current session type: <implement / spec-test-design / tester / reviewer / lead verdict>
@@ -321,6 +350,7 @@ For tester, reviewer, and lead-verdict prompts, the prompt should state that the
 The lead session should stop phase progression when:
 - a meaningful code phase skipped the default high-rigor model without an explicit reduced-rigor decision
 - Session B0 evidence is missing where the high-rigor model applies
+- a durable control-state snapshot should exist but has not been refreshed after a material artifact or task change
 - tester has not run
 - reviewer has not run
 - verdict has not been issued

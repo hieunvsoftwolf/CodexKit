@@ -32,6 +32,7 @@ Recommended bootstrap prompt:
 2. docs/prompt-cookbook-codexkit-phase-guide.md
 3. docs/prompt-cookbook.md
 4. docs/project-roadmap.md
+5. <latest control-state report path if available>
 
 Current status:
 - completed: <what is already done>
@@ -58,6 +59,7 @@ Control-agent rule:
 - if the user has already pasted a prior session result into the control session, carry it forward into downstream prompts instead of emitting a manual paste placeholder
 - if a planned session still depends on a missing upstream artifact, mark it as waiting and do not emit a runnable prompt block for it yet
 - when an active plan dir or durable report path is in scope, persist meaningful session results there before routing the next session
+- after a pasted session result or a material task change, recompute and persist concise `control-state` before emitting new runnable downstream prompts when a durable path is in scope
 - for spec-test-design prompts, say explicitly that phase docs + exit criteria + pinned `BASE_SHA` are the source of truth, and the candidate implementation must not be inspected
 - for tester/reviewer/verdict prompts, say explicitly that repo tree + phase docs + exit criteria are the source of truth, and prior session results are handoff context only
 - if no reproducible base commit exists yet for a meaningful code phase, block the high-rigor parallel wave and tell the user to freeze a base or accept reduced rigor explicitly
@@ -186,6 +188,7 @@ Recommended next step:
 - capture a reproducible `BASE_SHA` from the clean docs-first baseline
 - keep the current docs stable enough for the first high-rigor Phase 1 wave
 - after `BASE_SHA` exists, start Phase 1 with Session A implementation and Session B0 spec-test-design in parallel
+- after any result is pasted back, recompute and persist updated `control-state` before opening the next runnable downstream session when a durable path is already in scope
 - keep final tester waiting until both implementation and spec-test-design artifacts exist
 - keep reviewer waiting until implementation exists
 - keep lead-verdict waiting until final tester and reviewer artifacts exist
@@ -201,6 +204,7 @@ Recommended control-session bootstrap:
 4. plans/20260313-1128-phase-0-preflight-clean-restart/plan.md
 5. docs/phase-1-implementation-plan.md
 6. docs/runtime-core-technical-spec.md
+7. <latest control-state report path if available>
 
 Current status:
 - docs verification readiness already completed in plans/20260312-1422-docs-verification-phase-1-readiness/plan.md
@@ -225,6 +229,7 @@ Rules:
 - lead verdict must be waiting until tester and reviewer results are pasted back
 - do not emit manual placeholders if an upstream artifact already exists in the control session
 - if a downstream dependency artifact is missing, `paste into new session` must say `none yet; wait for <dependency artifacts>`
+- after a pasted result or task change, recompute and persist concise `control-state` before emitting new runnable downstream prompts when a durable path is already in scope
 - every emitted prompt must include `Skills:` and `Session role expected:`
 - spec-test-design prompts must include the pinned `BASE_SHA` and forbid reading the candidate implementation branch or implementation summary
 - for tester, reviewer, and verdict prompts, say repo tree + phase docs + exit criteria are the source of truth, and prior session artifacts are handoff context only
@@ -311,6 +316,8 @@ Hiện trạng:
 
 Nếu chưa có spec-test-design artifact hợp lệ, hãy emit thêm session đó trước final tester.
 
+Nếu control session vừa nhận thêm artifact mới hoặc task mới, hãy recompute và persist updated `control-state` trước khi emit session verify tiếp theo nếu đã có durable report path.
+
 Hãy dùng:
 - 1 tester
 - 1 code-reviewer
@@ -343,6 +350,7 @@ Done:
 - <done item 2>
 Next:
 - <verify docs / implement / spec-test-design / test / review / e2e>
+Nếu có `control-state` report path thì đọc nó trước.
 Hãy chọn đúng role/session routing, pin `BASE_SHA` nếu phase code đủ điều kiện high-rigor, emit session cards, và không mở runnable downstream session khi dependency artifact chưa có.
 ```
 
@@ -354,6 +362,7 @@ Do not move to the next phase until the current phase has:
 - test report
 - review report
 - e2e verdict
+- refreshed durable control-state when a canonical plan or report path is already in scope
 - explicit pass/fail against phase exit criteria
 
 If one of these is missing, next session should start with verification, not new implementation.
