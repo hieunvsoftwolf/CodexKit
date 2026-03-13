@@ -1,0 +1,979 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://codexkit.local/schemas/codexkit-mcp-tool-contract.schema.json",
+  "title": "CodexKit MCP Tool Contract",
+  "description": "JSON Schema for CodexKit MCP request and result envelopes.",
+  "type": "object",
+  "required": ["kind", "name", "payload"],
+  "properties": {
+    "kind": {
+      "type": "string",
+      "enum": ["request", "result"]
+    },
+    "name": {
+      "$ref": "#/$defs/ToolName"
+    },
+    "payload": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "kind": { "const": "request" },
+          "name": { "const": "task.create" }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": { "$ref": "#/$defs/TaskCreateRequest" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": { "const": "result" },
+          "name": { "const": "task.create" }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": { "$ref": "#/$defs/TaskCreateResult" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": { "const": "request" },
+          "name": { "const": "task.list" }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": { "$ref": "#/$defs/TaskListRequest" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": { "const": "result" },
+          "name": { "const": "task.list" }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": { "$ref": "#/$defs/TaskListResult" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": { "const": "request" },
+          "name": { "const": "task.get" }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": { "$ref": "#/$defs/TaskGetRequest" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": { "const": "result" },
+          "name": { "const": "task.get" }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": { "$ref": "#/$defs/TaskGetResult" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": { "const": "request" },
+          "name": { "const": "task.update" }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": { "$ref": "#/$defs/TaskUpdateRequest" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": { "const": "result" },
+          "name": { "const": "task.update" }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": { "$ref": "#/$defs/TaskUpdateResult" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": { "const": "request" },
+          "name": { "const": "team.create" }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": { "$ref": "#/$defs/TeamCreateRequest" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": { "const": "result" },
+          "name": { "const": "team.create" }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": { "$ref": "#/$defs/TeamCreateResult" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": { "const": "request" },
+          "name": { "const": "team.delete" }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": { "$ref": "#/$defs/TeamDeleteRequest" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": { "const": "result" },
+          "name": { "const": "team.delete" }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": { "$ref": "#/$defs/TeamDeleteResult" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": { "const": "request" },
+          "name": { "const": "worker.spawn" }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": { "$ref": "#/$defs/WorkerSpawnRequest" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": { "const": "result" },
+          "name": { "const": "worker.spawn" }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": { "$ref": "#/$defs/WorkerSpawnResult" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": { "const": "request" },
+          "name": { "const": "message.send" }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": { "$ref": "#/$defs/MessageSendRequest" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": { "const": "result" },
+          "name": { "const": "message.send" }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": { "$ref": "#/$defs/MessageSendResult" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": { "const": "request" },
+          "name": { "const": "message.pull" }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": { "$ref": "#/$defs/MessagePullRequest" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": { "const": "result" },
+          "name": { "const": "message.pull" }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": { "$ref": "#/$defs/MessagePullResult" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": { "const": "request" },
+          "name": { "const": "approval.request" }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": { "$ref": "#/$defs/ApprovalRequestRequest" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": { "const": "result" },
+          "name": { "const": "approval.request" }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": { "$ref": "#/$defs/ApprovalRequestResult" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": { "const": "request" },
+          "name": { "const": "approval.respond" }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": { "$ref": "#/$defs/ApprovalRespondRequest" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": { "const": "result" },
+          "name": { "const": "approval.respond" }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": { "$ref": "#/$defs/ApprovalRespondResult" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": { "const": "request" },
+          "name": { "const": "artifact.publish" }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": { "$ref": "#/$defs/ArtifactPublishRequest" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": { "const": "result" },
+          "name": { "const": "artifact.publish" }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": { "$ref": "#/$defs/ArtifactPublishResult" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": { "const": "request" },
+          "name": { "const": "artifact.read" }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": { "$ref": "#/$defs/ArtifactReadRequest" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": { "const": "result" },
+          "name": { "const": "artifact.read" }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": { "$ref": "#/$defs/ArtifactReadResult" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": { "const": "request" },
+          "name": { "const": "workflow.start" }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": { "$ref": "#/$defs/WorkflowStartRequest" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": { "const": "result" },
+          "name": { "const": "workflow.start" }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": { "$ref": "#/$defs/WorkflowStartResult" }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "ToolName": {
+      "type": "string",
+      "enum": [
+        "task.create",
+        "task.list",
+        "task.get",
+        "task.update",
+        "team.create",
+        "team.delete",
+        "worker.spawn",
+        "message.send",
+        "message.pull",
+        "approval.request",
+        "approval.respond",
+        "artifact.publish",
+        "artifact.read",
+        "workflow.start"
+      ]
+    },
+    "Id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "Timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "NonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "JsonObject": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "StringArray": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "TaskStatus": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "ready",
+        "in_progress",
+        "blocked",
+        "completed",
+        "failed",
+        "cancelled"
+      ]
+    },
+    "RunStatus": {
+      "type": "string",
+      "enum": ["pending", "running", "blocked", "completed", "failed", "cancelled"]
+    },
+    "WorkerState": {
+      "type": "string",
+      "enum": [
+        "starting",
+        "idle",
+        "running",
+        "blocked",
+        "waiting_message",
+        "waiting_approval",
+        "stopped",
+        "failed"
+      ]
+    },
+    "RecipientKind": {
+      "type": "string",
+      "enum": ["user", "worker", "team"]
+    },
+    "MessageType": {
+      "type": "string",
+      "enum": [
+        "message",
+        "status",
+        "shutdown_request",
+        "shutdown_response",
+        "approval_request",
+        "approval_response",
+        "plan_approval_response"
+      ]
+    },
+    "ArtifactKind": {
+      "type": "string",
+      "enum": [
+        "report",
+        "patch",
+        "test-log",
+        "review",
+        "plan",
+        "summary",
+        "screenshot",
+        "trace",
+        "docs"
+      ]
+    },
+    "WorkflowName": {
+      "type": "string",
+      "enum": [
+        "brainstorm",
+        "plan",
+        "cook",
+        "fix",
+        "debug",
+        "review",
+        "test",
+        "team",
+        "docs",
+        "journal",
+        "scout",
+        "preview"
+      ]
+    },
+    "ApprovalOption": {
+      "type": "object",
+      "required": ["code", "label"],
+      "properties": {
+        "code": { "$ref": "#/$defs/NonEmptyString" },
+        "label": { "$ref": "#/$defs/NonEmptyString" },
+        "description": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "ArtifactRef": {
+      "type": "object",
+      "required": ["artifactId"],
+      "properties": {
+        "artifactId": { "$ref": "#/$defs/Id" },
+        "path": { "type": "string" },
+        "kind": { "$ref": "#/$defs/ArtifactKind" }
+      },
+      "additionalProperties": false
+    },
+    "TaskSummary": {
+      "type": "object",
+      "required": ["id", "subject", "role", "status", "priority"],
+      "properties": {
+        "id": { "$ref": "#/$defs/Id" },
+        "subject": { "$ref": "#/$defs/NonEmptyString" },
+        "role": { "$ref": "#/$defs/NonEmptyString" },
+        "status": { "$ref": "#/$defs/TaskStatus" },
+        "priority": { "type": "integer" },
+        "ownerWorkerId": { "$ref": "#/$defs/Id" },
+        "teamId": { "$ref": "#/$defs/Id" },
+        "planDir": { "type": "string" },
+        "phaseFile": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "TaskRecord": {
+      "allOf": [
+        { "$ref": "#/$defs/TaskSummary" },
+        {
+          "type": "object",
+          "required": ["description", "metadata"],
+          "properties": {
+            "activeForm": { "type": "string" },
+            "description": { "type": "string" },
+            "workflowStep": { "type": "string" },
+            "stepRef": { "type": "string" },
+            "blockingReason": { "type": "string" },
+            "dependsOn": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/Id" }
+            },
+            "ownedPaths": { "$ref": "#/$defs/StringArray" },
+            "metadata": { "$ref": "#/$defs/JsonObject" },
+            "createdAt": { "$ref": "#/$defs/Timestamp" },
+            "updatedAt": { "$ref": "#/$defs/Timestamp" }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "MessageRecord": {
+      "type": "object",
+      "required": ["id", "toKind", "toId", "messageType", "body", "createdAt"],
+      "properties": {
+        "id": { "$ref": "#/$defs/Id" },
+        "fromWorkerId": { "$ref": "#/$defs/Id" },
+        "toKind": { "$ref": "#/$defs/RecipientKind" },
+        "toId": { "$ref": "#/$defs/Id" },
+        "messageType": { "$ref": "#/$defs/MessageType" },
+        "priority": { "type": "integer" },
+        "subject": { "type": "string" },
+        "body": { "type": "string" },
+        "artifactRefs": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ArtifactRef" }
+        },
+        "createdAt": { "$ref": "#/$defs/Timestamp" }
+      },
+      "additionalProperties": false
+    },
+    "ArtifactRecord": {
+      "type": "object",
+      "required": ["id", "kind", "path", "summary", "createdAt"],
+      "properties": {
+        "id": { "$ref": "#/$defs/Id" },
+        "kind": { "$ref": "#/$defs/ArtifactKind" },
+        "path": { "$ref": "#/$defs/NonEmptyString" },
+        "summary": { "type": "string" },
+        "taskId": { "$ref": "#/$defs/Id" },
+        "workerId": { "$ref": "#/$defs/Id" },
+        "mimeType": { "type": "string" },
+        "metadata": { "$ref": "#/$defs/JsonObject" },
+        "createdAt": { "$ref": "#/$defs/Timestamp" }
+      },
+      "additionalProperties": false
+    },
+    "ApprovalRecord": {
+      "type": "object",
+      "required": ["id", "checkpoint", "status", "question", "createdAt"],
+      "properties": {
+        "id": { "$ref": "#/$defs/Id" },
+        "checkpoint": { "$ref": "#/$defs/NonEmptyString" },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "approved", "revised", "rejected", "aborted", "expired"]
+        },
+        "question": { "$ref": "#/$defs/NonEmptyString" },
+        "options": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ApprovalOption" }
+        },
+        "responseCode": { "type": "string" },
+        "responseText": { "type": "string" },
+        "createdAt": { "$ref": "#/$defs/Timestamp" },
+        "resolvedAt": { "$ref": "#/$defs/Timestamp" }
+      },
+      "additionalProperties": false
+    },
+    "TaskCreateRequest": {
+      "type": "object",
+      "required": ["runId", "subject", "description", "role"],
+      "properties": {
+        "runId": { "$ref": "#/$defs/Id" },
+        "teamId": { "$ref": "#/$defs/Id" },
+        "parentTaskId": { "$ref": "#/$defs/Id" },
+        "subject": { "$ref": "#/$defs/NonEmptyString" },
+        "activeForm": { "type": "string" },
+        "description": { "$ref": "#/$defs/NonEmptyString" },
+        "role": { "$ref": "#/$defs/NonEmptyString" },
+        "workflowStep": { "type": "string" },
+        "priority": { "type": "integer", "default": 100 },
+        "dependsOn": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Id" }
+        },
+        "ownedPaths": { "$ref": "#/$defs/StringArray" },
+        "planDir": { "type": "string" },
+        "phaseFile": { "type": "string" },
+        "stepRef": { "type": "string" },
+        "metadata": { "$ref": "#/$defs/JsonObject" }
+      },
+      "additionalProperties": false
+    },
+    "TaskCreateResult": {
+      "type": "object",
+      "required": ["taskId", "status"],
+      "properties": {
+        "taskId": { "$ref": "#/$defs/Id" },
+        "status": { "$ref": "#/$defs/TaskStatus" }
+      },
+      "additionalProperties": false
+    },
+    "TaskListRequest": {
+      "type": "object",
+      "properties": {
+        "runId": { "$ref": "#/$defs/Id" },
+        "teamId": { "$ref": "#/$defs/Id" },
+        "role": { "type": "string" },
+        "ownerWorkerId": { "$ref": "#/$defs/Id" },
+        "status": {
+          "oneOf": [
+            { "$ref": "#/$defs/TaskStatus" },
+            {
+              "type": "array",
+              "items": { "$ref": "#/$defs/TaskStatus" }
+            }
+          ]
+        },
+        "includeCompleted": { "type": "boolean", "default": true }
+      },
+      "additionalProperties": false
+    },
+    "TaskListResult": {
+      "type": "object",
+      "required": ["tasks"],
+      "properties": {
+        "tasks": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/TaskSummary" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "TaskGetRequest": {
+      "type": "object",
+      "required": ["taskId"],
+      "properties": {
+        "taskId": { "$ref": "#/$defs/Id" }
+      },
+      "additionalProperties": false
+    },
+    "TaskGetResult": {
+      "type": "object",
+      "required": ["task"],
+      "properties": {
+        "task": { "$ref": "#/$defs/TaskRecord" }
+      },
+      "additionalProperties": false
+    },
+    "TaskUpdatePatch": {
+      "type": "object",
+      "properties": {
+        "status": { "$ref": "#/$defs/TaskStatus" },
+        "ownerWorkerId": { "$ref": "#/$defs/Id" },
+        "priority": { "type": "integer" },
+        "blockingReason": { "type": "string" },
+        "metadata": { "$ref": "#/$defs/JsonObject" },
+        "appendNote": { "type": "string" }
+      },
+      "additionalProperties": false,
+      "minProperties": 1
+    },
+    "TaskUpdateRequest": {
+      "type": "object",
+      "required": ["taskId", "patch"],
+      "properties": {
+        "taskId": { "$ref": "#/$defs/Id" },
+        "patch": { "$ref": "#/$defs/TaskUpdatePatch" }
+      },
+      "additionalProperties": false
+    },
+    "TaskUpdateResult": {
+      "type": "object",
+      "required": ["task"],
+      "properties": {
+        "task": { "$ref": "#/$defs/TaskRecord" }
+      },
+      "additionalProperties": false
+    },
+    "TeamCreateRequest": {
+      "type": "object",
+      "required": ["runId", "name"],
+      "properties": {
+        "runId": { "$ref": "#/$defs/Id" },
+        "name": { "$ref": "#/$defs/NonEmptyString" },
+        "description": { "type": "string" },
+        "orchestratorRole": { "type": "string" },
+        "metadata": { "$ref": "#/$defs/JsonObject" }
+      },
+      "additionalProperties": false
+    },
+    "TeamCreateResult": {
+      "type": "object",
+      "required": ["teamId", "status"],
+      "properties": {
+        "teamId": { "$ref": "#/$defs/Id" },
+        "status": {
+          "type": "string",
+          "enum": ["active", "idle", "waiting", "shutting_down", "deleted"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "TeamDeleteRequest": {
+      "type": "object",
+      "required": ["teamId"],
+      "properties": {
+        "teamId": { "$ref": "#/$defs/Id" },
+        "reason": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "TeamDeleteResult": {
+      "type": "object",
+      "required": ["teamId", "deleted"],
+      "properties": {
+        "teamId": { "$ref": "#/$defs/Id" },
+        "deleted": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "WorkerSpawnRequest": {
+      "type": "object",
+      "required": ["runId", "role"],
+      "properties": {
+        "runId": { "$ref": "#/$defs/Id" },
+        "teamId": { "$ref": "#/$defs/Id" },
+        "taskId": { "$ref": "#/$defs/Id" },
+        "role": { "$ref": "#/$defs/NonEmptyString" },
+        "displayName": { "type": "string" },
+        "ownedPaths": { "$ref": "#/$defs/StringArray" },
+        "executionMode": {
+          "type": "string",
+          "enum": ["local_worktree", "local_shared", "cloud_task"]
+        },
+        "readOnly": { "type": "boolean" },
+        "metadata": { "$ref": "#/$defs/JsonObject" }
+      },
+      "additionalProperties": false
+    },
+    "WorkerSpawnResult": {
+      "type": "object",
+      "required": ["workerId", "state"],
+      "properties": {
+        "workerId": { "$ref": "#/$defs/Id" },
+        "state": { "$ref": "#/$defs/WorkerState" },
+        "worktreePath": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "MessageSendRequest": {
+      "type": "object",
+      "required": ["runId", "toKind", "toId", "body"],
+      "properties": {
+        "runId": { "$ref": "#/$defs/Id" },
+        "fromWorkerId": { "$ref": "#/$defs/Id" },
+        "toKind": { "$ref": "#/$defs/RecipientKind" },
+        "toId": { "$ref": "#/$defs/Id" },
+        "messageType": { "$ref": "#/$defs/MessageType" },
+        "priority": { "type": "integer", "default": 100 },
+        "subject": { "type": "string" },
+        "body": { "$ref": "#/$defs/NonEmptyString" },
+        "artifactRefs": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ArtifactRef" }
+        },
+        "metadata": { "$ref": "#/$defs/JsonObject" }
+      },
+      "additionalProperties": false
+    },
+    "MessageSendResult": {
+      "type": "object",
+      "required": ["messageId", "queued"],
+      "properties": {
+        "messageId": { "$ref": "#/$defs/Id" },
+        "queued": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "MessagePullRequest": {
+      "type": "object",
+      "required": ["recipientKind", "recipientId"],
+      "properties": {
+        "recipientKind": { "$ref": "#/$defs/RecipientKind" },
+        "recipientId": { "$ref": "#/$defs/Id" },
+        "maxItems": { "type": "integer", "minimum": 1, "maximum": 200 },
+        "sinceMessageId": { "$ref": "#/$defs/Id" }
+      },
+      "additionalProperties": false
+    },
+    "MessagePullResult": {
+      "type": "object",
+      "required": ["messages"],
+      "properties": {
+        "messages": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/MessageRecord" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "ApprovalRequestRequest": {
+      "type": "object",
+      "required": ["runId", "checkpoint", "question", "options"],
+      "properties": {
+        "runId": { "$ref": "#/$defs/Id" },
+        "taskId": { "$ref": "#/$defs/Id" },
+        "requestedByWorkerId": { "$ref": "#/$defs/Id" },
+        "checkpoint": { "$ref": "#/$defs/NonEmptyString" },
+        "question": { "$ref": "#/$defs/NonEmptyString" },
+        "options": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/ApprovalOption" }
+        },
+        "expiresAt": { "$ref": "#/$defs/Timestamp" }
+      },
+      "additionalProperties": false
+    },
+    "ApprovalRequestResult": {
+      "type": "object",
+      "required": ["approval"],
+      "properties": {
+        "approval": { "$ref": "#/$defs/ApprovalRecord" }
+      },
+      "additionalProperties": false
+    },
+    "ApprovalRespondRequest": {
+      "type": "object",
+      "required": ["approvalId", "responseCode"],
+      "properties": {
+        "approvalId": { "$ref": "#/$defs/Id" },
+        "responseCode": { "$ref": "#/$defs/NonEmptyString" },
+        "responseText": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "ApprovalRespondResult": {
+      "type": "object",
+      "required": ["approval"],
+      "properties": {
+        "approval": { "$ref": "#/$defs/ApprovalRecord" }
+      },
+      "additionalProperties": false
+    },
+    "ArtifactPublishRequest": {
+      "type": "object",
+      "required": ["runId", "kind", "path", "summary"],
+      "properties": {
+        "runId": { "$ref": "#/$defs/Id" },
+        "taskId": { "$ref": "#/$defs/Id" },
+        "workerId": { "$ref": "#/$defs/Id" },
+        "kind": { "$ref": "#/$defs/ArtifactKind" },
+        "path": { "$ref": "#/$defs/NonEmptyString" },
+        "summary": { "type": "string" },
+        "mimeType": { "type": "string" },
+        "metadata": { "$ref": "#/$defs/JsonObject" }
+      },
+      "additionalProperties": false
+    },
+    "ArtifactPublishResult": {
+      "type": "object",
+      "required": ["artifactId", "path"],
+      "properties": {
+        "artifactId": { "$ref": "#/$defs/Id" },
+        "path": { "$ref": "#/$defs/NonEmptyString" }
+      },
+      "additionalProperties": false
+    },
+    "ArtifactReadRequest": {
+      "type": "object",
+      "properties": {
+        "artifactId": { "$ref": "#/$defs/Id" },
+        "runId": { "$ref": "#/$defs/Id" },
+        "path": { "type": "string" }
+      },
+      "additionalProperties": false,
+      "anyOf": [
+        { "required": ["artifactId"] },
+        { "required": ["runId", "path"] }
+      ]
+    },
+    "ArtifactReadResult": {
+      "type": "object",
+      "required": ["artifact"],
+      "properties": {
+        "artifact": { "$ref": "#/$defs/ArtifactRecord" }
+      },
+      "additionalProperties": false
+    },
+    "WorkflowStartRequest": {
+      "type": "object",
+      "required": ["workflow", "mode", "input"],
+      "properties": {
+        "workflow": { "$ref": "#/$defs/WorkflowName" },
+        "mode": {
+          "type": "string",
+          "enum": ["interactive", "auto", "fast", "parallel", "no-test", "code"]
+        },
+        "planPath": { "type": "string" },
+        "teamMode": { "type": "boolean" },
+        "input": {
+          "type": "object",
+          "required": ["prompt"],
+          "properties": {
+            "prompt": { "$ref": "#/$defs/NonEmptyString" },
+            "metadata": { "$ref": "#/$defs/JsonObject" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "WorkflowStartResult": {
+      "type": "object",
+      "required": ["runId", "status"],
+      "properties": {
+        "runId": { "$ref": "#/$defs/Id" },
+        "status": { "$ref": "#/$defs/RunStatus" },
+        "rootTaskId": { "$ref": "#/$defs/Id" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

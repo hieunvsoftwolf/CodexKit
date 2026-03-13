@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/claudekit-source/schemas/node.schema.json",
+  "title": "ClaudeKit Source Node",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "kind", "name", "title", "status", "sourceRefs"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+(\\.[a-z0-9_]+)+$"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "agent",
+        "skill",
+        "rule",
+        "template",
+        "workflow",
+        "artifact",
+        "gate",
+        "tool_ref",
+        "runtime_primitive",
+        "host_assumption",
+        "resource"
+      ]
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": ["seed", "active", "deprecated", "manual-review"]
+    },
+    "sourceRefs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "pattern": "^evidence\\.[a-z0-9_]+(\\.[a-z0-9_]+)+$"
+      }
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "metadata": {
+      "type": "object"
+    }
+  }
+}

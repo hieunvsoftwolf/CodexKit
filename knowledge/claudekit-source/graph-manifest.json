@@ -1,0 +1,33 @@
+{
+  "graphId": "claudekit-source",
+  "version": "0.2.2",
+  "status": "active",
+  "updatedAt": "2026-03-13T04:22:35Z",
+  "scope": {
+    "sourceRoots": [
+      ".claude/agents",
+      ".claude/skills",
+      ".claude/rules",
+      "plans/templates"
+    ],
+    "hostNeutral": true,
+    "outsideCodexKitRoadmap": true
+  },
+  "files": {
+    "nodes": "nodes.jsonl",
+    "edges": "edges.jsonl",
+    "evidence": "evidence.jsonl"
+  },
+  "schemas": {
+    "manifest": "schemas/graph-manifest.schema.json",
+    "node": "schemas/node.schema.json",
+    "edge": "schemas/edge.schema.json",
+    "evidence": "schemas/evidence.schema.json"
+  },
+  "notes": [
+    "Wave 1 core ClaudeKit source coverage is active.",
+    "Wave 2 Batch 0 and Batch 1 additions are included without host-specific projections.",
+    "Wave 2 Batch 2 support workflow additions are included without journal or team-template enrichment.",
+    "This directory is reference material for future port projects, not runtime state."
+  ]
+}

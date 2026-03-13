@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/claudekit-source/schemas/evidence.schema.json",
+  "title": "ClaudeKit Source Evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "subjectType",
+    "subjectId",
+    "sourcePath",
+    "checksum",
+    "extractionMethod",
+    "confidence"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^evidence\\.[a-z0-9_]+(\\.[a-z0-9_]+)+$"
+    },
+    "subjectType": {
+      "type": "string",
+      "enum": ["node", "edge", "mixed"]
+    },
+    "subjectId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sourcePath": {
+      "type": "string",
+      "minLength": 1
+    },
+    "lineStart": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "lineEnd": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "checksum": {
+      "type": "string",
+      "minLength": 1
+    },
+    "extractionMethod": {
+      "type": "string",
+      "enum": ["manual-scout", "import-parser", "projection-derived"]
+    },
+    "confidence": {
+      "type": "string",
+      "enum": ["low", "medium", "high"]
+    },
+    "notes": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/claudekit-source/schemas/graph-manifest.schema.json",
+  "title": "ClaudeKit Source Graph Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "graphId",
+    "version",
+    "status",
+    "updatedAt",
+    "scope",
+    "files",
+    "schemas"
+  ],
+  "properties": {
+    "graphId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": ["seed", "active", "archived"]
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceRoots", "hostNeutral", "outsideCodexKitRoadmap"],
+      "properties": {
+        "sourceRoots": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "hostNeutral": { "type": "boolean" },
+        "outsideCodexKitRoadmap": { "type": "boolean" }
+      }
+    },
+    "files": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodes", "edges", "evidence"],
+      "properties": {
+        "nodes": { "type": "string", "minLength": 1 },
+        "edges": { "type": "string", "minLength": 1 },
+        "evidence": { "type": "string", "minLength": 1 }
+      }
+    },
+    "schemas": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["manifest", "node", "edge", "evidence"],
+      "properties": {
+        "manifest": { "type": "string", "minLength": 1 },
+        "node": { "type": "string", "minLength": 1 },
+        "edge": { "type": "string", "minLength": 1 },
+        "evidence": { "type": "string", "minLength": 1 }
+      }
+    },
+    "notes": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}
