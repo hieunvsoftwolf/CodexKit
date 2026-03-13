@@ -38,6 +38,4 @@
 
 ## Next Required Actions
 
-- initialize or attach a git repo at the workspace root
-- create the clean-baseline commit and capture `BASE_SHA`
 - return to control-agent and emit the real Phase 1 Session A and Session B0 prompts from that base

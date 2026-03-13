@@ -20,8 +20,8 @@
 - [x] normalize root package and TypeScript config for the docs and knowledge baseline
 - [x] update control docs and supporting READMEs for the clean restart
 - [x] verify the cleaned baseline with the surviving tests and graph validator
-- [ ] initialize or attach the workspace root to a git repository
-- [ ] create the clean-baseline commit and record `BASE_SHA`
+- [x] initialize or attach the workspace root to a git repository
+- [x] create the clean-baseline commit and record `BASE_SHA`
 - [ ] re-run control-agent from the clean baseline to emit runnable Phase 1 Session A and Session B0 prompts
 
 ## Reports
