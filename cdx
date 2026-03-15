@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+exec node --no-warnings --experimental-strip-types \
+  "${SCRIPT_DIR}/packages/codexkit-cli/src/index.ts" "$@"
