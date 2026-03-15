@@ -1,6 +1,6 @@
 # Phase 0 Preflight Clean Restart
 
-**Status**: Active
+**Status**: Completed
 **Date**: 2026-03-13
 **Scope**: Restore a docs-first baseline, remove discarded Phase 1 candidate code, and prepare a git-backed high-rigor restart.
 
@@ -22,11 +22,74 @@
 - [x] verify the cleaned baseline with the surviving tests and graph validator
 - [x] initialize or attach the workspace root to a git repository
 - [x] create the clean-baseline commit and record `BASE_SHA`
-- [ ] re-run control-agent from the clean baseline to emit runnable Phase 1 Session A and Session B0 prompts
+- [x] re-run control-agent from the clean baseline to emit runnable Phase 1 Session A and Session B0 prompts
 
 ## Reports
 
 - `reports/cleanup-reset-report.md`
+- `reports/control-state-phase-1-wave-setup.md`
+- `reports/control-state-phase-1-remediation-reroute.md`
+- `reports/control-state-phase-1-retest-review-reroute.md`
+- `reports/control-state-phase-1-verdict-ready.md`
+- `reports/control-state-phase-1-verdict-ready-after-ingest.md`
+- `reports/control-state-phase-1-second-remediation-reroute.md`
+- `reports/control-state-phase-1-second-remediation-retest-review-reroute.md`
+- `reports/control-state-phase-1-second-remediation-tester-needed.md`
+- `reports/control-state-phase-1-second-remediation-verdict-ready.md`
+- `reports/control-state-phase-1-passed.md`
+- `reports/control-state-phase-2-freeze-needed.md`
+- `reports/control-state-phase-2-wave-1-ready.md`
+- `reports/control-state-phase-2-wave-1-b0-complete-waiting-on-s1.md`
+- `reports/control-state-phase-2-wave-2-ready.md`
+- `reports/control-state-phase-2-review-needed-after-tester-block.md`
+- `reports/control-state-phase-2-verdict-ready.md`
+- `reports/control-state-phase-2-remediation-reroute.md`
+- `reports/control-state-phase-2-review-reroute-after-s1.md`
+- `reports/control-state-phase-2-tester-reroute-after-s2.md`
+- `reports/control-state-phase-2-second-remediation-reroute-after-s3-block.md`
+- `reports/control-state-phase-2-review-reroute-after-s5.md`
+- `reports/control-state-phase-2-third-remediation-reroute-after-s6.md`
+- `reports/control-state-phase-2-review-reroute-after-s9.md`
+- `reports/control-state-phase-2-fourth-remediation-reroute-after-s10.md`
+- `reports/control-state-phase-2-review-reroute-after-s13.md`
+- `reports/control-state-phase-2-tester-reroute-after-s14.md`
+- `reports/control-state-phase-2-verdict-ready-after-s15.md`
+- `reports/control-state-phase-2-passed.md`
+- `reports/control-state-phase-3-freeze-needed.md`
+- `reports/control-state-phase-3-wave-1-ready.md`
+- `reports/phase-1-session-a-blocked-20260314.md`
+- `reports/phase-1-session-a-implementation-summary.md`
+- `reports/phase-1-remediation-session-a-implementation-summary.md`
+- `reports/phase-1-session-b-test-report.md`
+- `reports/phase-1-remediation-session-b-test-report.md`
+- `reports/phase-1-session-c-review-report.md`
+- `reports/phase-1-remediation-session-c-review-report.md`
+- `reports/phase-1-remediation-session-d-verdict.md`
+- `reports/phase-1-second-remediation-session-a-implementation-summary.md`
+- `reports/phase-1-second-remediation-session-c-review-report.md`
+- `reports/phase-1-second-remediation-session-b-test-report.md`
+- `reports/phase-1-second-remediation-session-d-verdict.md`
+- `reports/phase-2-base-freeze-report.md`
+- `reports/phase-2-wave-1-b0-spec-test-design.md`
+- `reports/phase-2-wave-1-implementation-summary.md`
+- `reports/phase-2-wave-1-b-test-report.md`
+- `reports/phase-2-wave-1-c-review-report.md`
+- `reports/phase-2-wave-1-d-verdict.md`
+- `reports/phase-2-remediation-session-a-implementation-summary.md`
+- `reports/phase-2-remediation-session-c-review-report.md`
+- `reports/phase-2-remediation-session-b-test-report.md`
+- `reports/phase-2-second-remediation-session-a-implementation-summary.md`
+- `reports/phase-2-second-remediation-session-c-review-report.md`
+- `reports/phase-2-third-remediation-session-a-implementation-summary.md`
+- `reports/phase-2-third-remediation-session-c-review-report.md`
+- `reports/phase-2-fourth-remediation-session-a-implementation-summary.md`
+- `reports/phase-2-fourth-remediation-session-c-review-report.md`
+- `reports/phase-2-fourth-remediation-session-b-test-report.md`
+- `reports/phase-2-fourth-remediation-session-d-verdict.md`
+- `reports/phase-3-base-freeze-report.md`
+- `reports/phase-1-session-d-verdict.md`
+- `reports/phase-1-session-b0-blocked-20260314.md`
+- `reports/phase-1-session-b0-spec-test-design-report.md`
 
 ## Exit Criteria
 
@@ -38,4 +101,4 @@
 
 ## Unresolved Questions
 
-- whether the workspace root should be initialized as a new git repo or attached to an existing parent repo
+- None
