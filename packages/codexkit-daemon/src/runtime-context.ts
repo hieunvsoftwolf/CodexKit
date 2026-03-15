@@ -1,5 +1,6 @@
 import {
   ApprovalService,
+  ArtifactService,
   EventService,
   RunService,
   TaskService,
@@ -28,6 +29,7 @@ export function openRuntimeContext(config: RuntimeConfig, clock: RuntimeClock = 
     workerService: new WorkerService(store, clock),
     claimService: new ClaimService(store, clock),
     approvalService: new ApprovalService(store, clock),
+    artifactService: new ArtifactService(store, clock),
     eventService: new EventService(store),
     close(): void {
       database.close();

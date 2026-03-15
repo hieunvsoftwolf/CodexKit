@@ -1,6 +1,7 @@
 import type { DatabaseSync } from "node:sqlite";
 import type { RuntimeStore } from "../../codexkit-core/src/index.ts";
 import { ApprovalsRepositorySqlite } from "./repositories/approvals-repository.ts";
+import { ArtifactsRepositorySqlite } from "./repositories/artifacts-repository.ts";
 import { ClaimsRepositorySqlite } from "./repositories/claims-repository.ts";
 import { EventsRepositorySqlite } from "./repositories/events-repository.ts";
 import { RunsRepositorySqlite } from "./repositories/runs-repository.ts";
@@ -20,6 +21,7 @@ export function createRuntimeStore(database: DatabaseSync): RuntimeStore {
     workers: new WorkersRepositorySqlite(database),
     claims: new ClaimsRepositorySqlite(database),
     approvals: new ApprovalsRepositorySqlite(database),
+    artifacts: new ArtifactsRepositorySqlite(database),
     events: new EventsRepositorySqlite(database)
   };
 }

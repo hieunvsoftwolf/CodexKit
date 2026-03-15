@@ -87,6 +87,24 @@ export class WorkerService {
     });
   }
 
+  updateWorker(workerId: string, patch: Partial<WorkerRecord>): WorkerRecord {
+    return this.store.transaction(() => {
+      const worker = this.getWorker(workerId);
+      const updated = this.store.workers.update(workerId, {
+        ...patch,
+        updatedAt: nowIso(this.clock)
+      });
+      this.store.events.append({
+        runId: worker.runId,
+        entityType: "worker",
+        entityId: workerId,
+        eventType: "worker.updated",
+        payload: { state: updated.state }
+      });
+      return updated;
+    });
+  }
+
   markStaleWorkers(timeoutMs: number): WorkerRecord[] {
     const cutoff = new Date(this.clock.now().getTime() - timeoutMs).toISOString();
     const workers = this.store.workers.list().filter((worker) =>

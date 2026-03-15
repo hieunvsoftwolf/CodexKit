@@ -56,6 +56,11 @@ export class RuntimeEventDispatcher {
           this.context.runService.recomputeRun(event.runId);
         }
         return;
+      case "artifact":
+        if (event.runId) {
+          this.context.runService.recomputeRun(event.runId);
+        }
+        return;
       case "run":
         return;
       default:

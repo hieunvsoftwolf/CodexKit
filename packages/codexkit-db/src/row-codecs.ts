@@ -1,5 +1,6 @@
 import type {
   ApprovalRecord,
+  ArtifactRecord,
   ClaimRecord,
   EventRecord,
   JsonObject,
@@ -133,6 +134,22 @@ export function mapApprovalRow(row: Row): ApprovalRecord {
     resolvedAt: (row.resolved_at as string | null) ?? null,
     createdAt: String(row.created_at),
     updatedAt: String(row.updated_at)
+  };
+}
+
+export function mapArtifactRow(row: Row): ArtifactRecord {
+  return {
+    id: String(row.id),
+    runId: String(row.run_id),
+    taskId: (row.task_id as string | null) ?? null,
+    workerId: (row.worker_id as string | null) ?? null,
+    artifactKind: row.artifact_kind as ArtifactRecord["artifactKind"],
+    path: String(row.path),
+    checksum: (row.checksum as string | null) ?? null,
+    mimeType: (row.mime_type as string | null) ?? null,
+    summary: String(row.summary),
+    metadata: parseJsonObject(row.metadata_json),
+    createdAt: String(row.created_at)
   };
 }
 

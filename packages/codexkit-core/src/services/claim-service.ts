@@ -94,4 +94,19 @@ export class ClaimService {
       .filter((claim) => claim.leaseUntil <= cutoff)
       .map((claim) => this.releaseClaim(claim.id, "expired"));
   }
+
+  heartbeatForWorker(workerId: string, leaseMs = 30_000): ClaimRecord[] {
+    const now = this.clock.now();
+    const heartbeatAt = now.toISOString();
+    const leaseUntil = new Date(now.getTime() + leaseMs).toISOString();
+    return this.store.claims
+      .list({ workerId, status: "active" })
+      .map((claim) =>
+        this.store.claims.update(claim.id, {
+          heartbeatAt,
+          leaseUntil,
+          updatedAt: heartbeatAt
+        })
+      );
+  }
 }

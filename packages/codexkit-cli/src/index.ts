@@ -1,11 +1,65 @@
 #!/usr/bin/env node
-import { spawn } from "node:child_process";
+import { spawn, type ChildProcess } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { CodexkitError } from "../../codexkit-core/src/index.ts";
 import { RuntimeController, RuntimeDaemon, loadRuntimeConfig, openRuntimeContext, readDaemonStatus } from "../../codexkit-daemon/src/index.ts";
 import { optionValue, optionValues, parseArgs } from "./arg-parser.ts";
 import { renderResult } from "./render.ts";
+
+const DEFAULT_DAEMON_START_TIMEOUT_MS = 8_000;
+
+function daemonStartTimeoutMs(): number {
+  const configured = Number.parseInt(process.env.CODEXKIT_DAEMON_START_TIMEOUT_MS ?? "", 10);
+  if (!Number.isFinite(configured) || configured < 100) {
+    return DEFAULT_DAEMON_START_TIMEOUT_MS;
+  }
+  return configured;
+}
+
+function isPidAlive(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    return (error as NodeJS.ErrnoException).code !== "ESRCH";
+  }
+}
+
+async function waitForPidExit(pid: number, child: ChildProcess, timeoutMs: number): Promise<boolean> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (child.exitCode !== null || !isPidAlive(pid)) {
+      return true;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 25));
+  }
+  return child.exitCode !== null || !isPidAlive(pid);
+}
+
+async function terminateDetachedChild(pid: number, child: ChildProcess): Promise<void> {
+  if (child.exitCode !== null || !isPidAlive(pid)) {
+    return;
+  }
+  try {
+    process.kill(pid, "SIGTERM");
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ESRCH") {
+      return;
+    }
+  }
+  if (await waitForPidExit(pid, child, 2_000)) {
+    return;
+  }
+  try {
+    process.kill(pid, "SIGKILL");
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ESRCH") {
+      return;
+    }
+  }
+  await waitForPidExit(pid, child, 2_000);
+}
 
 async function detachDaemon(rootDir: string): Promise<{ pid: number }> {
   const config = loadRuntimeConfig(rootDir);
@@ -21,20 +75,30 @@ async function detachDaemon(rootDir: string): Promise<{ pid: number }> {
     stdio: "ignore"
   });
   const pid = child.pid!;
-  const deadline = Date.now() + 3_000;
-  while (Date.now() < deadline) {
-    const status = readDaemonStatus(config.paths);
-    if (status?.pid === pid && status.ready) {
+  try {
+    const deadline = Date.now() + daemonStartTimeoutMs();
+    while (Date.now() < deadline) {
+      const status = readDaemonStatus(config.paths);
+      if (status?.pid === pid && status.ready) {
+        child.unref();
+        return { pid };
+      }
+      if (child.exitCode !== null) {
+        throw new CodexkitError("DAEMON_START_FAILED", `detached daemon exited before becoming ready (${child.exitCode})`);
+      }
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+    throw new CodexkitError("DAEMON_START_TIMEOUT", "detached daemon did not report ready status");
+  } catch (error) {
+    await terminateDetachedChild(pid, child);
+    throw error;
+  } finally {
+    try {
       child.unref();
-      return { pid };
+    } catch {
+      // best effort only
     }
-    if (child.exitCode !== null) {
-      throw new CodexkitError("DAEMON_START_FAILED", `detached daemon exited before becoming ready (${child.exitCode})`);
-    }
-    await new Promise((resolve) => setTimeout(resolve, 50));
   }
-
-  throw new CodexkitError("DAEMON_START_TIMEOUT", "detached daemon did not report ready status");
 }
 
 async function main(): Promise<void> {

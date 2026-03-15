@@ -1,6 +1,8 @@
 import type {
   ApprovalRecord,
   ApprovalStatus,
+  ArtifactKind,
+  ArtifactRecord,
   ClaimRecord,
   ClaimStatus,
   EventRecord,
@@ -42,6 +44,13 @@ export interface ApprovalListFilters {
   runId?: string;
   taskId?: string;
   status?: ApprovalStatus;
+}
+
+export interface ArtifactListFilters {
+  runId?: string;
+  taskId?: string;
+  workerId?: string;
+  artifactKind?: ArtifactKind;
 }
 
 export interface EventDraft {
@@ -97,6 +106,12 @@ export interface ApprovalsRepository {
   update(id: string, patch: Partial<ApprovalRecord>): ApprovalRecord;
 }
 
+export interface ArtifactsRepository {
+  create(record: ArtifactRecord): ArtifactRecord;
+  getById(id: string): ArtifactRecord | null;
+  list(filters?: ArtifactListFilters): ArtifactRecord[];
+}
+
 export interface EventsRepository {
   append(draft: EventDraft): EventRecord;
   listSince(cursor: number, limit: number): EventRecord[];
@@ -112,5 +127,6 @@ export interface RuntimeStore {
   workers: WorkersRepository;
   claims: ClaimsRepository;
   approvals: ApprovalsRepository;
+  artifacts: ArtifactsRepository;
   events: EventsRepository;
 }

@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, renameSync, unlinkSync, writeFileSync } from "node:fs";
 import type { RuntimePaths } from "../../codexkit-db/src/index.ts";
 
 interface DaemonLock {
@@ -31,12 +31,19 @@ export function readDaemonStatus(paths: RuntimePaths): (DaemonStatus & { live: b
   if (!existsSync(paths.daemonStatusPath)) {
     return null;
   }
-  const status = JSON.parse(readFileSync(paths.daemonStatusPath, "utf8")) as DaemonStatus;
+  let status: DaemonStatus;
+  try {
+    status = JSON.parse(readFileSync(paths.daemonStatusPath, "utf8")) as DaemonStatus;
+  } catch {
+    return null;
+  }
   return { ...status, live: probePid(status.pid) === "live" };
 }
 
 export function writeDaemonStatus(paths: RuntimePaths, status: DaemonStatus): void {
-  writeFileSync(paths.daemonStatusPath, `${JSON.stringify(status, null, 2)}\n`, "utf8");
+  const tempPath = `${paths.daemonStatusPath}.${process.pid}.tmp`;
+  writeFileSync(tempPath, `${JSON.stringify(status, null, 2)}\n`, "utf8");
+  renameSync(tempPath, paths.daemonStatusPath);
 }
 
 function readDaemonLock(paths: RuntimePaths): DaemonLock | null {

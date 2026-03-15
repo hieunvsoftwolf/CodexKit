@@ -12,14 +12,14 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json",
-    "test": "TMPDIR=.tmp vitest run",
+    "test": "TMPDIR=.tmp vitest run tests/unit tests/integration && TMPDIR=.tmp vitest run tests/runtime --no-file-parallelism",
     "impact:claudekit-source-graph": "node scripts/knowledge/claudekit-source-impact.mjs",
     "smoke:claudekit-source-graph": "node scripts/knowledge/claudekit-source-query-smoke.mjs",
     "validate:claudekit-source-graph": "node scripts/knowledge/validate-claudekit-source-graph.mjs",
     "validate:claudekit-source-graph:wave1": "node scripts/knowledge/validate-claudekit-source-graph.mjs --profile wave1",
     "test:unit": "TMPDIR=.tmp vitest run tests/unit",
     "test:integration": "TMPDIR=.tmp vitest run tests/integration",
-    "test:runtime": "TMPDIR=.tmp vitest run tests/runtime"
+    "test:runtime": "TMPDIR=.tmp vitest run tests/runtime --no-file-parallelism"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

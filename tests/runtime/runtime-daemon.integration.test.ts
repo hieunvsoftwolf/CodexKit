@@ -3,27 +3,31 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { acquireDaemonLock, loadRuntimeConfig, openRuntimeContext } from "../../packages/codexkit-daemon/src/index.ts";
+import { acquireDaemonLock, loadRuntimeConfig, openRuntimeContext, readDaemonStatus } from "../../packages/codexkit-daemon/src/index.ts";
 import { createRuntimeFixture } from "./helpers/runtime-fixture.ts";
 
 const cleanups: Array<() => Promise<void>> = [];
+type CliEnvOverrides = Record<string, string | undefined>;
+const DAEMON_INTEGRATION_TIMEOUT_MS = 30_000;
 
 function cliPath(): string {
   return path.resolve(process.cwd(), "cdx");
 }
 
-function runCli(rootDir: string, args: string[]) {
+function runCli(rootDir: string, args: string[], envOverrides: CliEnvOverrides = {}) {
   const output = execFileSync(cliPath(), [...args, "--json"], {
     cwd: rootDir,
-    encoding: "utf8"
+    encoding: "utf8",
+    env: { ...process.env, ...envOverrides }
   });
   return JSON.parse(output) as Record<string, unknown>;
 }
 
-function runCliResult(rootDir: string, args: string[]) {
+function runCliResult(rootDir: string, args: string[], envOverrides: CliEnvOverrides = {}) {
   return spawnSync(cliPath(), [...args, "--json"], {
     cwd: rootDir,
-    encoding: "utf8"
+    encoding: "utf8",
+    env: { ...process.env, ...envOverrides }
   });
 }
 
@@ -36,6 +40,42 @@ async function waitFor(check: () => boolean, timeoutMs = 3_000): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve, 50));
   }
   throw new Error("timed out waiting for condition");
+}
+
+async function terminatePid(pid: number): Promise<void> {
+  try {
+    process.kill(pid, "SIGTERM");
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ESRCH") {
+      return;
+    }
+  }
+  const exitedAfterTerm = await waitFor(() => {
+    try {
+      process.kill(pid, 0);
+      return false;
+    } catch (error) {
+      return (error as NodeJS.ErrnoException).code === "ESRCH";
+    }
+  }, 2_000).then(() => true).catch(() => false);
+  if (exitedAfterTerm) {
+    return;
+  }
+  try {
+    process.kill(pid, "SIGKILL");
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ESRCH") {
+      return;
+    }
+  }
+  await waitFor(() => {
+    try {
+      process.kill(pid, 0);
+      return false;
+    } catch (error) {
+      return (error as NodeJS.ErrnoException).code === "ESRCH";
+    }
+  }, 2_000).catch(() => undefined);
 }
 
 afterEach(async () => {
@@ -62,7 +102,7 @@ describe("phase 1 daemon and inspection safeguards", () => {
     expect(readFileSync(paths.daemonLockPath, "utf8")).toContain("\"ownerId\":\"foreign\"");
   });
 
-  test("inspection commands do not perform reconciliation writes", { timeout: 15_000 }, async () => {
+  test("inspection commands do not perform reconciliation writes", { timeout: DAEMON_INTEGRATION_TIMEOUT_MS }, async () => {
     const fixture = await createRuntimeFixture("codexkit-runtime-inspection");
     cleanups.push(() => fixture.cleanup());
     const context = openRuntimeContext(loadRuntimeConfig(fixture.rootDir));
@@ -101,33 +141,30 @@ describe("phase 1 daemon and inspection safeguards", () => {
     expect(readFileSync(paths.daemonLockPath, "utf8")).toContain("\"ownerId\":\"foreign\"");
   });
 
-  test("duplicate detached starts fail instead of bypassing the single-daemon guard", { timeout: 15_000 }, async () => {
+  test("duplicate detached starts fail instead of bypassing the single-daemon guard", { timeout: DAEMON_INTEGRATION_TIMEOUT_MS }, async () => {
     const fixture = await createRuntimeFixture("codexkit-runtime-detached");
     cleanups.push(() => fixture.cleanup());
     const started = runCli(fixture.rootDir, ["daemon", "start"]);
     const pid = Number(started.pid);
-    cleanups.push(async () => {
-      try {
-        process.kill(pid, "SIGTERM");
-      } catch {
-        return;
-      }
-      await waitFor(() => {
-        try {
-          process.kill(pid, 0);
-          return false;
-        } catch (error) {
-          return (error as NodeJS.ErrnoException).code === "ESRCH";
-        }
-      }).catch(() => undefined);
-    });
+    cleanups.push(async () => terminatePid(pid));
 
     const duplicate = runCliResult(fixture.rootDir, ["daemon", "start"]);
     expect(duplicate.status).not.toBe(0);
     expect(duplicate.stderr).toContain("\"code\": \"DAEMON_ALREADY_RUNNING\"");
   });
 
-  test("runtime state resolves from repo root instead of the nested cwd", async () => {
+  test("detached daemon timeout kills child before returning to caller", { timeout: DAEMON_INTEGRATION_TIMEOUT_MS }, async () => {
+    const fixture = await createRuntimeFixture("codexkit-runtime-detached-timeout");
+    cleanups.push(() => fixture.cleanup());
+    const { paths } = loadRuntimeConfig(fixture.rootDir);
+    const result = runCliResult(fixture.rootDir, ["daemon", "start"], { CODEXKIT_DAEMON_START_TIMEOUT_MS: "100" });
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toContain("\"code\": \"DAEMON_START_TIMEOUT\"");
+    await waitFor(() => !(readDaemonStatus(paths)?.live ?? false), 6_000);
+    expect(readDaemonStatus(paths)?.live ?? false).toBe(false);
+  });
+
+  test("runtime state resolves from repo root instead of the nested cwd", { timeout: DAEMON_INTEGRATION_TIMEOUT_MS }, async () => {
     const fixture = await createRuntimeFixture("codexkit-runtime-root-resolution");
     cleanups.push(() => fixture.cleanup());
     await mkdir(path.join(fixture.rootDir, ".git"), { recursive: true });

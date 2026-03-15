@@ -20,8 +20,9 @@ export type WorkerState =
   | "failed";
 export type ClaimStatus = "active" | "released" | "expired" | "superseded";
 export type ApprovalStatus = "pending" | "approved" | "revised" | "rejected" | "aborted" | "expired";
-export type EntityType = "run" | "worker" | "task" | "claim" | "approval";
+export type EntityType = "run" | "worker" | "task" | "claim" | "approval" | "artifact";
 export type ActorKind = "system" | "user" | "worker" | "team";
+export type ArtifactKind = "report" | "patch" | "test-log" | "review" | "plan" | "summary" | "screenshot" | "trace" | "docs";
 
 export interface RunRecord {
   id: string;
@@ -123,6 +124,20 @@ export interface ApprovalRecord {
   resolvedAt: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface ArtifactRecord {
+  id: string;
+  runId: string;
+  taskId: string | null;
+  workerId: string | null;
+  artifactKind: ArtifactKind;
+  path: string;
+  checksum: string | null;
+  mimeType: string | null;
+  summary: string;
+  metadata: JsonObject;
+  createdAt: string;
 }
 
 export interface EventRecord {

@@ -1,6 +1,7 @@
 export * from "./migrate-database.ts";
 export * from "./open-database.ts";
 export * from "./repositories/approvals-repository.ts";
+export * from "./repositories/artifacts-repository.ts";
 export * from "./repositories/claims-repository.ts";
 export * from "./repositories/events-repository.ts";
 export * from "./repositories/runs-repository.ts";

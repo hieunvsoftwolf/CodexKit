@@ -41,6 +41,7 @@ export class RuntimeController {
       workers: this.context.workerService.listWorkers({ runId }),
       claims: this.context.claimService.listClaims({ runId }),
       approvals: this.context.approvalService.listApprovals({ runId }),
+      artifacts: this.context.artifactService.listArtifacts({ runId }),
       events: this.context.eventService.listRunEvents(runId)
     };
   }

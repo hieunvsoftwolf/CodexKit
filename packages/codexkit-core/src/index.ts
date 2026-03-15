@@ -4,6 +4,7 @@ export * from "./ids.ts";
 export * from "./repository-contracts.ts";
 export * from "./service-helpers.ts";
 export * from "./services/approval-service.ts";
+export * from "./services/artifact-service.ts";
 export * from "./services/claim-service.ts";
 export * from "./services/event-service.ts";
 export * from "./services/run-service.ts";
