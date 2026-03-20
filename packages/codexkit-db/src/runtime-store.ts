@@ -4,9 +4,12 @@ import { ApprovalsRepositorySqlite } from "./repositories/approvals-repository.t
 import { ArtifactsRepositorySqlite } from "./repositories/artifacts-repository.ts";
 import { ClaimsRepositorySqlite } from "./repositories/claims-repository.ts";
 import { EventsRepositorySqlite } from "./repositories/events-repository.ts";
+import { MailboxCursorsRepositorySqlite } from "./repositories/mailbox-cursors-repository.ts";
+import { MessagesRepositorySqlite } from "./repositories/messages-repository.ts";
 import { RunsRepositorySqlite } from "./repositories/runs-repository.ts";
 import { SettingsRepositorySqlite } from "./repositories/settings-repository.ts";
 import { TasksRepositorySqlite } from "./repositories/tasks-repository.ts";
+import { TeamsRepositorySqlite } from "./repositories/teams-repository.ts";
 import { WorkersRepositorySqlite } from "./repositories/workers-repository.ts";
 import { inTransaction } from "./sqlite-helpers.ts";
 
@@ -17,9 +20,12 @@ export function createRuntimeStore(database: DatabaseSync): RuntimeStore {
     },
     settings: new SettingsRepositorySqlite(database),
     runs: new RunsRepositorySqlite(database),
+    teams: new TeamsRepositorySqlite(database),
     tasks: new TasksRepositorySqlite(database),
     workers: new WorkersRepositorySqlite(database),
     claims: new ClaimsRepositorySqlite(database),
+    messages: new MessagesRepositorySqlite(database),
+    mailboxCursors: new MailboxCursorsRepositorySqlite(database),
     approvals: new ApprovalsRepositorySqlite(database),
     artifacts: new ArtifactsRepositorySqlite(database),
     events: new EventsRepositorySqlite(database)

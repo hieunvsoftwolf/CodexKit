@@ -101,6 +101,30 @@ async function detachDaemon(rootDir: string): Promise<{ pid: number }> {
   }
 }
 
+function parseJsonOption(options: Record<string, string | boolean | string[]>, key: string): Record<string, unknown> | undefined {
+  const raw = optionValue(options, key);
+  if (!raw) {
+    return undefined;
+  }
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed !== null && typeof parsed === "object" && !Array.isArray(parsed)) {
+      return parsed as Record<string, unknown>;
+    }
+  } catch {
+    // handled below
+  }
+  throw new CodexkitError("CLI_USAGE", `--${key} must be a JSON object`);
+}
+
+function parseCompatCaller(options: Record<string, string | boolean | string[]>) {
+  const callerFlags = ["caller-kind", "caller-worker", "caller-run"] as const;
+  if (callerFlags.some((flag) => optionValue(options, flag))) {
+    throw new CodexkitError("CLI_USAGE", "compat caller identity is session-derived; --caller-* flags are not supported");
+  }
+  return { kind: "user" } as const;
+}
+
 async function main(): Promise<void> {
   const parsed = parseArgs(process.argv.slice(2));
   const [group, action, identifier] = parsed.positionals;
@@ -208,6 +232,172 @@ async function main(): Promise<void> {
     }
     if (group === "approval" && action === "show" && identifier) {
       renderResult(controller.showApproval(identifier), parsed.json);
+      return;
+    }
+    if (group === "team" && action === "create") {
+      renderResult(
+        controller.createTeam({
+          runId: optionValue(parsed.options, "run") ?? "",
+          name: optionValue(parsed.options, "name") ?? "",
+          ...(optionValue(parsed.options, "description") ? { description: optionValue(parsed.options, "description")! } : {}),
+          ...(optionValue(parsed.options, "orchestrator-role") ? { orchestratorRole: optionValue(parsed.options, "orchestrator-role")! } : {}),
+          ...(parseJsonOption(parsed.options, "metadata") ? { metadata: parseJsonOption(parsed.options, "metadata")! } : {})
+        }),
+        parsed.json
+      );
+      return;
+    }
+    if (group === "team" && action === "list") {
+      renderResult(controller.listTeams(optionValue(parsed.options, "run")), parsed.json);
+      return;
+    }
+    if (group === "team" && action === "delete" && identifier) {
+      renderResult(controller.deleteTeam(identifier, optionValue(parsed.options, "reason")), parsed.json);
+      return;
+    }
+    if (group === "worker" && action === "spawn") {
+      const executionMode = optionValue(parsed.options, "execution-mode");
+      renderResult(
+        controller.spawnWorker({
+          runId: optionValue(parsed.options, "run") ?? "",
+          role: optionValue(parsed.options, "role") ?? "",
+          ...(optionValue(parsed.options, "display-name") ? { displayName: optionValue(parsed.options, "display-name")! } : {}),
+          ...(optionValue(parsed.options, "team") ? { teamId: optionValue(parsed.options, "team")! } : {}),
+          ...(optionValue(parsed.options, "task") ? { taskId: optionValue(parsed.options, "task")! } : {}),
+          ...(executionMode ? { executionMode: executionMode as never } : {}),
+          ...(optionValues(parsed.options, "owned-path").length > 0 ? { ownedPaths: optionValues(parsed.options, "owned-path") } : {}),
+          ...(parsed.options["read-only"] === true ? { readOnly: true } : {}),
+          ...(parseJsonOption(parsed.options, "metadata") ? { metadata: parseJsonOption(parsed.options, "metadata")! } : {})
+        }),
+        parsed.json
+      );
+      return;
+    }
+    if (group === "message" && action === "send") {
+      if (optionValue(parsed.options, "from-kind") || optionValue(parsed.options, "from-id") || optionValue(parsed.options, "from-worker")) {
+        throw new CodexkitError("CLI_USAGE", "message sender identity is session-derived; --from-kind/--from-id/--from-worker are not supported");
+      }
+      renderResult(
+        controller.sendMessage({
+          runId: optionValue(parsed.options, "run") ?? "",
+          toKind: (optionValue(parsed.options, "to-kind") ?? "") as never,
+          toId: optionValue(parsed.options, "to-id") ?? "",
+          body: optionValue(parsed.options, "body") ?? "",
+          ...(optionValue(parsed.options, "type") ? { messageType: optionValue(parsed.options, "type") as never } : {}),
+          ...(optionValue(parsed.options, "subject") ? { subject: optionValue(parsed.options, "subject")! } : {}),
+          ...(optionValue(parsed.options, "priority") ? { priority: Number(optionValue(parsed.options, "priority")) } : {}),
+          ...(parseJsonOption(parsed.options, "metadata") ? { metadata: parseJsonOption(parsed.options, "metadata")! } : {})
+        }),
+        parsed.json
+      );
+      return;
+    }
+    if (group === "message" && action === "pull") {
+      renderResult(
+        controller.pullMessages({
+          recipientKind: (optionValue(parsed.options, "recipient-kind") ?? "") as never,
+          recipientId: optionValue(parsed.options, "recipient-id") ?? "",
+          ...(optionValue(parsed.options, "max-items") ? { maxItems: Number(optionValue(parsed.options, "max-items")) } : {}),
+          ...(optionValue(parsed.options, "since-message") ? { sinceMessageId: optionValue(parsed.options, "since-message")! } : {})
+        }),
+        parsed.json
+      );
+      return;
+    }
+    if (group === "approval" && action === "request") {
+      if (optionValue(parsed.options, "requester-worker")) {
+        throw new CodexkitError("CLI_USAGE", "approval requester identity is session-derived; --requester-worker is not supported");
+      }
+      const options = optionValues(parsed.options, "option").map((raw) => {
+        const [code, label, description] = raw.split(":");
+        if (!code || !label) {
+          throw new CodexkitError("CLI_USAGE", "--option must use code:label[:description]");
+        }
+        return { code, label, ...(description ? { description } : {}) };
+      });
+      renderResult(
+        controller.requestApproval({
+          runId: optionValue(parsed.options, "run") ?? "",
+          checkpoint: optionValue(parsed.options, "checkpoint") ?? "",
+          question: optionValue(parsed.options, "question") ?? "",
+          options: options.length > 0 ? options : [{ code: "approve", label: "Approve" }, { code: "revise", label: "Revise" }, { code: "abort", label: "Abort" }],
+          ...(optionValue(parsed.options, "task") ? { taskId: optionValue(parsed.options, "task")! } : {}),
+          ...(optionValue(parsed.options, "expires-at") ? { expiresAt: optionValue(parsed.options, "expires-at")! } : {})
+        }),
+        parsed.json
+      );
+      return;
+    }
+    if (group === "approval" && action === "respond" && identifier) {
+      const response = optionValue(parsed.options, "response");
+      if (!response) {
+        throw new CodexkitError("CLI_USAGE", "--response is required");
+      }
+      const status = response === "approve"
+        ? "approved"
+        : response === "revise"
+          ? "revised"
+          : response === "reject"
+            ? "rejected"
+            : response === "abort"
+              ? "aborted"
+              : response === "expire"
+                ? "expired"
+                : null;
+      if (!status) {
+        throw new CodexkitError("CLI_USAGE", `unsupported --response '${response}'`);
+      }
+      renderResult(
+        controller.respondApproval({
+          approvalId: identifier,
+          status,
+          ...(optionValue(parsed.options, "text") ? { responseText: optionValue(parsed.options, "text")! } : {})
+        }),
+        parsed.json
+      );
+      return;
+    }
+    if (group === "artifact" && action === "publish") {
+      renderResult(
+        controller.publishArtifact({
+          runId: optionValue(parsed.options, "run") ?? "",
+          kind: (optionValue(parsed.options, "kind") ?? "") as never,
+          path: optionValue(parsed.options, "path") ?? "",
+          ...(optionValue(parsed.options, "summary") ? { summary: optionValue(parsed.options, "summary")! } : {}),
+          ...(optionValue(parsed.options, "task") ? { taskId: optionValue(parsed.options, "task")! } : {}),
+          ...(optionValue(parsed.options, "worker") ? { workerId: optionValue(parsed.options, "worker")! } : {}),
+          ...(optionValue(parsed.options, "checksum") ? { checksum: optionValue(parsed.options, "checksum")! } : {}),
+          ...(optionValue(parsed.options, "mime-type") ? { mimeType: optionValue(parsed.options, "mime-type")! } : {}),
+          ...(parseJsonOption(parsed.options, "metadata") ? { metadata: parseJsonOption(parsed.options, "metadata")! } : {})
+        }),
+        parsed.json
+      );
+      return;
+    }
+    if (group === "artifact" && action === "read") {
+      renderResult(
+        controller.readArtifact({
+          ...(optionValue(parsed.options, "artifact-id") ? { artifactId: optionValue(parsed.options, "artifact-id")! } : {}),
+          ...(optionValue(parsed.options, "run") ? { runId: optionValue(parsed.options, "run")! } : {}),
+          ...(optionValue(parsed.options, "path") ? { path: optionValue(parsed.options, "path")! } : {})
+        }),
+        parsed.json
+      );
+      return;
+    }
+    if (group === "compat" && action === "call") {
+      const name = optionValue(parsed.options, "name");
+      if (!name) {
+        throw new CodexkitError("CLI_USAGE", "--name is required");
+      }
+      const payload = parseJsonOption(parsed.options, "payload") ?? {};
+      renderResult(
+        controller.invokeCompat(
+          { kind: "request", name: name as never, payload },
+          parseCompatCaller(parsed.options)
+        ),
+        parsed.json
+      );
       return;
     }
 

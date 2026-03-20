@@ -7,6 +7,8 @@ export * from "./services/approval-service.ts";
 export * from "./services/artifact-service.ts";
 export * from "./services/claim-service.ts";
 export * from "./services/event-service.ts";
+export * from "./services/message-service.ts";
 export * from "./services/run-service.ts";
 export * from "./services/task-service.ts";
+export * from "./services/team-service.ts";
 export * from "./services/worker-service.ts";

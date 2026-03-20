@@ -1,10 +1,15 @@
 import type {
+  ApprovalOption,
   ApprovalRecord,
   ArtifactRecord,
   ClaimRecord,
   EventRecord,
   JsonObject,
+  MailboxCursorRecord,
+  MessageArtifactRef,
+  MessageRecord,
   RunRecord,
+  TeamRecord,
   TaskDependencyRecord,
   TaskRecord,
   WorkerRecord
@@ -28,7 +33,59 @@ function parseStringArray(value: unknown): string[] {
   return Array.isArray(parsed) ? parsed.filter((entry): entry is string => typeof entry === "string") : [];
 }
 
-export function stringifyJson(value: JsonObject | string[]): string {
+function parseApprovalOptions(value: unknown): ApprovalOption[] {
+  if (typeof value !== "string" || value.length === 0) {
+    return [];
+  }
+  const parsed = JSON.parse(value);
+  if (!Array.isArray(parsed)) {
+    return [];
+  }
+  if (parsed.every((entry) => typeof entry === "string")) {
+    return parsed.map((code) => ({ code, label: code }));
+  }
+  return parsed.flatMap((entry) => {
+    if (!entry || typeof entry !== "object") {
+      return [];
+    }
+    const candidate = entry as Record<string, unknown>;
+    if (typeof candidate.code !== "string" || candidate.code.length === 0) {
+      return [];
+    }
+    const label = typeof candidate.label === "string" && candidate.label.length > 0 ? candidate.label : candidate.code;
+    const description = typeof candidate.description === "string" ? candidate.description : undefined;
+    return [{ code: candidate.code, label, ...(description ? { description } : {}) }];
+  });
+}
+
+function parseArtifactRefs(value: unknown): MessageArtifactRef[] {
+  if (typeof value !== "string" || value.length === 0) {
+    return [];
+  }
+  const parsed = JSON.parse(value);
+  if (!Array.isArray(parsed)) {
+    return [];
+  }
+  return parsed.flatMap((entry) => {
+    if (!entry || typeof entry !== "object") {
+      return [];
+    }
+    const candidate = entry as Record<string, unknown>;
+    if (typeof candidate.artifactId !== "string" || candidate.artifactId.length === 0) {
+      return [];
+    }
+    const ref: MessageArtifactRef = { artifactId: candidate.artifactId };
+    if (typeof candidate.path === "string") {
+      ref.path = candidate.path;
+    }
+    if (typeof candidate.kind === "string") {
+      ref.kind = candidate.kind as NonNullable<MessageArtifactRef["kind"]>;
+    }
+    return [ref];
+  });
+}
+
+export function stringifyJson(value: JsonObject | unknown[]): string {
   return JSON.stringify(value);
 }
 
@@ -73,6 +130,21 @@ export function mapTaskRow(row: Row): TaskRecord {
     metadata: parseJsonObject(row.metadata_json),
     startedAt: (row.started_at as string | null) ?? null,
     completedAt: (row.completed_at as string | null) ?? null,
+    createdAt: String(row.created_at),
+    updatedAt: String(row.updated_at)
+  };
+}
+
+export function mapTeamRow(row: Row): TeamRecord {
+  return {
+    id: String(row.id),
+    runId: String(row.run_id),
+    name: String(row.name),
+    slug: String(row.slug),
+    status: row.status as TeamRecord["status"],
+    description: String(row.description),
+    orchestratorWorkerId: (row.orchestrator_worker_id as string | null) ?? null,
+    metadata: parseJsonObject(row.metadata_json),
     createdAt: String(row.created_at),
     updatedAt: String(row.updated_at)
   };
@@ -126,13 +198,47 @@ export function mapApprovalRow(row: Row): ApprovalRecord {
     checkpoint: String(row.checkpoint),
     status: row.status as ApprovalRecord["status"],
     question: String(row.question),
-    options: parseStringArray(row.options_json),
+    options: parseApprovalOptions(row.options_json),
     responseCode: (row.response_code as string | null) ?? null,
     responseText: (row.response_text as string | null) ?? null,
     respondedBy: (row.responded_by as string | null) ?? null,
     expiresAt: (row.expires_at as string | null) ?? null,
     resolvedAt: (row.resolved_at as string | null) ?? null,
     createdAt: String(row.created_at),
+    updatedAt: String(row.updated_at)
+  };
+}
+
+export function mapMessageRow(row: Row): MessageRecord {
+  return {
+    id: String(row.id),
+    runId: String(row.run_id),
+    teamId: (row.team_id as string | null) ?? null,
+    fromKind: row.from_kind as MessageRecord["fromKind"],
+    fromId: (row.from_id as string | null) ?? null,
+    fromWorkerId: (row.from_worker_id as string | null) ?? null,
+    toKind: row.to_kind as MessageRecord["toKind"],
+    toId: String(row.to_id),
+    threadId: (row.thread_id as string | null) ?? null,
+    replyToMessageId: (row.reply_to_message_id as string | null) ?? null,
+    messageType: row.message_type as MessageRecord["messageType"],
+    priority: Number(row.priority),
+    subject: (row.subject as string | null) ?? null,
+    body: String(row.body),
+    artifactRefs: parseArtifactRefs(row.artifact_refs_json),
+    metadata: parseJsonObject(row.metadata_json),
+    deliveredAt: (row.delivered_at as string | null) ?? null,
+    readAt: (row.read_at as string | null) ?? null,
+    createdAt: String(row.created_at)
+  };
+}
+
+export function mapMailboxCursorRow(row: Row): MailboxCursorRecord {
+  return {
+    ownerKind: row.owner_kind as MailboxCursorRecord["ownerKind"],
+    ownerId: String(row.owner_id),
+    lastMessageId: (row.last_message_id as string | null) ?? null,
+    lastMessageAt: (row.last_message_at as string | null) ?? null,
     updatedAt: String(row.updated_at)
   };
 }

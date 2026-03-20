@@ -30,6 +30,15 @@ export class TaskService {
     invariant(input.subject.trim().length > 0, "TASK_SUBJECT_REQUIRED", "task subject is required");
     const run = this.store.runs.getById(input.runId);
     invariant(run, "RUN_NOT_FOUND", `run '${input.runId}' was not found`);
+    if (input.teamId) {
+      const team = this.store.teams.getById(input.teamId);
+      invariant(team && team.runId === input.runId, "TASK_TEAM_INVALID", "task team must belong to the run");
+      invariant(team.status !== "deleted", "TASK_TEAM_DELETED", `team '${input.teamId}' is deleted`);
+    }
+    if (input.parentTaskId) {
+      const parent = this.store.tasks.getById(input.parentTaskId);
+      invariant(parent && parent.runId === input.runId, "TASK_PARENT_INVALID", "task parent must belong to the run");
+    }
 
     return this.store.transaction(() => {
       const timestamp = nowIso(this.clock);
@@ -42,25 +51,36 @@ export class TaskService {
           `task dependency '${dependencyId}' is not in run '${input.runId}'`
         );
       }
+      const existing = this.store.tasks.findOpenNaturalKey({
+        runId: input.runId,
+        teamId: input.teamId ?? null,
+        parentTaskId: input.parentTaskId ?? null,
+        subject: input.subject.trim(),
+        role: input.role,
+        stepRef: input.stepRef ?? null
+      });
+      if (existing) {
+        return existing;
+      }
 
       const record: TaskRecord = {
         id: createStableId("task"),
         runId: input.runId,
-        teamId: null,
+        teamId: input.teamId ?? null,
         parentTaskId: input.parentTaskId ?? null,
         subject: input.subject.trim(),
-        activeForm: null,
+        activeForm: input.activeForm ?? null,
         description: input.description?.trim() ?? "",
         role: input.role,
         workflowStep: input.workflowStep ?? null,
-        status: "pending",
+        status: dependencies.length > 0 ? "pending" : "ready",
         priority: input.priority ?? 100,
         ownerWorkerId: null,
-        planDir: null,
-        phaseFile: null,
-        stepRef: null,
+        planDir: input.planDir ?? null,
+        phaseFile: input.phaseFile ?? null,
+        stepRef: input.stepRef ?? null,
         blockingReason: null,
-        fileOwnership: [],
+        fileOwnership: input.fileOwnership ?? [],
         metadata: input.metadata ?? {},
         startedAt: null,
         completedAt: null,
@@ -80,6 +100,15 @@ export class TaskService {
         eventType: "task.created",
         payload: { status: task.status, dependsOn: dependencies }
       });
+      if (task.status === "ready") {
+        this.store.events.append({
+          runId: task.runId,
+          entityType: "task",
+          entityId: task.id,
+          eventType: "task.ready",
+          payload: { status: task.status }
+        });
+      }
       return task;
     });
   }
@@ -94,7 +123,12 @@ export class TaskService {
     return task;
   }
 
-  updateTask(id: string, patch: Partial<Pick<TaskRecord, "status" | "blockingReason" | "activeForm">>): TaskRecord {
+  updateTask(
+    id: string,
+    patch: Partial<Pick<TaskRecord, "status" | "blockingReason" | "activeForm" | "priority" | "metadata">> & {
+      appendNote?: string;
+    }
+  ): TaskRecord {
     return this.store.transaction(() => {
       const task = this.getTask(id);
       const timestamp = nowIso(this.clock);
@@ -111,6 +145,21 @@ export class TaskService {
       if (patch.activeForm !== undefined) {
         next.activeForm = patch.activeForm;
       }
+      if (patch.priority !== undefined) {
+        next.priority = patch.priority;
+      }
+      if (patch.metadata !== undefined) {
+        next.metadata = { ...task.metadata, ...patch.metadata };
+      }
+      const note = patch.appendNote?.trim();
+      if (note) {
+        const metadata = (next.metadata ?? task.metadata) as Record<string, unknown>;
+        const existingNotes = Array.isArray(metadata.auditNotes) ? metadata.auditNotes : [];
+        next.metadata = {
+          ...metadata,
+          auditNotes: [...existingNotes, { at: timestamp, note }]
+        };
+      }
       if (patch.status === "in_progress" && !task.ownerWorkerId) {
         invariant(false, "TASK_CLAIM_REQUIRED", "task cannot enter in_progress without an active claim");
       }
@@ -121,6 +170,18 @@ export class TaskService {
         next.completedAt = timestamp;
       }
 
+      const noFunctionalChange =
+        next.status === undefined &&
+        next.blockingReason === undefined &&
+        next.activeForm === undefined &&
+        next.priority === undefined &&
+        next.metadata === undefined &&
+        next.startedAt === undefined &&
+        next.completedAt === undefined;
+      if (noFunctionalChange) {
+        return task;
+      }
+
       const updated = this.store.tasks.update(id, next);
       this.store.events.append({
         runId: task.runId,
@@ -129,6 +190,42 @@ export class TaskService {
         eventType: "task.updated",
         payload: { status: updated.status, blockingReason: updated.blockingReason }
       });
+      if (patch.status === "blocked") {
+        this.store.events.append({
+          runId: task.runId,
+          entityType: "task",
+          entityId: id,
+          eventType: "task.blocked",
+          payload: { status: updated.status, blockingReason: updated.blockingReason }
+        });
+      }
+      if (patch.status === "ready") {
+        this.store.events.append({
+          runId: task.runId,
+          entityType: "task",
+          entityId: id,
+          eventType: "task.ready",
+          payload: { status: updated.status }
+        });
+      }
+      if (patch.status === "completed") {
+        this.store.events.append({
+          runId: task.runId,
+          entityType: "task",
+          entityId: id,
+          eventType: "task.completed",
+          payload: { status: updated.status }
+        });
+      }
+      if (patch.status === "failed") {
+        this.store.events.append({
+          runId: task.runId,
+          entityType: "task",
+          entityId: id,
+          eventType: "task.failed",
+          payload: { status: updated.status }
+        });
+      }
       return updated;
     });
   }
@@ -186,6 +283,24 @@ export class TaskService {
         eventType: "task.recomputed",
         payload: { status: updated.status, blockingReason: updated.blockingReason }
       });
+      if (updated.status === "ready" && task.status !== "ready") {
+        this.store.events.append({
+          runId: task.runId,
+          entityType: "task",
+          entityId: taskId,
+          eventType: "task.ready",
+          payload: { status: updated.status }
+        });
+      }
+      if (updated.status === "blocked" && task.status !== "blocked") {
+        this.store.events.append({
+          runId: task.runId,
+          entityType: "task",
+          entityId: taskId,
+          eventType: "task.blocked",
+          payload: { status: updated.status, blockingReason: updated.blockingReason }
+        });
+      }
       return updated;
     });
   }

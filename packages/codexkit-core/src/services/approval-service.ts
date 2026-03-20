@@ -17,14 +17,28 @@ export class ApprovalService {
   }
 
   createApproval(input: CreateApprovalInput): ApprovalRecord {
+    return this.requestApproval(input);
+  }
+
+  requestApproval(input: CreateApprovalInput): ApprovalRecord {
     const run = this.store.runs.getById(input.runId);
     invariant(run, "RUN_NOT_FOUND", `run '${input.runId}' was not found`);
     if (input.taskId) {
       const task = this.store.tasks.getById(input.taskId);
       invariant(task && task.runId === input.runId, "APPROVAL_TASK_INVALID", "approval task must belong to the run");
     }
+    if (input.requestedByWorkerId) {
+      const worker = this.store.workers.getById(input.requestedByWorkerId);
+      invariant(worker && worker.runId === input.runId, "APPROVAL_WORKER_INVALID", "approval requester worker must belong to the run");
+    }
 
     return this.store.transaction(() => {
+      const existing = this.store.approvals
+        .list({ runId: input.runId, status: "pending" })
+        .find((approval) => approval.taskId === (input.taskId ?? null) && approval.checkpoint === input.checkpoint);
+      if (existing) {
+        return existing;
+      }
       const timestamp = nowIso(this.clock);
       const record: ApprovalRecord = {
         id: createStableId("approval"),
@@ -52,12 +66,31 @@ export class ApprovalService {
           updatedAt: timestamp
         });
       }
+      if (approval.requestedByWorkerId) {
+        const worker = this.store.workers.getById(approval.requestedByWorkerId);
+        if (worker && worker.state !== "failed" && worker.state !== "stopped") {
+          this.store.workers.update(worker.id, { state: "waiting_approval", updatedAt: timestamp });
+        }
+      }
       this.store.events.append({
         runId: approval.runId,
         entityType: "approval",
         entityId: approval.id,
-        eventType: "approval.created",
+        eventType: "approval.requested",
         payload: { checkpoint: approval.checkpoint, status: approval.status }
+      });
+      this.appendSystemMessage({
+        runId: approval.runId,
+        toKind: "user",
+        toId: approval.runId,
+        messageType: "approval_request",
+        subject: approval.checkpoint,
+        body: approval.question,
+        metadata: {
+          approvalId: approval.id,
+          taskId: approval.taskId,
+          options: approval.options
+        }
       });
       return approval;
     });
@@ -74,13 +107,34 @@ export class ApprovalService {
   }
 
   resolveApproval(id: string, status: Exclude<ApprovalStatus, "pending">, responseText?: string): ApprovalRecord {
+    return this.respondApproval(id, status, responseText);
+  }
+
+  respondApproval(
+    id: string,
+    status: Exclude<ApprovalStatus, "pending">,
+    responseText?: string,
+    options?: { autoApproveRun?: boolean; responseCode?: string }
+  ): ApprovalRecord {
     return this.store.transaction(() => {
       const approval = this.getApproval(id);
-      invariant(approval.status === "pending", "APPROVAL_ALREADY_RESOLVED", `approval '${id}' is already resolved`);
       const timestamp = nowIso(this.clock);
+      const autoApproveRun = options?.autoApproveRun === true;
+      if (autoApproveRun) {
+        invariant(status === "approved", "APPROVAL_AUTO_APPROVE_INVALID", "auto_approve_run requires approved status");
+      }
+      if (approval.status !== "pending") {
+        if (autoApproveRun) {
+          this.setRunAutoApprovalPolicy(approval.runId, approval.id, timestamp);
+        }
+        if (approval.status === status && approval.responseText === (responseText ?? null)) {
+          return approval;
+        }
+        invariant(false, "APPROVAL_ALREADY_RESOLVED", `approval '${id}' is already resolved`);
+      }
       const updated = this.store.approvals.update(id, {
         status,
-        responseCode: status,
+        responseCode: options?.responseCode ?? status,
         responseText: responseText ?? null,
         respondedBy: "user",
         resolvedAt: timestamp,
@@ -94,6 +148,15 @@ export class ApprovalService {
           updatedAt: timestamp
         });
       }
+      if (approval.requestedByWorkerId) {
+        const worker = this.store.workers.getById(approval.requestedByWorkerId);
+        if (worker && worker.state !== "failed" && worker.state !== "stopped") {
+          this.store.workers.update(worker.id, {
+            state: status === "approved" || status === "revised" ? "running" : "blocked",
+            updatedAt: timestamp
+          });
+        }
+      }
 
       this.store.events.append({
         runId: approval.runId,
@@ -102,6 +165,22 @@ export class ApprovalService {
         eventType: "approval.resolved",
         payload: { status: updated.status }
       });
+      this.appendSystemMessage({
+        runId: approval.runId,
+        toKind: approval.requestedByWorkerId ? "worker" : "user",
+        toId: approval.requestedByWorkerId ?? approval.runId,
+        messageType: approval.checkpoint.includes("plan") ? "plan_approval_response" : "approval_response",
+        subject: approval.checkpoint,
+        body: responseText ?? status,
+        metadata: {
+          approvalId: approval.id,
+          responseCode: status,
+          taskId: approval.taskId
+        }
+      });
+      if (autoApproveRun) {
+        this.setRunAutoApprovalPolicy(approval.runId, approval.id, timestamp);
+      }
       return updated;
     });
   }
@@ -112,5 +191,69 @@ export class ApprovalService {
       .list({ status: "pending" })
       .filter((approval) => approval.expiresAt !== null && approval.expiresAt <= cutoff)
       .map((approval) => this.resolveApproval(approval.id, "expired", "approval expired"));
+  }
+
+  private appendSystemMessage(input: {
+    runId: string;
+    toKind: "user" | "worker" | "team";
+    toId: string;
+    messageType: "approval_request" | "approval_response" | "plan_approval_response";
+    subject: string;
+    body: string;
+    metadata: Record<string, unknown>;
+  }): void {
+    const timestamp = nowIso(this.clock);
+    const message = this.store.messages.create({
+      id: createStableId("msg"),
+      runId: input.runId,
+      teamId: null,
+      fromKind: "system",
+      fromId: "daemon",
+      fromWorkerId: null,
+      toKind: input.toKind,
+      toId: input.toId,
+      threadId: null,
+      replyToMessageId: null,
+      messageType: input.messageType,
+      priority: 100,
+      subject: input.subject,
+      body: input.body,
+      artifactRefs: [],
+      metadata: input.metadata,
+      deliveredAt: null,
+      readAt: null,
+      createdAt: timestamp
+    });
+    this.store.events.append({
+      runId: message.runId,
+      entityType: "message",
+      entityId: message.id,
+      eventType: "message.sent",
+      actorKind: "system",
+      actorId: "daemon",
+      payload: { toKind: message.toKind, toId: message.toId, messageType: message.messageType }
+    });
+  }
+
+  private setRunAutoApprovalPolicy(runId: string, approvalId: string, timestamp: string): void {
+    const key = `approval.policy.run.${runId}`;
+    if (this.store.settings.get(key) === "auto") {
+      return;
+    }
+    this.store.settings.set(key, "auto");
+    this.store.events.append({
+      runId,
+      entityType: "run",
+      entityId: runId,
+      eventType: "run.approval_policy.updated",
+      actorKind: "user",
+      actorId: "terminal",
+      payload: {
+        policy: "auto",
+        scope: "run",
+        sourceApprovalId: approvalId,
+        updatedAt: timestamp
+      }
+    });
   }
 }

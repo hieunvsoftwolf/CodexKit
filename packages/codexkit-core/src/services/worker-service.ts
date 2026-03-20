@@ -20,13 +20,18 @@ export class WorkerService {
     invariant(input.displayName.trim().length > 0, "WORKER_NAME_REQUIRED", "worker display name is required");
     const run = this.store.runs.getById(input.runId);
     invariant(run, "RUN_NOT_FOUND", `run '${input.runId}' was not found`);
+    if (input.teamId) {
+      const team = this.store.teams.getById(input.teamId);
+      invariant(team && team.runId === input.runId, "WORKER_TEAM_INVALID", "worker team must belong to the run");
+      invariant(team.status !== "deleted", "WORKER_TEAM_DELETED", `team '${input.teamId}' is deleted`);
+    }
 
     return this.store.transaction(() => {
       const timestamp = nowIso(this.clock);
       const record: WorkerRecord = {
         id: createStableId("worker"),
         runId: input.runId,
-        teamId: null,
+        teamId: input.teamId ?? null,
         role: input.role,
         displayName: input.displayName.trim(),
         state: "idle",

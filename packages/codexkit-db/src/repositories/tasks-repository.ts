@@ -93,6 +93,14 @@ export class TasksRepositorySqlite implements TasksRepository {
       clauses.push("status = ?");
       values.push(filters.status);
     }
+    if (filters?.teamId) {
+      clauses.push("team_id = ?");
+      values.push(filters.teamId);
+    }
+    if (filters?.role) {
+      clauses.push("role = ?");
+      values.push(filters.role);
+    }
     if (filters?.ownerWorkerId) {
       clauses.push("owner_worker_id = ?");
       values.push(filters.ownerWorkerId);
@@ -104,6 +112,36 @@ export class TasksRepositorySqlite implements TasksRepository {
     }
     sql += " ORDER BY priority ASC, created_at ASC";
     return (this.database.prepare(sql).all(...values) as Record<string, unknown>[]).map(mapTaskRow);
+  }
+
+  findOpenNaturalKey(input: {
+    runId: string;
+    teamId: string | null;
+    parentTaskId: string | null;
+    subject: string;
+    role: string;
+    stepRef: string | null;
+  }): TaskRecord | null {
+    const row = this.database
+      .prepare(
+        `
+          SELECT *
+          FROM tasks
+          WHERE run_id = ?
+            AND team_id IS ?
+            AND parent_task_id IS ?
+            AND subject = ?
+            AND role = ?
+            AND step_ref IS ?
+            AND status NOT IN ('completed', 'failed', 'cancelled')
+          ORDER BY created_at ASC
+          LIMIT 1
+        `
+      )
+      .get(input.runId, input.teamId, input.parentTaskId, input.subject, input.role, input.stepRef) as
+      | Record<string, unknown>
+      | undefined;
+    return row ? mapTaskRow(row) : null;
   }
 
   update(id: string, patch: Partial<TaskRecord>): TaskRecord {

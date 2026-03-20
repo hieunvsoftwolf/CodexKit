@@ -2,8 +2,10 @@ import {
   ApprovalService,
   ArtifactService,
   EventService,
+  MessageService,
   RunService,
   TaskService,
+  TeamService,
   WorkerService,
   ClaimService,
   type RuntimeClock
@@ -19,15 +21,18 @@ export function openRuntimeContext(config: RuntimeConfig, clock: RuntimeClock = 
   const database = openRuntimeDatabase(config.paths);
   migrateDatabase(database);
   const store = createRuntimeStore(database);
+  const messageService = new MessageService(store, clock);
   return {
     config,
     clock,
     database,
     store,
     runService: new RunService(store, clock),
+    teamService: new TeamService(store, clock),
     taskService: new TaskService(store, clock),
     workerService: new WorkerService(store, clock),
     claimService: new ClaimService(store, clock),
+    messageService,
     approvalService: new ApprovalService(store, clock),
     artifactService: new ArtifactService(store, clock),
     eventService: new EventService(store),

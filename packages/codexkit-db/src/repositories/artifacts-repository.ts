@@ -39,6 +39,13 @@ export class ArtifactsRepositorySqlite implements ArtifactsRepository {
     return row ? mapArtifactRow(row) : null;
   }
 
+  getByRunPath(runId: string, path: string): ArtifactRecord | null {
+    const row = this.database
+      .prepare("SELECT * FROM artifacts WHERE run_id = ? AND path = ?")
+      .get(runId, path) as Record<string, unknown> | undefined;
+    return row ? mapArtifactRow(row) : null;
+  }
+
   list(filters?: ArtifactListFilters): ArtifactRecord[] {
     const clauses: string[] = [];
     const values: SQLInputValue[] = [];

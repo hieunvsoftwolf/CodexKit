@@ -79,6 +79,10 @@ export class WorkersRepositorySqlite implements WorkersRepository {
       clauses.push("state = ?");
       values.push(filters.state);
     }
+    if (filters?.teamId) {
+      clauses.push("team_id = ?");
+      values.push(filters.teamId);
+    }
 
     let sql = "SELECT * FROM workers";
     if (clauses.length > 0) {
@@ -86,6 +90,25 @@ export class WorkersRepositorySqlite implements WorkersRepository {
     }
     sql += " ORDER BY created_at ASC";
     return (this.database.prepare(sql).all(...values) as Record<string, unknown>[]).map(mapWorkerRow);
+  }
+
+  findCompatibleLiveByTask(taskId: string): WorkerRecord | null {
+    const row = this.database
+      .prepare(
+        `
+          SELECT w.*
+          FROM claims AS c
+          JOIN workers AS w
+            ON w.id = c.worker_id
+          WHERE c.task_id = ?
+            AND c.status = 'active'
+            AND w.state IN ('starting', 'idle', 'running', 'blocked', 'waiting_message', 'waiting_approval')
+          ORDER BY w.created_at ASC
+          LIMIT 1
+        `
+      )
+      .get(taskId) as Record<string, unknown> | undefined;
+    return row ? mapWorkerRow(row) : null;
   }
 
   update(id: string, patch: Partial<WorkerRecord>): WorkerRecord {

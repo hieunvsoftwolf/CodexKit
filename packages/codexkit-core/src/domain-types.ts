@@ -1,6 +1,7 @@
 export type JsonObject = Record<string, unknown>;
 export type RunMode = "interactive" | "auto" | "fast" | "parallel" | "no-test" | "code";
 export type RunStatus = "pending" | "running" | "blocked" | "completed" | "failed" | "cancelled";
+export type TeamStatus = "active" | "idle" | "waiting" | "shutting_down" | "deleted";
 export type TaskStatus =
   | "pending"
   | "ready"
@@ -20,9 +21,24 @@ export type WorkerState =
   | "failed";
 export type ClaimStatus = "active" | "released" | "expired" | "superseded";
 export type ApprovalStatus = "pending" | "approved" | "revised" | "rejected" | "aborted" | "expired";
-export type EntityType = "run" | "worker" | "task" | "claim" | "approval" | "artifact";
+export type EntityType = "run" | "team" | "worker" | "task" | "claim" | "message" | "approval" | "artifact";
 export type ActorKind = "system" | "user" | "worker" | "team";
 export type ArtifactKind = "report" | "patch" | "test-log" | "review" | "plan" | "summary" | "screenshot" | "trace" | "docs";
+export type RecipientKind = "user" | "worker" | "team";
+export type MessageType =
+  | "message"
+  | "status"
+  | "shutdown_request"
+  | "shutdown_response"
+  | "approval_request"
+  | "approval_response"
+  | "plan_approval_response";
+
+export interface ApprovalOption {
+  code: string;
+  label: string;
+  description?: string;
+}
 
 export interface RunRecord {
   id: string;
@@ -46,6 +62,19 @@ export interface TaskDependencyRecord {
   dependsOnTaskId: string;
   dependencyType: "blocks" | "soft-blocks";
   createdAt: string;
+}
+
+export interface TeamRecord {
+  id: string;
+  runId: string;
+  name: string;
+  slug: string;
+  status: TeamStatus;
+  description: string;
+  orchestratorWorkerId: string | null;
+  metadata: JsonObject;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface TaskRecord {
@@ -116,13 +145,49 @@ export interface ApprovalRecord {
   checkpoint: string;
   status: ApprovalStatus;
   question: string;
-  options: string[];
+  options: ApprovalOption[];
   responseCode: string | null;
   responseText: string | null;
   respondedBy: string | null;
   expiresAt: string | null;
   resolvedAt: string | null;
   createdAt: string;
+  updatedAt: string;
+}
+
+export interface MessageArtifactRef {
+  artifactId: string;
+  path?: string;
+  kind?: ArtifactKind;
+}
+
+export interface MessageRecord {
+  id: string;
+  runId: string;
+  teamId: string | null;
+  fromKind: ActorKind;
+  fromId: string | null;
+  fromWorkerId: string | null;
+  toKind: RecipientKind;
+  toId: string;
+  threadId: string | null;
+  replyToMessageId: string | null;
+  messageType: MessageType;
+  priority: number;
+  subject: string | null;
+  body: string;
+  artifactRefs: MessageArtifactRef[];
+  metadata: JsonObject;
+  deliveredAt: string | null;
+  readAt: string | null;
+  createdAt: string;
+}
+
+export interface MailboxCursorRecord {
+  ownerKind: RecipientKind;
+  ownerId: string;
+  lastMessageId: string | null;
+  lastMessageAt: string | null;
   updatedAt: string;
 }
 
@@ -169,6 +234,8 @@ export interface CreateRunInput {
 
 export interface CreateTaskInput {
   runId: string;
+  teamId?: string | null;
+  activeForm?: string | null;
   role: string;
   subject: string;
   description?: string;
@@ -176,11 +243,16 @@ export interface CreateTaskInput {
   workflowStep?: string | null;
   priority?: number;
   dependsOn?: string[];
+  planDir?: string | null;
+  phaseFile?: string | null;
+  stepRef?: string | null;
+  fileOwnership?: string[];
   metadata?: JsonObject;
 }
 
 export interface RegisterWorkerInput {
   runId: string;
+  teamId?: string | null;
   role: string;
   displayName: string;
   executionMode?: WorkerRecord["executionMode"];
@@ -206,6 +278,32 @@ export interface CreateApprovalInput {
   requestedByWorkerId?: string | null;
   checkpoint: string;
   question: string;
-  options?: string[];
+  options?: ApprovalOption[];
   expiresAt?: string | null;
+}
+
+export interface CreateTeamInput {
+  runId: string;
+  name: string;
+  description?: string;
+  orchestratorRole?: string;
+  metadata?: JsonObject;
+}
+
+export interface CreateMessageInput {
+  runId: string;
+  teamId?: string | null;
+  fromKind: ActorKind;
+  fromId?: string | null;
+  fromWorkerId?: string | null;
+  toKind: RecipientKind;
+  toId: string;
+  threadId?: string | null;
+  replyToMessageId?: string | null;
+  messageType?: MessageType;
+  priority?: number;
+  subject?: string | null;
+  body: string;
+  artifactRefs?: MessageArtifactRef[];
+  metadata?: JsonObject;
 }

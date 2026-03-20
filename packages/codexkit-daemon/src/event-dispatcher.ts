@@ -24,6 +24,11 @@ export class RuntimeEventDispatcher {
 
   private handleEvent(event: EventRecord): void {
     switch (event.entityType) {
+      case "team":
+        if (event.runId) {
+          this.context.runService.recomputeRun(event.runId);
+        }
+        return;
       case "task":
         this.context.taskService.recomputeTask(event.entityId);
         if (event.runId) {
@@ -48,6 +53,35 @@ export class RuntimeEventDispatcher {
         }
         if (approval?.runId) {
           this.context.runService.recomputeRun(approval.runId);
+        }
+        return;
+      }
+      case "message": {
+        const message = this.context.store.messages.getById(event.entityId);
+        if (!message) {
+          return;
+        }
+        const timestamp = this.context.clock.now().toISOString();
+        if (message.toKind === "worker") {
+          const worker = this.context.store.workers.getById(message.toId);
+          if (worker && worker.state === "waiting_message") {
+            this.context.store.workers.update(worker.id, { state: "running", updatedAt: timestamp });
+          }
+        }
+        if (message.toKind === "team") {
+          const team = this.context.store.teams.getById(message.toId);
+          if (team && team.status !== "deleted" && team.status !== "shutting_down") {
+            this.context.store.teams.update(team.id, { status: "waiting", updatedAt: timestamp });
+            if (team.orchestratorWorkerId) {
+              const worker = this.context.store.workers.getById(team.orchestratorWorkerId);
+              if (worker && worker.state === "waiting_message") {
+                this.context.store.workers.update(worker.id, { state: "running", updatedAt: timestamp });
+              }
+            }
+          }
+        }
+        if (event.runId) {
+          this.context.runService.recomputeRun(event.runId);
         }
         return;
       }

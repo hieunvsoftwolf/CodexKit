@@ -7,8 +7,13 @@ import type {
   ClaimStatus,
   EventRecord,
   JsonObject,
+  MailboxCursorRecord,
+  MessageRecord,
+  RecipientKind,
   RunRecord,
   RunStatus,
+  TeamRecord,
+  TeamStatus,
   TaskDependencyRecord,
   TaskRecord,
   TaskStatus,
@@ -24,13 +29,22 @@ export interface RunListFilters {
 
 export interface TaskListFilters {
   runId?: string;
+  teamId?: string;
+  role?: string;
   status?: TaskStatus;
   ownerWorkerId?: string;
+}
+
+export interface TeamListFilters {
+  runId?: string;
+  status?: TeamStatus;
+  slug?: string;
 }
 
 export interface WorkerListFilters {
   runId?: string;
   state?: WorkerState;
+  teamId?: string;
 }
 
 export interface ClaimListFilters {
@@ -51,6 +65,13 @@ export interface ArtifactListFilters {
   taskId?: string;
   workerId?: string;
   artifactKind?: ArtifactKind;
+}
+
+export interface MessageListFilters {
+  runId?: string;
+  toKind?: RecipientKind;
+  toId?: string;
+  fromWorkerId?: string;
 }
 
 export interface EventDraft {
@@ -81,14 +102,31 @@ export interface TasksRepository {
   create(record: TaskRecord, dependsOn: string[]): TaskRecord;
   getById(id: string): TaskRecord | null;
   list(filters?: TaskListFilters): TaskRecord[];
+  findOpenNaturalKey(input: {
+    runId: string;
+    teamId: string | null;
+    parentTaskId: string | null;
+    subject: string;
+    role: string;
+    stepRef: string | null;
+  }): TaskRecord | null;
   update(id: string, patch: Partial<TaskRecord>): TaskRecord;
   getDependencies(taskId: string): TaskDependencyRecord[];
+}
+
+export interface TeamsRepository {
+  create(record: TeamRecord): TeamRecord;
+  getById(id: string): TeamRecord | null;
+  getByRunName(runId: string, name: string): TeamRecord | null;
+  list(filters?: TeamListFilters): TeamRecord[];
+  update(id: string, patch: Partial<TeamRecord>): TeamRecord;
 }
 
 export interface WorkersRepository {
   create(record: WorkerRecord): WorkerRecord;
   getById(id: string): WorkerRecord | null;
   list(filters?: WorkerListFilters): WorkerRecord[];
+  findCompatibleLiveByTask(taskId: string): WorkerRecord | null;
   update(id: string, patch: Partial<WorkerRecord>): WorkerRecord;
 }
 
@@ -109,7 +147,27 @@ export interface ApprovalsRepository {
 export interface ArtifactsRepository {
   create(record: ArtifactRecord): ArtifactRecord;
   getById(id: string): ArtifactRecord | null;
+  getByRunPath(runId: string, path: string): ArtifactRecord | null;
   list(filters?: ArtifactListFilters): ArtifactRecord[];
+}
+
+export interface MessagesRepository {
+  create(record: MessageRecord): MessageRecord;
+  getById(id: string): MessageRecord | null;
+  list(filters?: MessageListFilters): MessageRecord[];
+  listMailboxAfterCursor(input: {
+    ownerKind: RecipientKind;
+    ownerId: string;
+    afterMessageId?: string;
+    limit: number;
+  }): MessageRecord[];
+  markDelivered(messageIds: string[], deliveredAt: string): void;
+  markRead(messageIds: string[], readAt: string): void;
+}
+
+export interface MailboxCursorsRepository {
+  get(ownerKind: RecipientKind, ownerId: string): MailboxCursorRecord | null;
+  upsert(record: MailboxCursorRecord): MailboxCursorRecord;
 }
 
 export interface EventsRepository {
@@ -123,9 +181,12 @@ export interface RuntimeStore {
   transaction<T>(callback: () => T): T;
   settings: SettingsRepository;
   runs: RunsRepository;
+  teams: TeamsRepository;
   tasks: TasksRepository;
   workers: WorkersRepository;
   claims: ClaimsRepository;
+  messages: MessagesRepository;
+  mailboxCursors: MailboxCursorsRepository;
   approvals: ApprovalsRepository;
   artifacts: ArtifactsRepository;
   events: EventsRepository;
