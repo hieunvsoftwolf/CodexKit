@@ -100,6 +100,7 @@
 - `reports/phase-4-wave-1-cleanup-disposition-report.md`
 - `reports/control-state-phase-4-cleanup-report-ingested-waiting-for-clean-freeze.md`
 - `reports/control-state-phase-4-clean-local-commit-waiting-for-sync-freeze.md`
+- `reports/control-state-phase-4-synced-ready-for-freeze.md`
 - `reports/phase-1-session-d-verdict.md`
 - `reports/phase-1-session-b0-blocked-20260314.md`
 - `reports/phase-1-session-b0-spec-test-design-report.md`
