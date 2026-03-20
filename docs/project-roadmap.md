@@ -2,7 +2,7 @@
 
 **Project**: CodexKit
 **Version**: 0.1.0-draft
-**Last Updated**: 2026-03-13
+**Last Updated**: 2026-03-20
 **Status**: Planning
 **Primary Goal**: Migrate ClaudeKit workflows to Codex with functional parity
 
@@ -180,19 +180,21 @@ This order prevents rewriting prompts before the target runtime exists.
 - importer for agents
 - importer for skills
 - importer for rules
-- plan template importer
+- Wave 1 manifest registry for the current repo surface
 
 ### Capabilities Added
 
 - role manifests
 - workflow manifests
 - policy packs
-- report naming and plan naming templates
+- deterministic import inventory for the frozen Wave 1 baseline
 
 ### Exit Criteria
 
 - Core ClaudeKit roles imported and loadable
 - Core workflow definitions imported and executable against compatibility primitives
+- Current baseline policy files imported and auditable
+- Template import remains out of Wave 1 until `plans/templates/` exists in a re-frozen source baseline
 
 ## Phase 5: Workflow Parity Core
 

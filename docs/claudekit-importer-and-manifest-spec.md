@@ -2,7 +2,7 @@
 
 **Project**: CodexKit  
 **Scope**: Phase 4 content import  
-**Last Updated**: 2026-03-12  
+**Last Updated**: 2026-03-20  
 **Status**: Draft for implementation
 
 ## 1) Purpose
@@ -14,7 +14,8 @@ This phase exists to preserve reusable ClaudeKit behavior:
 - role specialization from `.claude/agents/*.md`
 - workflow intent from `.claude/skills/*/SKILL.md`
 - policy guidance from `.claude/rules/*.md`
-- plan skeletons from `plans/templates/*`
+
+Wave 1 freezes Phase 4 to the importable surface that exists in the current repo tree. Template import is deferred until template source files exist again under a future restored baseline.
 
 This phase does not recreate Claude-native runtime internals. It extracts content, normalizes host-specific assumptions, and emits deterministic manifest files under `.codexkit/manifests/`.
 
@@ -26,7 +27,6 @@ In scope:
 - role manifests
 - workflow manifests
 - policy pack manifests
-- template manifests
 - source-to-target mapping rules
 - unsupported and legacy content handling
 - migration safety and auditability
@@ -44,10 +44,10 @@ Out of scope:
 
 The current repo snapshot contains:
 
-- `14` agent files in `.claude/agents/`
+- `15` agent files in `.claude/agents/`
 - `68` skill entrypoints in `.claude/skills/*/SKILL.md`
 - `5` rules in `.claude/rules/`
-- `4` files in `plans/templates/`
+- `0` files in `plans/templates/` because that directory is absent in the current repo tree
 - `19` archived command files under `.claude/command-archive/`
 
 Phase 4 must treat this as a mixed source tree:
@@ -64,8 +64,7 @@ Phase 4 must treat this as a mixed source tree:
 | `.claude/agents/*.md` | `.codexkit/manifests/roles/*.role.json` | Import |
 | `.claude/skills/*/SKILL.md` | `.codexkit/manifests/workflows/*.workflow.json` | Import |
 | `.claude/rules/*.md` | `.codexkit/manifests/policies/*.policy.json` | Import |
-| `plans/templates/*-template.md` | `.codexkit/manifests/templates/*.template.json` | Import |
-| `plans/templates/template-usage-guide.md` | linked resource from template manifests | Reference only |
+| `plans/templates/**` | none in Wave 1 | Deferred until source restoration creates a real template tree |
 | `.claude/.ck.json` | provenance/settings hints in registry | Read-only metadata |
 | `.claude/metadata.json` | provenance/settings hints in registry | Read-only metadata |
 | `.claude/settings.json` | audit only | Skip |
@@ -86,19 +85,18 @@ Phase 4 must treat this as a mixed source tree:
 │   │   └── {workflow-id}.workflow.json
 │   ├── policies/
 │   │   └── {policy-id}.policy.json
-│   ├── templates/
-│   │   └── {template-id}.template.json
 │   └── import-registry.json
 ```
 
 Phase 4 writes only inside `.codexkit/`.
+
+Template manifests are not emitted in the current Wave 1 baseline because no template source tree exists to import.
 
 The importer must not:
 
 - edit `.claude/**`
 - rename existing source files
 - delete legacy content
-- rewrite `plans/templates/**`
 
 ## 6) Pipeline
 
@@ -120,7 +118,6 @@ Importer scans only whitelisted roots:
 - `.claude/agents`
 - `.claude/skills`
 - `.claude/rules`
-- `plans/templates`
 
 It also reads `.claude/.ck.json` and `.claude/metadata.json` for provenance only.
 
@@ -131,7 +128,6 @@ Each discovered file is classified as one of:
 - `role-source`
 - `workflow-source`
 - `policy-source`
-- `template-source`
 - `resource-source`
 - `legacy-source`
 - `unsupported-source`
@@ -243,7 +239,7 @@ Field rules:
 | Field | Rule |
 |---|---|
 | `schemaVersion` | starts at `1` for Phase 4 |
-| `manifestType` | one of `role`, `workflow`, `policy`, `template` |
+| `manifestType` | one of `role`, `workflow`, or `policy` in Wave 1 |
 | `id` | canonical CodexKit id |
 | `slug` | filesystem-safe id, kebab-case |
 | `aliases` | source ids and legacy names |
@@ -516,66 +512,16 @@ Policies are imported from `.claude/rules/*.md`.
 - do not attempt full policy execution semantics in Phase 4
 - keep host-hook-only behavior as prose, not executable policy code
 
-## 11) Template Manifest Format
+## 11) Deferred Template Scope
 
-Templates are imported from `plans/templates/*-template.md`.
+Wave 1 does not define a template manifest format because the current repo baseline has no `plans/templates/` directory to import.
 
-`template-usage-guide.md` is not a template manifest. It is a shared guide resource linked from template manifests.
+If template sources are restored in a future baseline, Phase 4 must be re-frozen before implementation or verification expands to:
 
-### 11.1 Required normalized fields
-
-```json
-{
-  "schemaVersion": 1,
-  "manifestType": "template",
-  "id": "feature-implementation",
-  "slug": "feature-implementation",
-  "aliases": ["feature-implementation-template"],
-  "status": "active",
-  "source": {
-    "path": "plans/templates/feature-implementation-template.md",
-    "kind": "plan-template-markdown",
-    "checksum": "sha256:..."
-  },
-  "raw": {
-    "bodyMarkdown": "# [Feature Name] Implementation Plan\n..."
-  },
-  "normalized": {
-    "templateType": "feature-implementation",
-    "displayName": "Feature Implementation",
-    "bodyMarkdown": "# [Feature Name] Implementation Plan\n...",
-    "placeholders": [
-      "Feature Name",
-      "YYYY-MM-DD",
-      "path/to/file.ts"
-    ],
-    "sections": [
-      "Executive Summary",
-      "Requirements",
-      "Architecture Overview",
-      "Implementation Phases",
-      "Testing Strategy"
-    ],
-    "recommendedWhen": "new functionality, endpoints, services, modules"
-  },
-  "resources": [
-    {
-      "path": "plans/templates/template-usage-guide.md",
-      "kind": "markdown-guide",
-      "mode": "reference"
-    }
-  ],
-  "warnings": []
-}
-```
-
-### 11.2 Template mapping rules
-
-- template id comes from filename without `-template.md`
-- body remains literal markdown
-- placeholders are extracted from bracket tokens, uppercase date tokens, and obvious file placeholders
-- `recommendedWhen` comes from `template-usage-guide.md` when a matching section exists
-- non-template files under `plans/templates/` never generate standalone template manifests
+- template discovery under `plans/templates/`
+- template manifest schema and examples
+- template-specific registry counts
+- template-specific acceptance criteria
 
 ## 12) Source-to-Target Mapping Rules
 
@@ -694,11 +640,10 @@ Minimal shape:
     "metadataFound": true
   },
   "summary": {
-    "roles": 14,
+    "roles": 15,
     "coreWorkflows": 12,
     "helperWorkflows": 52,
     "policies": 5,
-    "templates": 3,
     "legacySkipped": 19
   },
   "entries": [],
@@ -713,8 +658,6 @@ Phase 4 is complete only if:
 - all core roles import into valid role manifests
 - all core workflows in the override table import into valid workflow manifests
 - all 5 rule files import into policy manifests
-- `feature-implementation`, `bug-fix`, and `refactor` import into template manifests
-- `template-usage-guide.md` is linked as a resource, not misclassified as a template
 - archived commands are skipped and audited, not auto-promoted
 - settings/hooks/statusline content is skipped and audited, not misrepresented as executable manifests
 - known Claude-native references are rewritten into compatibility primitives

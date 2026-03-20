@@ -2,7 +2,7 @@
 
 **Project Name**: CodexKit
 **Version**: 0.1.0-draft
-**Last Updated**: 2026-03-13
+**Last Updated**: 2026-03-20
 **Status**: Planning
 **Project Type**: Migration product
 **Primary Runtime Target**: Local Codex CLI, terminal-first UX
@@ -128,7 +128,7 @@ The current host assumptions are:
 - Worktree-based worker isolation
 - Plan hydration and sync-back
 - Docs, review, test, and git finalize orchestration
-- Compatibility importer for `.claude/agents`, `.claude/skills`, `.claude/rules`, and `plans/templates`
+- Compatibility importer for `.claude/agents`, `.claude/skills`, and `.claude/rules`, with template import deferred until template sources exist again
 - MCP-based compatibility tool surface for Codex workers
 - Terminal UX for approvals, run state, and targeted agent messaging
 
@@ -146,7 +146,6 @@ The current host assumptions are:
 ### Inputs
 
 - Existing ClaudeKit content in `.claude/`
-- Existing plan templates in `plans/templates/`
 - Existing reports, plans, docs, and conventions in the repository
 - Existing user mental model around `/brainstorm`, `/plan`, `/cook`, `/fix`, `/team`
 - Codex CLI local runtime

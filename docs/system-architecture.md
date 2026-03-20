@@ -2,7 +2,7 @@
 
 **Project**: CodexKit
 **Version**: 0.1.0-draft
-**Last Updated**: 2026-03-13
+**Last Updated**: 2026-03-20
 **Primary Runtime Target**: Local Codex CLI
 **Primary UX**: Terminal-first
 
@@ -247,7 +247,8 @@ flowchart TD
 - `.claude/agents/*.md`
 - `.claude/skills/**`
 - `.claude/rules/*.md`
-- `plans/templates/*`
+
+Wave 1 excludes template sources because `plans/templates/` is absent in the current repo baseline. Template import can be added only after source restoration and a new Phase 4 freeze.
 
 ## Proposed Repository Layout
 

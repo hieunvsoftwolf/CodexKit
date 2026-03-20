@@ -90,6 +90,15 @@
 - `reports/phase-3-base-freeze-report.md`
 - `reports/phase-3-session-b0-spec-test-design.md`
 - `reports/control-state-phase-3-b0-complete-waiting-on-s18.md`
+- `reports/control-state-phase-4-preflight-freeze-reroute.md`
+- `reports/control-state-phase-4-preflight-freeze-classification-required.md`
+- `reports/phase-4-base-freeze-blocked-report.md`
+- `reports/control-state-phase-4-docs-reroute-after-freeze-block.md`
+- `reports/control-state-phase-4-docs-reroute-after-s0-pasteback.md`
+- `reports/phase-4-scope-reconciliation-report.md`
+- `reports/control-state-phase-4-freeze-reroute-after-scope-reconciliation.md`
+- `reports/phase-4-wave-1-cleanup-disposition-report.md`
+- `reports/control-state-phase-4-cleanup-report-ingested-waiting-for-clean-freeze.md`
 - `reports/phase-1-session-d-verdict.md`
 - `reports/phase-1-session-b0-blocked-20260314.md`
 - `reports/phase-1-session-b0-spec-test-design-report.md`
