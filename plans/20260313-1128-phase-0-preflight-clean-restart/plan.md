@@ -88,6 +88,8 @@
 - `reports/phase-2-fourth-remediation-session-b-test-report.md`
 - `reports/phase-2-fourth-remediation-session-d-verdict.md`
 - `reports/phase-3-base-freeze-report.md`
+- `reports/phase-3-session-b0-spec-test-design.md`
+- `reports/control-state-phase-3-b0-complete-waiting-on-s18.md`
 - `reports/phase-1-session-d-verdict.md`
 - `reports/phase-1-session-b0-blocked-20260314.md`
 - `reports/phase-1-session-b0-spec-test-design-report.md`
