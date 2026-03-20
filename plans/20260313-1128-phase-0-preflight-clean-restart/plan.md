@@ -57,6 +57,7 @@
 - `reports/control-state-phase-2-passed.md`
 - `reports/control-state-phase-3-freeze-needed.md`
 - `reports/control-state-phase-3-wave-1-ready.md`
+- `reports/control-state-phase-3-wave-1-ready-in-codexkit.md`
 - `reports/phase-1-session-a-blocked-20260314.md`
 - `reports/phase-1-session-a-implementation-summary.md`
 - `reports/phase-1-remediation-session-a-implementation-summary.md`
