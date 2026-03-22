@@ -124,6 +124,7 @@
 - `reports/phase-5-base-freeze-report.md`
 - `reports/control-state-phase-5-freeze-blocked-by-local-delta.md`
 - `reports/phase-5-freeze-cleanup-report.md`
+- `reports/control-state-phase-5-clean-synced-ready-for-freeze-rerun.md`
 - `reports/phase-1-session-d-verdict.md`
 - `reports/phase-1-session-b0-blocked-20260314.md`
 - `reports/phase-1-session-b0-spec-test-design-report.md`
