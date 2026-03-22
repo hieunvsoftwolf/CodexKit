@@ -127,6 +127,8 @@
 - `reports/control-state-phase-5-clean-synced-ready-for-freeze-rerun.md`
 - `reports/phase-5-freeze-rerun-prep-cleanup-report.md`
 - `reports/control-state-phase-5-freeze-rerun-ready-after-cleanup.md`
+- `reports/phase-5-freeze-rerun-final-prep-cleanup-report.md`
+- `reports/phase-5-freeze-rerun-post-ingest-cleanup-report.md`
 - `reports/phase-1-session-d-verdict.md`
 - `reports/phase-1-session-b0-blocked-20260314.md`
 - `reports/phase-1-session-b0-spec-test-design-report.md`
