@@ -182,6 +182,10 @@
 - `reports/phase-6-base-freeze-report.md`
 - `reports/control-state-phase-6-freeze-blocked-by-local-delta.md`
 - `reports/phase-6-freeze-cleanup-report.md`
+- `reports/control-state-phase-6-clean-synced-ready-for-freeze-rerun.md`
+- `reports/phase-6-base-freeze-rerun-report.md`
+- `reports/control-state-phase-6-freeze-rerun-blocked-by-local-delta.md`
+- `reports/phase-6-freeze-rerun-cleanup-report.md`
 - `reports/phase-1-session-d-verdict.md`
 - `reports/phase-1-session-b0-blocked-20260314.md`
 - `reports/phase-1-session-b0-spec-test-design-report.md`
