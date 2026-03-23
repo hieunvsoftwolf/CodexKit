@@ -4,6 +4,10 @@ import { invariant } from "../errors.ts";
 import type { ApprovalListFilters, RuntimeStore } from "../repository-contracts.ts";
 import { nowIso } from "../service-helpers.ts";
 
+export function runApprovalPolicySettingKey(runId: string): string {
+  return `approval.policy.run.${runId}`;
+}
+
 export class ApprovalService {
   private readonly store: RuntimeStore;
   private readonly clock: RuntimeClock;
@@ -100,6 +104,10 @@ export class ApprovalService {
     return this.store.approvals.list(filters);
   }
 
+  getRunApprovalPolicy(runId: string): "manual" | "auto" {
+    return this.store.settings.get(runApprovalPolicySettingKey(runId)) === "auto" ? "auto" : "manual";
+  }
+
   getApproval(id: string): ApprovalRecord {
     const approval = this.store.approvals.getById(id);
     invariant(approval, "APPROVAL_NOT_FOUND", `approval '${id}' was not found`);
@@ -125,7 +133,7 @@ export class ApprovalService {
       }
       if (approval.status !== "pending") {
         if (autoApproveRun) {
-          this.setRunAutoApprovalPolicy(approval.runId, approval.id, timestamp);
+          this.applyRunApprovalPolicy(approval.runId, "auto", approval.id, timestamp);
         }
         if (approval.status === status && approval.responseText === (responseText ?? null)) {
           return approval;
@@ -179,9 +187,39 @@ export class ApprovalService {
         }
       });
       if (autoApproveRun) {
-        this.setRunAutoApprovalPolicy(approval.runId, approval.id, timestamp);
+        this.applyRunApprovalPolicy(approval.runId, "auto", approval.id, timestamp);
       }
       return updated;
+    });
+  }
+
+  applyRunApprovalPolicy(
+    runId: string,
+    policy: "auto",
+    sourceApprovalId: string,
+    timestamp = nowIso(this.clock)
+  ): void {
+    if (policy !== "auto") {
+      return;
+    }
+    const key = runApprovalPolicySettingKey(runId);
+    if (this.store.settings.get(key) === policy) {
+      return;
+    }
+    this.store.settings.set(key, policy);
+    this.store.events.append({
+      runId,
+      entityType: "run",
+      entityId: runId,
+      eventType: "run.approval_policy.updated",
+      actorKind: "user",
+      actorId: "terminal",
+      payload: {
+        policy,
+        scope: "run",
+        sourceApprovalId,
+        updatedAt: timestamp
+      }
     });
   }
 
@@ -235,25 +273,4 @@ export class ApprovalService {
     });
   }
 
-  private setRunAutoApprovalPolicy(runId: string, approvalId: string, timestamp: string): void {
-    const key = `approval.policy.run.${runId}`;
-    if (this.store.settings.get(key) === "auto") {
-      return;
-    }
-    this.store.settings.set(key, "auto");
-    this.store.events.append({
-      runId,
-      entityType: "run",
-      entityId: runId,
-      eventType: "run.approval_policy.updated",
-      actorKind: "user",
-      actorId: "terminal",
-      payload: {
-        policy: "auto",
-        scope: "run",
-        sourceApprovalId: approvalId,
-        updatedAt: timestamp
-      }
-    });
-  }
 }

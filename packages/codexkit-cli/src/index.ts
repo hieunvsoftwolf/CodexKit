@@ -6,6 +6,7 @@ import { CodexkitError } from "../../codexkit-core/src/index.ts";
 import { RuntimeController, RuntimeDaemon, loadRuntimeConfig, openRuntimeContext, readDaemonStatus } from "../../codexkit-daemon/src/index.ts";
 import { optionValue, optionValues, parseArgs } from "./arg-parser.ts";
 import { renderResult } from "./render.ts";
+import { tryHandleWorkflowCommand } from "./workflow-command-handler.ts";
 
 const DEFAULT_DAEMON_START_TIMEOUT_MS = 8_000;
 
@@ -150,6 +151,11 @@ async function main(): Promise<void> {
 
   const controller = new RuntimeController(runtimeRoot);
   try {
+    const workflowHandled = tryHandleWorkflowCommand(parsed, controller);
+    if (workflowHandled.handled) {
+      renderResult(workflowHandled.result, parsed.json);
+      return;
+    }
     if (group === "daemon" && action === "status") {
       renderResult(controller.daemonStatus(), parsed.json);
       return;

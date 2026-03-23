@@ -1,8 +1,12 @@
 import { createStableId } from "../ids.ts";
-import type { CreateRunInput, RuntimeClock, RunRecord } from "../domain-types.ts";
+import type { CreateRunInput, JsonObject, RuntimeClock, RunRecord, WorkflowCheckpointId, WorkflowCheckpointResponse } from "../domain-types.ts";
 import { invariant } from "../errors.ts";
 import type { RuntimeStore, RunListFilters } from "../repository-contracts.ts";
 import { nextRunStatus, nowIso } from "../service-helpers.ts";
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
+}
 
 export class RunService {
   private readonly store: RuntimeStore;
@@ -59,6 +63,71 @@ export class RunService {
     const run = this.store.runs.getById(id);
     invariant(run, "RUN_NOT_FOUND", `run '${id}' was not found`);
     return run;
+  }
+
+  updateRun(id: string, patch: Partial<RunRecord>): RunRecord {
+    return this.store.transaction(() => this.store.runs.update(id, { ...patch, updatedAt: nowIso(this.clock) }));
+  }
+
+  updateRunMetadata(runId: string, patch: JsonObject): RunRecord {
+    return this.store.transaction(() => {
+      const run = this.getRun(runId);
+      const metadata = { ...asRecord(run.metadata), ...patch };
+      return this.store.runs.update(runId, {
+        metadata,
+        updatedAt: nowIso(this.clock)
+      });
+    });
+  }
+
+  setPlanDir(runId: string, planDir: string): RunRecord {
+    return this.updateRun(runId, { planDir });
+  }
+
+  recordWorkflowCheckpoint(
+    runId: string,
+    checkpointId: WorkflowCheckpointId,
+    options?: { artifactPath?: string; artifactId?: string; response?: WorkflowCheckpointResponse; noFile?: boolean }
+  ): RunRecord {
+    return this.store.transaction(() => {
+      const run = this.getRun(runId);
+      const metadata = asRecord(run.metadata);
+      const workflow = asRecord(metadata.workflow);
+      const checkpoints = asRecord(workflow.checkpoints);
+      checkpoints[checkpointId] = {
+        id: checkpointId,
+        status: "completed",
+        completedAt: nowIso(this.clock),
+        ...(options?.artifactPath ? { artifactPath: options.artifactPath } : {}),
+        ...(options?.artifactId ? { artifactId: options.artifactId } : {}),
+        ...(options?.response ? { response: options.response } : {}),
+        ...(typeof options?.noFile === "boolean" ? { noFile: options.noFile } : {})
+      };
+      const updated = this.store.runs.update(runId, {
+        metadata: {
+          ...metadata,
+          workflow: {
+            ...workflow,
+            currentCheckpoint: checkpointId,
+            checkpoints
+          }
+        },
+        updatedAt: nowIso(this.clock)
+      });
+      this.store.events.append({
+        runId,
+        entityType: "run",
+        entityId: runId,
+        eventType: "run.checkpoint.recorded",
+        payload: {
+          checkpointId,
+          ...(options?.artifactPath ? { artifactPath: options.artifactPath } : {}),
+          ...(options?.artifactId ? { artifactId: options.artifactId } : {}),
+          ...(options?.response ? { response: options.response } : {})
+        }
+      });
+      return updated;
+    });
   }
 
   recomputeRun(runId: string): RunRecord {

@@ -4,6 +4,34 @@ export interface ParsedArgs {
   json: boolean;
 }
 
+const BOOLEAN_OPTIONS = new Set([
+  "auto",
+  "fast",
+  "foreground",
+  "hard",
+  "help",
+  "continue-plan",
+  "inherit-auto",
+  "json",
+  "no-tasks",
+  "no-test",
+  "once",
+  "parallel",
+  "read-only",
+  "two"
+]);
+
+function splitOptionToken(token: string): { key: string; inlineValue?: string } {
+  const equalIndex = token.indexOf("=");
+  if (equalIndex === -1) {
+    return { key: token };
+  }
+  return {
+    key: token.slice(0, equalIndex),
+    inlineValue: token.slice(equalIndex + 1)
+  };
+}
+
 export function parseArgs(argv: string[]): ParsedArgs {
   const positionals: string[] = [];
   const options: Record<string, string | boolean | string[]> = {};
@@ -16,16 +44,21 @@ export function parseArgs(argv: string[]): ParsedArgs {
       continue;
     }
 
-    const key = token.slice(2);
+    const { key, inlineValue } = splitOptionToken(token.slice(2));
     if (key === "json") {
       json = true;
       continue;
     }
 
-    const next = argv[index + 1];
-    const value = !next || next.startsWith("--") ? true : next;
-    if (value !== true) {
-      index += 1;
+    let value: string | boolean = true;
+    if (inlineValue !== undefined) {
+      value = inlineValue;
+    } else if (!BOOLEAN_OPTIONS.has(key)) {
+      const next = argv[index + 1];
+      value = !next || next.startsWith("--") ? true : next;
+      if (value !== true) {
+        index += 1;
+      }
     }
 
     const current = options[key];
@@ -58,4 +91,8 @@ export function optionValues(options: ParsedArgs["options"], key: string): strin
     return value.split(",").map((part) => part.trim()).filter(Boolean);
   }
   return [];
+}
+
+export function hasFlag(options: ParsedArgs["options"], key: string): boolean {
+  return options[key] === true;
 }

@@ -1,9 +1,14 @@
 import { execFileSync } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { afterEach, describe, expect, test } from "vitest";
 import { createRuntimeFixture } from "./helpers/runtime-fixture.ts";
 
 const cleanups: Array<() => Promise<void>> = [];
+
+function shellQuote(value: string): string {
+  return `'${value.replace(/'/g, `'\"'\"'`)}'`;
+}
 
 function runCli(rootDir: string, args: string[]) {
   const output = execFileSync(path.resolve(process.cwd(), "cdx"), [...args, "--json"], {
@@ -22,6 +27,17 @@ function runCliFailure(rootDir: string, args: string[]) {
     const stderr = execError.stderr ?? "";
     return JSON.parse(stderr) as Record<string, unknown>;
   }
+}
+
+function runGeneratedHandoffCommand(rootDir: string, command: string) {
+  expect(command.startsWith("cdx ")).toBe(true);
+  const cliPath = shellQuote(path.resolve(process.cwd(), "cdx"));
+  const shellCommand = `${cliPath} ${command.slice(4)} --json`;
+  const output = execFileSync("zsh", ["-lc", shellCommand], {
+    cwd: rootDir,
+    encoding: "utf8"
+  });
+  return JSON.parse(output) as Record<string, unknown>;
 }
 
 afterEach(async () => {
@@ -185,8 +201,111 @@ describe("phase 1 CLI", () => {
 
       expect(failure.code).toBe("CLI_USAGE");
       expect(String(failure.message)).toContain("session-derived");
-      const approvals = runCli(fixture.rootDir, ["approval", "list", "--run", runId]) as Array<unknown>;
+      const approvals = runCli(fixture.rootDir, ["approval", "list", "--run", runId]) as unknown as Array<unknown>;
       expect(approvals).toHaveLength(0);
+    }
+  );
+
+  test(
+    "supports workflow command surface for brainstorm, plan, and cook through implementation boundary",
+    { timeout: 90_000 },
+    async () => {
+      const fixture = await createRuntimeFixture("codexkit-runtime-cli-workflow-wave1");
+      cleanups.push(() => fixture.cleanup());
+      runCli(fixture.rootDir, ["daemon", "start", "--once"]);
+
+      const brainstorm = runCli(fixture.rootDir, [
+        "brainstorm",
+        "phase",
+        "five",
+        "scope",
+        "--handoff",
+        "plan",
+        "--handoff-task",
+        "Plan phase five scope"
+      ]);
+      expect(brainstorm.workflow).toBe("brainstorm");
+      expect(brainstorm.checkpointIds).toEqual(["brainstorm-discovery", "brainstorm-decision", "brainstorm-handoff"]);
+      const handoff = brainstorm.handoff as { toRunId: string };
+      expect(typeof handoff.toRunId).toBe("string");
+
+      const plan = runCli(fixture.rootDir, ["plan", "Implement", "workflow", "parity", "--hard"]);
+      expect(plan.workflow).toBe("plan");
+      const planPath = String(plan.planPath);
+      expect(path.isAbsolute(planPath)).toBe(true);
+      expect(plan.handoffCommand).toBe(`cdx cook ${shellQuote(planPath)}`);
+
+      const cook = runCli(fixture.rootDir, ["cook", planPath]);
+      expect(cook.workflow).toBe("cook");
+      expect(cook.mode).toBe("code");
+      expect(cook.completedThroughPostImplementation).toBe(false);
+      const diagnostics = cook.diagnostics as Array<{ code: string }>;
+      expect(diagnostics.some((entry) => entry.code === "COOK_IMPLEMENTATION_READY")).toBe(true);
+      const pendingApproval = cook.pendingApproval as { checkpoint: string } | undefined;
+      expect(pendingApproval?.checkpoint).toBe("post-implementation");
+      expect(String(cook.planPath)).toBe(planPath);
+    }
+  );
+
+  test(
+    "plan validate/red-team/archive subcommands mutate in-place artifacts and return deterministic outputs",
+    { timeout: 90_000 },
+    async () => {
+      const fixture = await createRuntimeFixture("codexkit-runtime-cli-plan-subcommands-wave1");
+      cleanups.push(() => fixture.cleanup());
+      runCli(fixture.rootDir, ["daemon", "start", "--once"]);
+
+      const plan = runCli(fixture.rootDir, ["plan", "Subcommand", "wave", "2", "target", "--hard"]);
+      const planPath = String(plan.planPath);
+      const validate = runCli(fixture.rootDir, ["plan", "validate", planPath]);
+      expect(validate.subcommand).toBe("validate");
+      expect(validate.status).toBe("valid");
+      expect(String(validate.handoffCommand)).toBe(`cdx cook --auto ${shellQuote(planPath)}`);
+
+      const redTeam = runCli(fixture.rootDir, ["plan", "red-team", planPath]);
+      expect(redTeam.subcommand).toBe("red-team");
+      expect(redTeam.status).toBe("revise");
+      expect(String(redTeam.recommendedNextCommand)).toBe(`cdx plan validate ${shellQuote(planPath)}`);
+
+      const archive = runCli(fixture.rootDir, ["plan", "archive", planPath]);
+      expect(archive.subcommand).toBe("archive");
+      expect(archive.status).toBe("valid");
+      expect(typeof archive.archiveSummaryPath).toBe("string");
+      expect(existsSync(String(archive.archiveSummaryPath))).toBe(true);
+
+      const planText = readFileSync(planPath, "utf8");
+      expect(planText).toContain("## Validation Log");
+      expect(planText).toContain("## Red Team Review");
+      expect(planText).toContain('status: "archived"');
+    }
+  );
+
+  test(
+    "generated fast and parallel cook handoff commands are runnable",
+    { timeout: 90_000 },
+    async () => {
+      const fixture = await createRuntimeFixture("codexkit-runtime-cli-runnable-handoff");
+      cleanups.push(() => fixture.cleanup());
+      runCli(fixture.rootDir, ["daemon", "start", "--once"]);
+
+      const fastPlan = runCli(fixture.rootDir, ["plan", "Fast", "handoff", "check", "--fast"]);
+      const fastPlanPath = String(fastPlan.planPath);
+      const fastHandoff = String(fastPlan.handoffCommand);
+      expect(fastHandoff).toBe(`cdx cook --auto ${shellQuote(fastPlanPath)}`);
+      const fastCook = runGeneratedHandoffCommand(fixture.rootDir, fastHandoff);
+      expect(fastCook.workflow).toBe("cook");
+      expect(fastCook.completedThroughPostImplementation).toBe(true);
+      expect(String(fastCook.planPath)).toBe(fastPlanPath);
+
+      const parallelPlan = runCli(fixture.rootDir, ["plan", "Parallel", "handoff", "check", "--parallel"]);
+      const parallelPlanPath = String(parallelPlan.planPath);
+      const parallelHandoff = String(parallelPlan.handoffCommand);
+      expect(parallelHandoff).toBe(`cdx cook --parallel ${shellQuote(parallelPlanPath)}`);
+      const parallelCook = runGeneratedHandoffCommand(fixture.rootDir, parallelHandoff);
+      expect(parallelCook.workflow).toBe("cook");
+      const pendingApproval = parallelCook.pendingApproval as { checkpoint: string } | undefined;
+      expect(pendingApproval?.checkpoint).toBe("post-research");
+      expect(String(parallelCook.planPath)).toBe(parallelPlanPath);
     }
   );
 
@@ -233,7 +352,7 @@ describe("phase 1 CLI", () => {
       ]);
 
       expect(spawned.teamId).toBe(teamId);
-      const claims = runCli(fixture.rootDir, ["claim", "list", "--run", runId]) as Array<{ taskId: string; workerId: string; status: string }>;
+      const claims = runCli(fixture.rootDir, ["claim", "list", "--run", runId]) as unknown as Array<{ taskId: string; workerId: string; status: string }>;
       expect(claims.some((claim) => claim.taskId === taskId && claim.workerId === String(spawned.id) && claim.status === "active")).toBe(true);
     }
   );

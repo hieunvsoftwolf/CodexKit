@@ -1,5 +1,20 @@
 export type JsonObject = Record<string, unknown>;
 export type RunMode = "interactive" | "auto" | "fast" | "parallel" | "no-test" | "code";
+export const WORKFLOW_CHECKPOINT_IDS = [
+  "brainstorm-discovery",
+  "brainstorm-decision",
+  "brainstorm-handoff",
+  "plan-context",
+  "plan-draft",
+  "plan-hydration",
+  "cook-mode",
+  "post-research",
+  "post-plan",
+  "implementation",
+  "post-implementation"
+] as const;
+export type WorkflowCheckpointId = (typeof WORKFLOW_CHECKPOINT_IDS)[number];
+export type WorkflowCheckpointResponse = "approved" | "revised" | "aborted";
 export type RunStatus = "pending" | "running" | "blocked" | "completed" | "failed" | "cancelled";
 export type TeamStatus = "active" | "idle" | "waiting" | "shutting_down" | "deleted";
 export type TaskStatus =

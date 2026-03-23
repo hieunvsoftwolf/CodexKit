@@ -4,6 +4,16 @@ import { readDaemonStatus } from "./daemon-state.ts";
 import { runReconciliationPass } from "./runtime-kernel.ts";
 import { loadRuntimeConfig } from "./runtime-config.ts";
 import { createSystemClock, openRuntimeContext } from "./runtime-context.ts";
+import {
+  runBrainstormWorkflow,
+  runCookWorkflow,
+  resumeCookWorkflowFromApproval,
+  runPlanArchiveWorkflow,
+  runPlanRedTeamWorkflow,
+  runPlanValidateWorkflow,
+  runPlanWorkflow,
+  type PlanMode
+} from "./workflows/index.ts";
 
 export class RuntimeController {
   private readonly config;
@@ -30,6 +40,64 @@ export class RuntimeController {
     const run = this.context.runService.createRun(input);
     this.reconcile();
     return run;
+  }
+
+  brainstorm(input: {
+    topic: string;
+    constraints?: string[];
+    mode?: "interactive" | "auto" | "fast" | "parallel" | "no-test" | "code";
+    handoffToPlan?: boolean;
+    handoffTask?: string;
+    handoffMode?: "interactive" | "auto" | "fast" | "parallel" | "no-test" | "code";
+    inheritAutoApproval?: boolean;
+  }) {
+    const result = runBrainstormWorkflow(this.context, {
+      topic: input.topic,
+      ...(input.constraints ? { constraints: input.constraints } : {}),
+      ...(input.mode ? { mode: input.mode } : {}),
+      ...(input.handoffToPlan ? { handoffToPlan: true } : {}),
+      ...(input.handoffTask ? { handoffTask: input.handoffTask } : {}),
+      ...(input.handoffMode || input.inheritAutoApproval !== undefined
+        ? {
+            handoffPolicy: {
+              ...(input.handoffMode ? { mode: input.handoffMode } : {}),
+              ...(input.inheritAutoApproval !== undefined ? { inheritAutoApproval: input.inheritAutoApproval } : {})
+            }
+          }
+        : {})
+    });
+    this.reconcile();
+    return result;
+  }
+
+  plan(input: { task: string; mode?: PlanMode; noTasks?: boolean }) {
+    const result = runPlanWorkflow(this.context, input);
+    this.reconcile();
+    return result;
+  }
+
+  planValidate(input: { planPath: string }) {
+    const result = runPlanValidateWorkflow(this.context, input);
+    this.reconcile();
+    return result;
+  }
+
+  planRedTeam(input: { planPath: string }) {
+    const result = runPlanRedTeamWorkflow(this.context, input);
+    this.reconcile();
+    return result;
+  }
+
+  planArchive(input: { planPath?: string }) {
+    const result = runPlanArchiveWorkflow(this.context, input);
+    this.reconcile();
+    return result;
+  }
+
+  cook(input: { planPath?: string; mode?: "interactive" | "auto" | "fast" | "parallel" | "no-test" | "code" }) {
+    const result = runCookWorkflow(this.context, input);
+    this.reconcile();
+    return result;
   }
 
   listRuns() {
@@ -227,8 +295,9 @@ export class RuntimeController {
 
   respondApproval(input: { approvalId: string; status: "approved" | "revised" | "rejected" | "aborted" | "expired"; responseText?: string }) {
     const approval = this.context.approvalService.respondApproval(input.approvalId, input.status, input.responseText);
+    const continuation = resumeCookWorkflowFromApproval(this.context, approval);
     this.reconcile();
-    return approval;
+    return continuation ? { ...approval, continuation } : approval;
   }
 
   showApproval(approvalId: string) {

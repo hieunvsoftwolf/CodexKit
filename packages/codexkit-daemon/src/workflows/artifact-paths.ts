@@ -1,0 +1,55 @@
+import { mkdirSync } from "node:fs";
+import path from "node:path";
+import type { RunRecord } from "../../../codexkit-core/src/index.ts";
+import type { RuntimeContext } from "../runtime-context.ts";
+import { readWorkflowState } from "./workflow-state.ts";
+
+export interface ResolvedReportPath {
+  absolutePath: string;
+  rootDir: string;
+  scope: "plan" | "run";
+}
+
+function ensureDir(dir: string): string {
+  mkdirSync(dir, { recursive: true });
+  return dir;
+}
+
+function runArtifactDir(context: RuntimeContext, runId: string): string {
+  return ensureDir(path.join(context.config.paths.artifactsDir, runId));
+}
+
+function activePlanDir(run: RunRecord): string | null {
+  if (run.planDir) {
+    return path.resolve(run.planDir);
+  }
+  const state = readWorkflowState(run);
+  return state.activePlanPath ? path.dirname(path.resolve(state.activePlanPath)) : null;
+}
+
+export function resolveReportPath(
+  context: RuntimeContext,
+  run: RunRecord,
+  fileName: string,
+  options?: { planPathHint?: string; creatingPlan?: boolean }
+): ResolvedReportPath {
+  const hint = options?.planPathHint ? path.resolve(options.planPathHint) : null;
+  const effectivePlanDir = hint ? path.dirname(hint) : activePlanDir(run);
+  const shouldUseRunArtifacts = options?.creatingPlan === true && !effectivePlanDir;
+
+  if (!shouldUseRunArtifacts && effectivePlanDir) {
+    const reportsDir = ensureDir(path.join(effectivePlanDir, "reports"));
+    return {
+      absolutePath: path.join(reportsDir, fileName),
+      rootDir: reportsDir,
+      scope: "plan"
+    };
+  }
+
+  const runDir = runArtifactDir(context, run.id);
+  return {
+    absolutePath: path.join(runDir, fileName),
+    rootDir: runDir,
+    scope: "run"
+  };
+}
