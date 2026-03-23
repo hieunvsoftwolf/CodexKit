@@ -1,6 +1,6 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { CodexkitError, invariant } from "../../../codexkit-core/src/index.ts";
+import { approvalStatusToCheckpointResponse, CodexkitError, invariant } from "../../../codexkit-core/src/index.ts";
 import type { ApprovalRecord, RunMode, WorkflowCheckpointId, WorkflowCheckpointResponse } from "../../../codexkit-core/src/index.ts";
 import type { RuntimeContext } from "../runtime-context.ts";
 import { resolveReportPath } from "./artifact-paths.ts";
@@ -253,19 +253,6 @@ function writeCookContinuationState(context: RuntimeContext, runId: string, stat
   context.runService.updateRunMetadata(runId, {
     [COOK_CONTINUATION_METADATA_KEY]: state
   });
-}
-
-function toCheckpointResponse(status: ApprovalRecord["status"]): WorkflowCheckpointResponse | null {
-  if (status === "approved") {
-    return "approved";
-  }
-  if (status === "revised") {
-    return "revised";
-  }
-  if (status === "aborted") {
-    return "aborted";
-  }
-  return null;
 }
 
 function recordGate(
@@ -640,7 +627,7 @@ export function resumeCookWorkflowFromApproval(context: RuntimeContext, approval
 
   const checkpointIds = [...continuation.checkpointIds];
   const diagnostics: WorkflowCommandDiagnostics[] = [];
-  const checkpointResponse = toCheckpointResponse(approval.status);
+  const checkpointResponse = approvalStatusToCheckpointResponse(approval.status);
   if (checkpointResponse) {
     const checkpointOptions: {
       response: WorkflowCheckpointResponse;

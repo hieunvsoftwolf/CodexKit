@@ -1,11 +1,24 @@
 import { createStableId } from "../ids.ts";
-import type { ApprovalRecord, ApprovalStatus, CreateApprovalInput, RuntimeClock } from "../domain-types.ts";
+import type { ApprovalRecord, ApprovalStatus, CreateApprovalInput, RuntimeClock, WorkflowCheckpointResponse } from "../domain-types.ts";
 import { invariant } from "../errors.ts";
 import type { ApprovalListFilters, RuntimeStore } from "../repository-contracts.ts";
 import { nowIso } from "../service-helpers.ts";
 
 export function runApprovalPolicySettingKey(runId: string): string {
   return `approval.policy.run.${runId}`;
+}
+
+export function approvalStatusToCheckpointResponse(status: ApprovalStatus): WorkflowCheckpointResponse | null {
+  if (status === "approved") {
+    return "approved";
+  }
+  if (status === "revised") {
+    return "revised";
+  }
+  if (status === "aborted") {
+    return "aborted";
+  }
+  return null;
 }
 
 export class ApprovalService {

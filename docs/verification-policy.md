@@ -146,6 +146,7 @@ The main lead session is the control agent.
 The control agent is responsible for:
 - choosing the current phase
 - selecting the required session model
+- emitting a runnable `Wave 0` baseline-disposition prompt when the intended starting baseline is still dirty, unlanded, or unsynced
 - pinning a reproducible `BASE_SHA` before any high-rigor parallel implementation and test-design wave
 - recomputing and persisting normalized control state after meaningful artifact ingest or task change before emitting new downstream routing
 - emitting prompts for Sessions A, B0, B, C, and D
@@ -161,6 +162,7 @@ The control agent does not replace tester or reviewer independence.
 Default control mode is manual handoff across fresh sessions, not native host task orchestration. The user may open sessions manually, run the emitted prompt in the suggested agent/model, and paste artifacts back into the control session.
 
 For meaningful code phases, the default dependency shape is:
+- Wave 0 baseline disposition when needed: classify and land or clean the intended baseline until the repo is clean and synced
 - Wave 1 parallel: Session A implement + Session B0 spec-test-design
 - Wave 2 after Session A: Session C reviewer independent review
 - Wave 2 after Session A + Session B0: Session B tester independent execution
@@ -212,6 +214,8 @@ For each planned fresh session, the control agent must emit a session card with:
 - explicit copy instructions for what the user should paste into the fresh session
 - paste-back template
 - full copy-paste prompt
+
+When the repo is not yet clean and synced enough for freeze, this rule also applies to `Wave 0`: the control agent should emit a proper runnable session card and prompt for that baseline-disposition work, not only a prose reminder that the operator should do cleanup manually.
 
 Default control-agent output should include:
 - `## Current Phase`
@@ -273,6 +277,27 @@ For meaningful code phases using the high-rigor default model:
 - Session A and Session B0 should start from branches or worktrees rooted at the same `BASE_SHA`
 - Session B0 must not inspect the candidate implementation branch, implementation summary, or reviewer findings
 - if the phase scope only exists in dirty uncommitted state and no reproducible base commit exists, the control agent should block the parallel high-rigor wave until the user creates a durable base or explicitly accepts reduced rigor
+
+## 4F. Early-Failure And Anti-Debt Rule
+
+If a frozen Session B0 artifact already exists for the current wave and the phase docs or acceptance criteria have not changed:
+- Session A should run the frozen B0 verification subset unchanged before claiming the implementation is ready for independent tester or reviewer routing
+- if that subset cannot be run, Session A must state the exact blocker in its implementation summary
+
+For public workflows, commands, chooser paths, approval paths, resume paths, and terminal artifacts:
+- implementation completion should require real repo/runtime/tool evidence or an explicit typed blocked/deferred result allowed by the docs
+- synthetic success or synthetic failure should not be treated as phase-complete behavior
+- if a wave introduces a chooser or approval entry path, the same wave should cover both entry and continuation; a stubbed or null continuation path remains an in-scope blocker
+
+Planner and Session B0 artifacts should make coverage boundaries explicit:
+- contracts frozen now
+- contracts intentionally deferred to later waves
+- contracts left to reviewer-only or verdict-only scrutiny
+
+After a failed verdict:
+- default to a remediation lane that keeps the existing B0 artifact frozen when phase docs and acceptance criteria did not change
+- rerun tester and reviewer only after remediation implementation lands
+- if the same wave fails verdict twice in a row, the control agent should route to planner refresh before another blind remediation loop
 
 ## 5. Required Artifacts
 

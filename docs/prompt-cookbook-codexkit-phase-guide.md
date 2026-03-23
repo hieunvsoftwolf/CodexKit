@@ -20,8 +20,8 @@ What you should always do:
 - tell Codex what is already done
 - tell Codex whether you want docs verification, implementation, spec-test design, testing, review, or e2e validation
 
-In Codex CLI, the canonical explicit invocation is `$control-agent`.
-In this repo, plain `control-agent` should route to the same control flow.
+In this repo, the canonical explicit invocation is `$control-agent-codexkit`.
+Do not assume plain `control-agent` routes to a repo-local generic control skill here.
 If your host does not expose repo skills cleanly, say: `Bạn là control-agent cho CodexKit`.
 
 Recommended bootstrap prompt:
@@ -52,6 +52,7 @@ Control-agent rule:
 - if a phase prompt below omits the skill line, control-agent must add it before emitting
 - every planned session must include role expected, optional modal hint, suggested model, fallback model, run mode, depends on, and paste-back instructions
 - default to manual handoff across fresh sessions unless the user explicitly requests native task orchestration
+- if the repo is not yet clean and synced on the intended starting baseline, emit a runnable `Wave 0` session card for a fresh agent to do baseline disposition; do not leave this step as operator-only prose by default
 - for meaningful code phases, default to `implement + spec-test-design` in the first parallel wave after a reproducible `BASE_SHA` is pinned
 - every session card must say which exact block the user should paste into the fresh session
 - every emitted session prompt must end with the exact result template the user should paste back into the control session
@@ -73,6 +74,8 @@ Recommended control-agent output shape:
 - state: ...
 
 ## Execution Plan
+- Wave 0:
+  - W0 ...
 - Wave 1 parallel:
   - S1 ...
   - S2 ...
@@ -80,6 +83,37 @@ Recommended control-agent output shape:
   - S3 ...
 
 ## Session Cards
+### W0
+- role expected: `fullstack-developer`
+- modal to choose: `host does not expose modal selection`
+- skills: `none required`
+- suggested model: `gpt-5.3-codex / high`
+- fallback model: `closest coding-first model / high`
+- ready now: `yes`
+- run mode: `wave 0 baseline disposition`
+- depends on: `none`
+- paste into new session:
+  - copy only the fenced `Session Prompt` block below
+  - do not copy the metadata bullets above
+- paste back exactly:
+  - `status`: `completed` | `blocked`
+  - `role/modal used`: `...`
+  - `model used`: `... / ...`
+  - `summary`: 5-10 lines
+  - `full report or report path`: `...`
+  - `blockers`: bullet list
+  - `handoff notes for next sessions`: bullet list
+#### Session Prompt (paste this block into the new session)
+```text
+Skills: none required
+Session role expected: fullstack-developer
+If this session was opened with the wrong role or modal, say that first and stop.
+Source of truth: current repo tree, latest durable control-state, and current phase docs.
+Prior session artifacts are handoff context only.
+Goal: classify and disposition the current candidate baseline so the repo ends clean and synced for freeze.
+...
+```
+
 ### S1
 - role expected: `...`
 - modal to choose: `...` | `host does not expose modal selection`

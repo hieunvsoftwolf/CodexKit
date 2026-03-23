@@ -204,6 +204,31 @@ If a Session B0 artifact exists, tester sessions should treat it as frozen expec
 
 Do not phrase prior implementation summaries as the source of truth for independent verification.
 
+## Early-Failure And Anti-Debt Rule
+
+If a frozen Session B0 artifact already exists for the current wave and the phase docs or acceptance criteria have not changed:
+
+- Session A should run the frozen B0 verification subset unchanged before claiming the implementation is ready for independent tester or reviewer routing
+- if that subset cannot be run, Session A must say exactly why
+- control-agent should treat missing self-check evidence as elevated risk and may refuse to route directly to independent verification for high-risk waves
+
+For public workflow commands, chooser paths, approval gates, resume paths, and terminal artifacts:
+
+- do not accept synthetic success or synthetic failure as implementation completion
+- require either real repo/runtime/tool evidence or an explicit typed blocked/deferred result permitted by the docs
+- if a chooser or approval entry path is introduced in the current wave, require the same wave to cover both entry and continuation; stubbed/null continuation remains an in-scope blocker
+
+When planner or Session B0 artifacts exist:
+
+- require them to make coverage boundaries explicit
+- distinguish contracts frozen now vs contracts intentionally deferred vs contracts left to reviewer-only or verdict-only scrutiny
+
+After a failed verdict:
+
+- default to a remediation lane that keeps the existing B0 artifact frozen when phase docs and acceptance criteria did not change
+- rerun tester and reviewer only after remediation implementation lands
+- if the same wave fails verdict twice in a row, route to planner refresh before another blind remediation loop
+
 ## Skill Routing Rules
 
 Every emitted session prompt must include a `Skills:` line.
@@ -276,6 +301,8 @@ If phase docs or public behavior contracts changed, require a fresh spec-test-de
 If a material task change or artifact ingest occurred, do not emit a new runnable downstream prompt until control state has been recomputed and, when a durable path is already in scope, persisted.
 
 If production code changed after testing or review, require a fresh test pass, a fresh review pass when behavior or invariants changed, and then a fresh lead verdict.
+
+If a public workflow path in scope is still synthetic, if chooser/approval continuation remains stubbed, or if a frozen B0 self-check was skipped without an explicit blocker, do not route directly to a normal tester/reviewer/verdict closeout path.
 
 ## Output Contract
 

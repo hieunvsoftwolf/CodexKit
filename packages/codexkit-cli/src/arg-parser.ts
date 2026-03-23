@@ -6,6 +6,8 @@ export interface ParsedArgs {
 
 const BOOLEAN_OPTIONS = new Set([
   "auto",
+  "coverage",
+  "delegate",
   "fast",
   "foreground",
   "hard",
@@ -14,10 +16,14 @@ const BOOLEAN_OPTIONS = new Set([
   "inherit-auto",
   "json",
   "no-tasks",
+  "no-plan-approval",
   "no-test",
   "once",
   "parallel",
+  "plan-approval",
+  "quick",
   "read-only",
+  "review",
   "two"
 ]);
 

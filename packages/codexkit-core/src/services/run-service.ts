@@ -80,6 +80,29 @@ export class RunService {
     });
   }
 
+  readWorkflowMetadata(runId: string): Record<string, unknown> {
+    const run = this.getRun(runId);
+    return asRecord(asRecord(run.metadata).workflow);
+  }
+
+  updateWorkflowMetadata(runId: string, patch: JsonObject): RunRecord {
+    return this.store.transaction(() => {
+      const run = this.getRun(runId);
+      const metadata = asRecord(run.metadata);
+      const workflow = asRecord(metadata.workflow);
+      return this.store.runs.update(runId, {
+        metadata: {
+          ...metadata,
+          workflow: {
+            ...workflow,
+            ...patch
+          }
+        },
+        updatedAt: nowIso(this.clock)
+      });
+    });
+  }
+
   setPlanDir(runId: string, planDir: string): RunRecord {
     return this.updateRun(runId, { planDir });
   }

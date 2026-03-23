@@ -310,6 +310,55 @@ describe("phase 1 CLI", () => {
   );
 
   test(
+    "supports phase 6 wave-1 review/test/debug commands and returns typed deferred diagnostics for fix/team workflows",
+    { timeout: 90_000 },
+    async () => {
+      const fixture = await createRuntimeFixture("codexkit-runtime-cli-workflow-phase6-wave1");
+      cleanups.push(() => fixture.cleanup());
+      runCli(fixture.rootDir, ["daemon", "start", "--once"]);
+
+      const reviewRecent = runCli(fixture.rootDir, ["review", "recent", "auth", "path"]);
+      expect(reviewRecent.workflow).toBe("review");
+      expect(reviewRecent.scope).toBe("recent");
+      expect(reviewRecent.checkpointIds).toEqual(["review-scout", "review-analysis", "review-publish"]);
+
+      const reviewCodebase = runCli(fixture.rootDir, ["review", "codebase", "parallel"]);
+      expect(reviewCodebase.workflow).toBe("review");
+      expect(reviewCodebase.scope).toBe("codebase");
+      expect(reviewCodebase.parallel).toBe(true);
+
+      const testCoverage = runCli(fixture.rootDir, ["test", "workflow", "contracts", "--coverage"]);
+      expect(testCoverage.workflow).toBe("test");
+      expect(testCoverage.mode).toBe("coverage");
+      expect(testCoverage.checkpointIds).toEqual(["test-preflight", "test-execution", "test-report"]);
+
+      const testUi = runCli(fixture.rootDir, ["test", "ui"]);
+      expect(testUi.workflow).toBe("test");
+      expect(testUi.mode).toBe("ui");
+
+      const debug = runCli(fixture.rootDir, ["debug", "ci", "pipeline", "failure", "--branch", "logs-ci"]);
+      expect(debug.workflow).toBe("debug");
+      expect(Array.isArray(debug.branches)).toBe(true);
+      expect((debug.branches as string[]).includes("logs-ci")).toBe(true);
+      expect(debug.checkpointIds).toEqual([
+        "debug-precheck",
+        "debug-route",
+        "debug-hypotheses",
+        "debug-evidence",
+        "debug-conclusion"
+      ]);
+
+      const fixDeferred = runCliFailure(fixture.rootDir, ["fix", "intermittent", "test", "failure", "--quick"]);
+      expect(fixDeferred.code).toBe("CLI_USAGE");
+      expect((fixDeferred.details as { code?: string }).code).toBe("WF_FIX_DEFERRED_WAVE2");
+
+      const teamDeferred = runCliFailure(fixture.rootDir, ["team", "review", "payment", "flow"]);
+      expect(teamDeferred.code).toBe("CLI_USAGE");
+      expect((teamDeferred.details as { code?: string }).code).toBe("WF_TEAM_DEFERRED_WAVE2");
+    }
+  );
+
+  test(
     "worker spawn derives team from team-owned task when --team is omitted",
     { timeout: 90_000 },
     async () => {

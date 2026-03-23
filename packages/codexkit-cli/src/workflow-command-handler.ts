@@ -5,6 +5,9 @@ import { hasFlag, optionValue, optionValues, type ParsedArgs } from "./arg-parse
 const PLAN_SUBCOMMANDS = new Set(["validate", "red-team", "archive"]);
 const PLAN_MODES = ["auto", "fast", "hard", "parallel", "two"] as const;
 const COOK_MODES = ["auto", "fast", "parallel", "no-test"] as const;
+const FIX_MODES = ["auto", "review", "quick", "parallel"] as const;
+const DEBUG_BRANCHES = new Set(["code", "logs-ci", "database", "performance", "frontend"]);
+const TEAM_PRIMITIVE_ACTIONS = new Set(["create", "list", "delete"]);
 
 function assertSingleMode(modes: string[], command: string): string | undefined {
   if (modes.length > 1) {
@@ -19,6 +22,14 @@ function assertSingleMode(modes: string[], command: string): string | undefined 
 
 function detectFlagMode(options: ParsedArgs["options"], modes: readonly string[]): string[] {
   return modes.filter((mode) => hasFlag(options, mode));
+}
+
+function throwWaveDeferred(command: string, code: string, nextStep: string): never {
+  throw new CodexkitError("CLI_USAGE", `${command} is deferred in Phase 6 Wave 1`, {
+    code,
+    cause: `${command} workflow orchestration is intentionally out of Wave 1 scope.`,
+    nextStep
+  });
 }
 
 function assertNoPlanCreationFlags(parsed: ParsedArgs, subcommand: string): void {
@@ -145,6 +156,163 @@ export function tryHandleWorkflowCommand(
         mode: mode as never
       })
     };
+  }
+
+  if (group === "review") {
+    if (!second) {
+      return {
+        handled: true,
+        result: controller.review({})
+      };
+    }
+    if (second === "codebase") {
+      const tokenParallel = rest.length === 1 && rest[0] === "parallel";
+      if (rest.length > 0 && !tokenParallel) {
+        throw new CodexkitError("CLI_USAGE", "invalid review codebase shape", {
+          code: "WF_REVIEW_CODEBASE_SHAPE_INVALID",
+          cause: `Expected 'cdx review codebase' or 'cdx review codebase parallel', received extra tokens: ${rest.join(" ")}.`,
+          nextStep: "Use cdx review codebase or cdx review codebase parallel."
+        });
+      }
+      return {
+        handled: true,
+        result: controller.review({
+          scope: "codebase",
+          parallel: tokenParallel || hasFlag(parsed.options, "parallel"),
+          context: tokenParallel ? "codebase parallel review" : "codebase review"
+        })
+      };
+    }
+    if (hasFlag(parsed.options, "parallel")) {
+      throw new CodexkitError("CLI_USAGE", "parallel review is only valid for codebase scope", {
+        code: "WF_REVIEW_PARALLEL_SCOPE_INVALID",
+        cause: "Parallel review routing is only supported with 'cdx review codebase parallel'.",
+        nextStep: "Use cdx review codebase parallel, or remove --parallel from recent-change review."
+      });
+    }
+    const reviewContext = [second, ...rest].filter(Boolean).join(" ").trim();
+    return {
+      handled: true,
+      result: controller.review({ scope: "recent", context: reviewContext })
+    };
+  }
+
+  if (group === "test") {
+    if (!second) {
+      return {
+        handled: true,
+        result: controller.test({
+          mode: "chooser"
+        })
+      };
+    }
+    if (second === "ui") {
+      if (hasFlag(parsed.options, "coverage")) {
+        throw new CodexkitError("CLI_USAGE", "ui mode and coverage mode cannot be combined", {
+          code: "WF_TEST_MODE_CONFLICT",
+          cause: "UI and coverage are separate execution modes.",
+          nextStep: "Run cdx test ui [url] or cdx test <context> --coverage."
+        });
+      }
+      if (rest.length > 1) {
+        throw new CodexkitError("CLI_USAGE", "ui mode accepts at most one URL positional", {
+          code: "WF_TEST_UI_POSITIONAL_INVALID",
+          cause: "Multiple URL arguments were provided.",
+          nextStep: "Run cdx test ui [url]."
+        });
+      }
+      const url = rest[0];
+      if (url && !/^https?:\/\/\S+$/i.test(url)) {
+        throw new CodexkitError("CLI_USAGE", "ui mode URL must be an absolute http(s) URL", {
+          code: "WF_TEST_UI_URL_INVALID",
+          cause: `Received '${url}'.`,
+          nextStep: "Use an absolute URL like https://example.com or omit the URL."
+        });
+      }
+      return {
+        handled: true,
+        result: controller.test({
+          mode: "ui",
+          context: url ? `ui ${url}` : "ui",
+          ...(url ? { url } : {})
+        })
+      };
+    }
+    const testContext = [second, ...rest].filter(Boolean).join(" ").trim();
+    return {
+      handled: true,
+      result: controller.test({
+        mode: hasFlag(parsed.options, "coverage") ? "coverage" : "default",
+        context: testContext
+      })
+    };
+  }
+
+  if (group === "fix") {
+    if (!second) {
+      throw new CodexkitError("CLI_USAGE", "fix issue is required", {
+        code: "WF_FIX_ISSUE_REQUIRED",
+        cause: "No issue description was provided.",
+        nextStep: "Run cdx fix <issue> [--auto|--review|--quick|--parallel]."
+      });
+    }
+    const explicitMode = optionValue(parsed.options, "mode");
+    if (explicitMode && !FIX_MODES.includes(explicitMode as typeof FIX_MODES[number])) {
+      throw new CodexkitError("CLI_USAGE", "unsupported fix mode", {
+        code: "WF_FIX_MODE_INVALID",
+        cause: `Unsupported mode '${explicitMode}'.`,
+        nextStep: "Use --auto, --review, --quick, --parallel, or omit mode."
+      });
+    }
+    const flagMode = assertSingleMode(detectFlagMode(parsed.options, FIX_MODES), "fix");
+    if (explicitMode && flagMode && explicitMode !== flagMode) {
+      throw new CodexkitError("CLI_USAGE", "fix received conflicting mode selections", {
+        code: "WF_FIX_MODE_CONFLICT",
+        cause: `Received --mode ${explicitMode} and --${flagMode}.`,
+        nextStep: "Retry with one fix mode selector."
+      });
+    }
+    throwWaveDeferred("cdx fix", "WF_FIX_DEFERRED_WAVE2", "Use cdx debug <issue> in Wave 1, then route fix in Wave 2.");
+  }
+
+  if (group === "debug") {
+    const issue = [second, ...rest].filter(Boolean).join(" ").trim();
+    if (!issue) {
+      throw new CodexkitError("CLI_USAGE", "debug issue is required", {
+        code: "WF_DEBUG_ISSUE_REQUIRED",
+        cause: "No issue description was provided.",
+        nextStep: "Run cdx debug <issue>."
+      });
+    }
+    const branch = optionValue(parsed.options, "branch");
+    if (branch && !DEBUG_BRANCHES.has(branch)) {
+      throw new CodexkitError("CLI_USAGE", "unsupported debug branch", {
+        code: "WF_DEBUG_BRANCH_INVALID",
+        cause: `Unsupported debug branch '${branch}'.`,
+        nextStep: "Use --branch code|logs-ci|database|performance|frontend or omit --branch."
+      });
+    }
+    return {
+      handled: true,
+      result: controller.debug({
+        issue,
+        ...(branch ? { branch: branch as never } : {})
+      })
+    };
+  }
+
+  if (group === "team") {
+    if (!second || TEAM_PRIMITIVE_ACTIONS.has(second)) {
+      return { handled: false };
+    }
+    if (rest.length === 0) {
+      throw new CodexkitError("CLI_USAGE", "team template context is required", {
+        code: "WF_TEAM_CONTEXT_REQUIRED",
+        cause: `Template '${second}' requires a context argument.`,
+        nextStep: "Run cdx team <template> <context>."
+      });
+    }
+    throwWaveDeferred("cdx team", "WF_TEAM_DEFERRED_WAVE2", "Use direct team primitives in Wave 1; workflow template support starts in Wave 2.");
   }
 
   return { handled: false };

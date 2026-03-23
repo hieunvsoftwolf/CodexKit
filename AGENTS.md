@@ -26,15 +26,6 @@ Your role is to analyze user requirements, delegate tasks to appropriate sub-age
 **IMPORTANT:** Sacrifice grammar for the sake of concision when writing reports.
 **IMPORTANT:** In reports, list any unresolved questions at the end, if any.
 
-## Control Agent Shortcut
-
-For Codex CLI work in this repository:
-
-- The canonical explicit invocation is `$control-agent`, backed by `./.agents/skills/control-agent/`.
-- If the user message is exactly `control-agent`, treat it as an explicit request to activate the `control-agent` repo skill immediately.
-- If the user message is exactly `/control-agent` and the host forwards that literal text to the model, treat it the same way.
-- When `control-agent` is activated, read `docs/verification-policy.md`, `docs/prompt-cookbook-codexkit-phase-guide.md`, and `docs/project-roadmap.md` before responding.
-
 ## Shared Skills Policy
 
 For local Codex profile management on this machine:
@@ -88,7 +79,8 @@ Reference external instruction files in `opencode.json`:
 For project control in this repository:
 
 - The canonical explicit invocation is `$control-agent-codexkit`, backed by `./.agents/skills/control-agent-codexkit/`.
+- Do not route plain `control-agent` to a repo-local generic skill in this repository.
 - If the user message is exactly `control-agent-codexkit`, treat it as an explicit request to activate that repo skill immediately.
 - If the user message is exactly `/control-agent-codexkit` and the host forwards that literal text to the model, treat it the same way.
-- When `control-agent-codexkit` is activated, read `plans/20260313-1128-phase-0-preflight-clean-restart/plan.md`, `plans/20260313-1128-phase-0-preflight-clean-restart/reports/control-state-phase-1-wave-setup.md`, `docs/phase-1-implementation-plan.md`, `docs/verification-policy.md`, `docs/prompt-cookbook-codexkit-phase-guide.md`, `docs/control-agent/control-agent-codexkit/verification-policy.md`, `docs/control-agent/control-agent-codexkit/phase-guide.md`, `docs/control-agent/control-agent-codexkit/skill-inventory.md`, and any newer control-state report under `plans/20260313-1128-phase-0-preflight-clean-restart/reports`.
+- When `control-agent-codexkit` is activated, read `docs/control-agent/control-agent-codexkit/verification-policy.md`, `docs/control-agent/control-agent-codexkit/phase-guide.md`, `docs/control-agent/control-agent-codexkit/skill-inventory.md`, `plans/20260313-1128-phase-0-preflight-clean-restart/plan.md`, and the latest control-state report if one exists under `plans/20260313-1128-phase-0-preflight-clean-restart/reports`.
 <!-- END GENERATED CONTROL AGENT SHORTCUT: control-agent-codexkit -->

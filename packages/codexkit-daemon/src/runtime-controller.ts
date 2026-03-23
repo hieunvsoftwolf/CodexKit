@@ -5,13 +5,16 @@ import { runReconciliationPass } from "./runtime-kernel.ts";
 import { loadRuntimeConfig } from "./runtime-config.ts";
 import { createSystemClock, openRuntimeContext } from "./runtime-context.ts";
 import {
+  resumeWorkflowFromApproval,
   runBrainstormWorkflow,
   runCookWorkflow,
-  resumeCookWorkflowFromApproval,
+  runDebugWorkflow,
   runPlanArchiveWorkflow,
   runPlanRedTeamWorkflow,
   runPlanValidateWorkflow,
   runPlanWorkflow,
+  runReviewWorkflow,
+  runTestWorkflow,
   type PlanMode
 } from "./workflows/index.ts";
 
@@ -96,6 +99,24 @@ export class RuntimeController {
 
   cook(input: { planPath?: string; mode?: "interactive" | "auto" | "fast" | "parallel" | "no-test" | "code" }) {
     const result = runCookWorkflow(this.context, input);
+    this.reconcile();
+    return result;
+  }
+
+  review(input: { context?: string; scope?: "recent" | "codebase"; parallel?: boolean }) {
+    const result = runReviewWorkflow(this.context, input);
+    this.reconcile();
+    return result;
+  }
+
+  test(input: { context?: string; mode?: "default" | "ui" | "coverage" | "chooser"; url?: string }) {
+    const result = runTestWorkflow(this.context, input);
+    this.reconcile();
+    return result;
+  }
+
+  debug(input: { issue: string; branch?: "code" | "logs-ci" | "database" | "performance" | "frontend" }) {
+    const result = runDebugWorkflow(this.context, input);
     this.reconcile();
     return result;
   }
@@ -295,7 +316,7 @@ export class RuntimeController {
 
   respondApproval(input: { approvalId: string; status: "approved" | "revised" | "rejected" | "aborted" | "expired"; responseText?: string }) {
     const approval = this.context.approvalService.respondApproval(input.approvalId, input.status, input.responseText);
-    const continuation = resumeCookWorkflowFromApproval(this.context, approval);
+    const continuation = resumeWorkflowFromApproval(this.context, approval);
     this.reconcile();
     return continuation ? { ...approval, continuation } : approval;
   }
