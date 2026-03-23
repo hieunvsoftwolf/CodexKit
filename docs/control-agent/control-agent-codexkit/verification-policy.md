@@ -80,6 +80,16 @@ After a meaningful artifact is pasted back or the task framing changes materiall
 - persist a concise `control-state` snapshot under `plans/20260313-1128-phase-0-preflight-clean-restart/reports` before emitting new runnable downstream prompts when that path is in scope
 - update any active `plan.md` references or progress notes if the phase state changes
 
+Freeze-loop exception:
+- for freeze, preflight, or freeze-rerun routing, the control agent must not create a docs-only cleanup loop just because persisting the current `control-state` snapshot, updating `plan.md`, or writing the current freeze report makes the worktree non-empty
+- if the latest durable control-state names a clean synced commit and refs still match that commit, treat that named commit as the authoritative freeze target when the only local deltas are:
+  - `plan.md`
+  - the just-persisted `control-state` snapshot
+  - the current freeze report
+- in that case, the control agent should reroute the freeze or freeze-rerun directly from the named synced commit instead of requiring the new control artifacts to be landed first
+- the freeze must still block when non-control files are dirty, the phase-doc set changed, or `HEAD`/`main`/`origin/main` drifted away from the named commit
+- when this exception is used, record it explicitly in the control-state snapshot and freeze prompt
+
 The control-state snapshot must include:
 - current objective
 - current phase

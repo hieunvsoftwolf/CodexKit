@@ -60,6 +60,7 @@ Control-agent rule:
 - if a planned session still depends on a missing upstream artifact, mark it as waiting and do not emit a runnable prompt block for it yet
 - when an active plan dir or durable report path is in scope, persist meaningful session results there before routing the next session
 - after a pasted session result or a material task change, recompute and persist concise `control-state` before emitting new runnable downstream prompts when a durable path is in scope
+- freeze-loop exception: if the only new local deltas are `plan.md`, the just-persisted `control-state`, and the current freeze report, do not open another cleanup lane first; rerun freeze directly from the latest clean synced commit named in durable control-state unless refs or phase docs changed
 - for spec-test-design prompts, say explicitly that phase docs + exit criteria + pinned `BASE_SHA` are the source of truth, and the candidate implementation must not be inspected
 - for tester/reviewer/verdict prompts, say explicitly that repo tree + phase docs + exit criteria are the source of truth, and prior session results are handoff context only
 - if no reproducible base commit exists yet for a meaningful code phase, block the high-rigor parallel wave and tell the user to freeze a base or accept reduced rigor explicitly
@@ -230,6 +231,7 @@ Rules:
 - do not emit manual placeholders if an upstream artifact already exists in the control session
 - if a downstream dependency artifact is missing, `paste into new session` must say `none yet; wait for <dependency artifacts>`
 - after a pasted result or task change, recompute and persist concise `control-state` before emitting new runnable downstream prompts when a durable path is already in scope
+- if a freeze or freeze-rerun would otherwise be blocked only by the just-written `plan.md`, `control-state`, and current freeze report, carry forward the latest clean synced commit from durable control-state and rerun freeze directly instead of creating a cleanup loop
 - every emitted prompt must include `Skills:` and `Session role expected:`
 - spec-test-design prompts must include the pinned `BASE_SHA` and forbid reading the candidate implementation branch or implementation summary
 - for tester, reviewer, and verdict prompts, say repo tree + phase docs + exit criteria are the source of truth, and prior session artifacts are handoff context only

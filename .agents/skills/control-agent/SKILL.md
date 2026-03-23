@@ -175,6 +175,17 @@ The normalized `control-state` snapshot should include:
 - reduced-rigor decisions or policy exceptions
 - unresolved questions or blockers
 
+Freeze-loop exception:
+
+- for freeze, preflight, or freeze-rerun routing, do not open repeated docs-only cleanup lanes when your own `control-state` persistence is the only reason the worktree is non-empty
+- if the latest durable control-state names a clean synced commit and the only local deltas are:
+  - `plan.md`
+  - the just-persisted `control-state` snapshot
+  - the current freeze report
+  then the named synced commit remains the authoritative freeze target
+- in that case, rerun or complete freeze directly from that named commit unless non-control files are dirty, the phase-doc set changed, or refs drifted
+- when this exception is used, record it explicitly in the updated control-state and freeze prompt
+
 ## Verification Source Of Truth Rule
 
 For spec-test-design sessions:

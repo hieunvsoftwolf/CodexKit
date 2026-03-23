@@ -94,6 +94,11 @@ When the user pastes a meaningful session result back into the control session:
 - update the active `plan.md` artifact references or progress notes when the new result changes phase state
 - if no durable path is known yet, say plainly that the artifact currently exists only in the control-session context and may need to be persisted before a future fresh session
 
+Freeze-loop exception:
+- for freeze, preflight, or freeze-rerun routing, do not create repeated docs-only cleanup lanes when your own `control-state` persistence is the only reason the worktree is non-empty
+- if the latest durable control-state names a clean synced commit and the only local deltas are `plan.md`, the just-persisted `control-state`, and the current freeze report, keep that named synced commit as the authoritative freeze target
+- in that case, rerun or complete freeze directly unless non-control files are dirty, the phase-doc set changed, or refs drifted
+
 ## Verification Source Of Truth Rule
 
 For tester, reviewer, and lead-verdict sessions:
@@ -150,7 +155,8 @@ For every request:
 5. Decide which sessions can run in parallel and which depend on earlier artifacts.
 6. Pick the recommended role, optional modal hint, skill route, and model/reasoning setting for each session.
 7. Define the exact paste-back template for each session.
-8. Emit:
+8. Apply the freeze-loop exception before opening a docs-only cleanup lane for freeze or freeze-rerun work.
+9. Emit:
    - current phase summary
    - execution plan grouped into waves or dependency order
    - session card for each session

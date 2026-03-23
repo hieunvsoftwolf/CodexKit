@@ -9,7 +9,9 @@ interface:
     Then inspect the current CodexKit phase, decide whether the high-rigor verification model
     applies, pin a reproducible BASE_SHA when needed, route implement plus spec-test-design in
     parallel when allowed, recompute and persist normalized control-state after meaningful artifact
-    or task changes when a durable path is in scope, keep final test and verdict dependency-correct,
+    or task changes when a durable path is in scope, apply the freeze-loop exception when only
+    plan.md plus the just-written control-state and freeze report are dirty, keep final test and
+    verdict dependency-correct,
     recommend the model for each session, and generate the exact prompts plus paste-back artifacts
     while preserving the existing control-agent output contract.
 
