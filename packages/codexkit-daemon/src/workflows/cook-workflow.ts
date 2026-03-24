@@ -4,9 +4,11 @@ import { approvalStatusToCheckpointResponse, CodexkitError, invariant } from "..
 import type { ApprovalRecord, RunMode, WorkflowCheckpointId, WorkflowCheckpointResponse } from "../../../codexkit-core/src/index.ts";
 import type { RuntimeContext } from "../runtime-context.ts";
 import { resolveReportPath } from "./artifact-paths.ts";
-import type { WorkflowBaseResult, WorkflowCommandDiagnostics } from "./contracts.ts";
+import type { FinalizeWorkflowResult, WorkflowBaseResult, WorkflowCommandDiagnostics } from "./contracts.ts";
+import { runFinalizeWorkflow } from "./finalize-workflow.ts";
 import { createPlanBundle, readPlanBundle, writePlanBundle } from "./plan-files.ts";
 import { hydratePlanTasks, renderHydrationReport } from "./hydration-engine.ts";
+import { readWorkflowState } from "./workflow-state.ts";
 
 const ACTIVE_PLAN_KEY = "workflow.plan.active.path";
 const COOK_CONTINUATION_METADATA_KEY = "cookContinuation";
@@ -308,6 +310,8 @@ export interface CookWorkflowResult extends WorkflowBaseResult {
   hydration?: ReturnType<typeof hydratePlanTasks>;
   diagnostics: WorkflowCommandDiagnostics[];
   completedThroughPostImplementation: boolean;
+  completedThroughFinalize: boolean;
+  finalize?: FinalizeWorkflowResult;
   researchSummaryPath?: string;
   planSummaryPath?: string;
   implementationSummaryPath?: string;
@@ -316,6 +320,66 @@ export interface CookWorkflowResult extends WorkflowBaseResult {
     checkpoint: WorkflowCheckpointId;
     nextStep: string;
   };
+}
+
+function appendCheckpointIds(target: WorkflowCheckpointId[], additions: WorkflowCheckpointId[]): void {
+  for (const checkpointId of additions) {
+    if (!target.includes(checkpointId)) {
+      target.push(checkpointId);
+    }
+  }
+}
+
+function runCookFinalize(
+  context: RuntimeContext,
+  runId: string,
+  planPath: string,
+  checkpointIds: WorkflowCheckpointId[]
+): FinalizeWorkflowResult {
+  const finalize = runFinalizeWorkflow(context, {
+    runId,
+    workflow: "cook",
+    planPathHint: planPath
+  });
+  appendCheckpointIds(checkpointIds, finalize.checkpointIds);
+  return finalize;
+}
+
+function hasCheckpointArtifact(context: RuntimeContext, runId: string, checkpointId: WorkflowCheckpointId): boolean {
+  const run = context.runService.getRun(runId);
+  const workflowState = readWorkflowState(run);
+  return typeof workflowState.checkpoints[checkpointId]?.artifactPath === "string";
+}
+
+function canFinalizeCookRun(context: RuntimeContext, runId: string): {
+  ready: boolean;
+  missingEvidence: WorkflowCheckpointId[];
+} {
+  const requiredCheckpoints: WorkflowCheckpointId[] = ["implementation", "test-report", "review-publish"];
+  const missingEvidence = requiredCheckpoints.filter((checkpointId) => !hasCheckpointArtifact(context, runId, checkpointId));
+  return {
+    ready: missingEvidence.length === 0,
+    missingEvidence
+  };
+}
+
+function runCookFinalizeIfReady(
+  context: RuntimeContext,
+  runId: string,
+  planPath: string,
+  checkpointIds: WorkflowCheckpointId[],
+  diagnostics: WorkflowCommandDiagnostics[]
+): FinalizeWorkflowResult | undefined {
+  const readiness = canFinalizeCookRun(context, runId);
+  if (!readiness.ready) {
+    diagnostics.push({
+      code: "COOK_FINALIZE_DEFERRED_PRE_REVIEW",
+      cause: `Finalize was deferred because required evidence is missing: ${readiness.missingEvidence.join(", ")}.`,
+      nextStep: "Run delegated test and review checkpoints first, then rerun finalize for this run."
+    });
+    return undefined;
+  }
+  return runCookFinalize(context, runId, planPath, checkpointIds);
 }
 
 function runImplementationStage(
@@ -356,6 +420,16 @@ function runImplementationStage(
       cause: "Reusable phase-task set was empty or incomplete.",
       nextStep: `Review hydration report at ${hydrationPath}.`
     });
+  }
+
+  if (mode === "auto") {
+    const phaseTaskIds = new Set<string>([
+      ...reusedTaskIds,
+      ...(hydration?.createdTaskIds ?? [])
+    ]);
+    for (const phaseTaskId of phaseTaskIds) {
+      context.taskService.updateTask(phaseTaskId, { status: "completed" });
+    }
   }
 
   const implementationTask = context.taskService.createTask({
@@ -500,6 +574,7 @@ export function runCookWorkflow(context: RuntimeContext, input: CookWorkflowInpu
         reusedTaskIds: [],
         diagnostics,
         completedThroughPostImplementation: false,
+        completedThroughFinalize: false,
         researchSummaryPath,
         pendingApproval: {
           approvalId: pendingResearchGate.approvalId,
@@ -519,7 +594,7 @@ export function runCookWorkflow(context: RuntimeContext, input: CookWorkflowInpu
       `- Mode: ${mode}`,
       `- Plan: ${planPath}`,
       `- Planning path: ${resolvedPlan.createdNewPlan ? "generated new plan during cook" : "reused existing plan"}`,
-      "- Scope boundary: Phase 5 through post-implementation only; no finalize/sync-back stages.",
+      "- Scope boundary: finalize runs only after successful review with fresh test and review evidence.",
       ""
     ].join("\n");
     planSummaryPath = writeSummaryArtifact(context, run.id, "plan-summary.md", planningSummary, "post-plan", planPath);
@@ -556,6 +631,7 @@ export function runCookWorkflow(context: RuntimeContext, input: CookWorkflowInpu
         reusedTaskIds: [],
         diagnostics,
         completedThroughPostImplementation: false,
+        completedThroughFinalize: false,
         ...(researchSummaryPath ? { researchSummaryPath } : {}),
         planSummaryPath,
         pendingApproval: {
@@ -582,8 +658,13 @@ export function runCookWorkflow(context: RuntimeContext, input: CookWorkflowInpu
       reusedTaskIds: implementation.reusedTaskIds,
       implementationSummaryPath: implementation.implementationSummaryPath
     });
+  }
+  let finalize: FinalizeWorkflowResult | undefined;
+  if (implementation.pendingPostImplementation) {
+    finalize = undefined;
   } else {
     writeCookContinuationState(context, run.id, null);
+    finalize = runCookFinalizeIfReady(context, run.id, planPath, checkpointIds, diagnostics);
   }
 
   return {
@@ -597,6 +678,8 @@ export function runCookWorkflow(context: RuntimeContext, input: CookWorkflowInpu
     ...(implementation.hydration ? { hydration: implementation.hydration } : {}),
     diagnostics,
     completedThroughPostImplementation: !implementation.pendingPostImplementation,
+    completedThroughFinalize: Boolean(finalize),
+    ...(finalize ? { finalize } : {}),
     ...(researchSummaryPath ? { researchSummaryPath } : {}),
     ...(planSummaryPath ? { planSummaryPath } : {}),
     implementationSummaryPath: implementation.implementationSummaryPath,
@@ -662,6 +745,7 @@ export function resumeCookWorkflowFromApproval(context: RuntimeContext, approval
       reusedTaskIds: continuation.reusedTaskIds ?? [],
       diagnostics,
       completedThroughPostImplementation: false,
+      completedThroughFinalize: false,
       ...(continuation.researchSummaryPath ? { researchSummaryPath: continuation.researchSummaryPath } : {}),
       ...(continuation.planSummaryPath ? { planSummaryPath: continuation.planSummaryPath } : {}),
       ...(continuation.implementationSummaryPath ? { implementationSummaryPath: continuation.implementationSummaryPath } : {})
@@ -670,10 +754,15 @@ export function resumeCookWorkflowFromApproval(context: RuntimeContext, approval
 
   if (continuation.stage === "post-implementation") {
     writeCookContinuationState(context, run.id, null);
+    const finalize = runCookFinalizeIfReady(context, run.id, continuation.planPath, checkpointIds, diagnostics);
     diagnostics.push({
       code: "COOK_CONTINUED",
-      cause: "Cook resumed after approval and completed through post-implementation.",
-      nextStep: "Proceed with downstream verification or handoff."
+      cause: finalize
+        ? "Cook resumed after approval and completed finalize sequencing."
+        : "Cook resumed after approval and reached post-implementation without finalize evidence.",
+      nextStep: finalize
+        ? "Review finalize artifacts and choose git handoff action."
+        : "Run delegated test and review checkpoints, then rerun finalize for this run."
     });
     return {
       runId: run.id,
@@ -685,6 +774,8 @@ export function resumeCookWorkflowFromApproval(context: RuntimeContext, approval
       reusedTaskIds: continuation.reusedTaskIds ?? [],
       diagnostics,
       completedThroughPostImplementation: true,
+      completedThroughFinalize: Boolean(finalize),
+      ...(finalize ? { finalize } : {}),
       ...(continuation.researchSummaryPath ? { researchSummaryPath: continuation.researchSummaryPath } : {}),
       ...(continuation.planSummaryPath ? { planSummaryPath: continuation.planSummaryPath } : {}),
       ...(continuation.implementationSummaryPath ? { implementationSummaryPath: continuation.implementationSummaryPath } : {})
@@ -699,7 +790,7 @@ export function resumeCookWorkflowFromApproval(context: RuntimeContext, approval
       `- Mode: ${continuation.mode}`,
       `- Plan: ${continuation.planPath}`,
       `- Planning path: ${continuation.createdNewPlan ? "generated new plan during cook" : "reused existing plan"}`,
-      "- Scope boundary: Phase 5 through post-implementation only; no finalize/sync-back stages.",
+      "- Scope boundary: finalize runs only after successful review with fresh test and review evidence.",
       ""
     ].join("\n");
     planSummaryPath = writeSummaryArtifact(
@@ -739,6 +830,7 @@ export function resumeCookWorkflowFromApproval(context: RuntimeContext, approval
         reusedTaskIds: [],
         diagnostics,
         completedThroughPostImplementation: false,
+        completedThroughFinalize: false,
         ...(continuation.researchSummaryPath ? { researchSummaryPath: continuation.researchSummaryPath } : {}),
         ...(planSummaryPath ? { planSummaryPath } : {}),
         pendingApproval: {
@@ -769,8 +861,13 @@ export function resumeCookWorkflowFromApproval(context: RuntimeContext, approval
       reusedTaskIds: implementation.reusedTaskIds,
       implementationSummaryPath: implementation.implementationSummaryPath
     });
+  }
+  let finalize: FinalizeWorkflowResult | undefined;
+  if (implementation.pendingPostImplementation) {
+    finalize = undefined;
   } else {
     writeCookContinuationState(context, run.id, null);
+    finalize = runCookFinalizeIfReady(context, run.id, continuation.planPath, checkpointIds, diagnostics);
   }
 
   return {
@@ -784,6 +881,8 @@ export function resumeCookWorkflowFromApproval(context: RuntimeContext, approval
     ...(implementation.hydration ? { hydration: implementation.hydration } : {}),
     diagnostics,
     completedThroughPostImplementation: !implementation.pendingPostImplementation,
+    completedThroughFinalize: Boolean(finalize),
+    ...(finalize ? { finalize } : {}),
     ...(continuation.researchSummaryPath ? { researchSummaryPath: continuation.researchSummaryPath } : {}),
     ...(planSummaryPath ? { planSummaryPath } : {}),
     implementationSummaryPath: implementation.implementationSummaryPath,

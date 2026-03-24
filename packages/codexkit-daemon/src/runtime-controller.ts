@@ -9,12 +9,14 @@ import {
   runBrainstormWorkflow,
   runCookWorkflow,
   runDebugWorkflow,
+  runFinalizeWorkflow,
   runPlanArchiveWorkflow,
   runPlanRedTeamWorkflow,
   runPlanValidateWorkflow,
   runPlanWorkflow,
   runReviewWorkflow,
   runTestWorkflow,
+  type WorkflowName,
   type PlanMode
 } from "./workflows/index.ts";
 
@@ -117,6 +119,18 @@ export class RuntimeController {
 
   debug(input: { issue: string; branch?: "code" | "logs-ci" | "database" | "performance" | "frontend" }) {
     const result = runDebugWorkflow(this.context, input);
+    this.reconcile();
+    return result;
+  }
+
+  finalize(input: { runId: string; planPathHint?: string }) {
+    const run = this.context.runService.getRun(input.runId);
+    const workflow = run.workflow as WorkflowName;
+    const result = runFinalizeWorkflow(this.context, {
+      runId: input.runId,
+      workflow,
+      ...(input.planPathHint ? { planPathHint: input.planPathHint } : {})
+    });
     this.reconcile();
     return result;
   }

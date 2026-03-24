@@ -126,7 +126,7 @@ describe("phase 5 wave 2 workflow runtime", () => {
     expect((redTeamNotes.match(/failure-containment checks/g) ?? []).length).toBeGreaterThanOrEqual(2);
   });
 
-  test("cook auto mode reaches post-implementation and publishes required summaries", async () => {
+  test("cook auto mode reaches post-implementation and defers finalize until review evidence exists", async () => {
     const fixture = await createRuntimeFixture("codexkit-phase5-wave2-cook-auto");
     cleanups.push(() => fixture.cleanup());
     const context = openRuntimeContext(loadRuntimeConfig(fixture.rootDir));
@@ -136,11 +136,20 @@ describe("phase 5 wave 2 workflow runtime", () => {
     const cook = runCookWorkflow(context, { planPath: plan.planPath, mode: "auto" });
     expect(cook.mode).toBe("auto");
     expect(cook.completedThroughPostImplementation).toBe(true);
-    expect(cook.checkpointIds).toEqual(["cook-mode", "post-research", "post-plan", "implementation", "post-implementation"]);
+    expect(cook.completedThroughFinalize).toBe(false);
+    expect(cook.checkpointIds).toEqual([
+      "cook-mode",
+      "post-research",
+      "post-plan",
+      "implementation",
+      "post-implementation"
+    ]);
     expect(cook.pendingApproval).toBeUndefined();
     expect(cook.researchSummaryPath && existsSync(cook.researchSummaryPath)).toBe(true);
     expect(cook.planSummaryPath && existsSync(cook.planSummaryPath)).toBe(true);
     expect(cook.implementationSummaryPath && existsSync(cook.implementationSummaryPath)).toBe(true);
+    expect(cook.finalize).toBeUndefined();
+    expect(cook.diagnostics.some((entry) => entry.code === "COOK_FINALIZE_DEFERRED_PRE_REVIEW")).toBe(true);
   });
 
   test("cook parallel mode pauses at post-research and code mode preserves reuse/hydration behavior", async () => {
@@ -201,9 +210,10 @@ describe("phase 5 wave 2 workflow runtime", () => {
     const afterImplementation = controller.respondApproval({
       approvalId: String(afterPlan.continuation?.pendingApproval?.approvalId),
       status: "approved"
-    }) as { continuation?: { completedThroughPostImplementation?: boolean; checkpointIds: string[] } };
+    }) as { continuation?: { completedThroughPostImplementation?: boolean; completedThroughFinalize?: boolean; checkpointIds: string[] } };
     expect(afterImplementation.continuation?.checkpointIds).toContain("post-implementation");
     expect(afterImplementation.continuation?.completedThroughPostImplementation).toBe(true);
+    expect(afterImplementation.continuation?.completedThroughFinalize).toBe(false);
 
     const runAfterImplementation = controller.showRun(cook.runId) as { run: { metadata: { workflow?: { currentCheckpoint?: string } } } };
     expect(runAfterImplementation.run.metadata.workflow?.currentCheckpoint).toBe("post-implementation");

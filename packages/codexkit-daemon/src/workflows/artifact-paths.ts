@@ -3,6 +3,14 @@ import path from "node:path";
 import type { RunRecord } from "../../../codexkit-core/src/index.ts";
 import type { RuntimeContext } from "../runtime-context.ts";
 import { readWorkflowState } from "./workflow-state.ts";
+import type { FinalizeArtifactNames } from "./contracts.ts";
+
+export const FINALIZE_ARTIFACT_NAMES: FinalizeArtifactNames = {
+  unresolvedMapping: "unresolved-mapping-report.md",
+  docsImpact: "docs-impact-report.md",
+  gitHandoff: "git-handoff-report.md",
+  finalize: "finalize-report.md"
+};
 
 export interface ResolvedReportPath {
   absolutePath: string;

@@ -11,3 +11,7 @@ export * from "./hydration-engine.ts";
 export * from "./handoff-policy.ts";
 export * from "./workflow-reporting.ts";
 export * from "./approval-continuation.ts";
+export * from "./finalize-workflow.ts";
+export * from "./finalize-sync-back.ts";
+export * from "./finalize-docs-impact.ts";
+export * from "./finalize-git-handoff.ts";

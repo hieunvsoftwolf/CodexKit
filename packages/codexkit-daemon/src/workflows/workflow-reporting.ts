@@ -2,7 +2,7 @@ import { writeFileSync } from "node:fs";
 import type { ArtifactKind, WorkflowCheckpointId } from "../../../codexkit-core/src/index.ts";
 import type { RuntimeContext } from "../runtime-context.ts";
 import { resolveReportPath } from "./artifact-paths.ts";
-import type { WorkflowCommandDiagnostics } from "./contracts.ts";
+import type { FinalizeArtifactFileName, WorkflowCommandDiagnostics } from "./contracts.ts";
 
 interface PublishWorkflowReportInput {
   runId: string;
@@ -88,6 +88,34 @@ export function publishTypedFailureDiagnostic(
     metadata: {
       terminalStatus: input.terminalStatus,
       diagnosticCode: input.diagnostic.code,
+      ...(input.metadata ?? {})
+    }
+  });
+}
+
+interface PublishFinalizeContractReportInput {
+  runId: string;
+  checkpoint: "finalize-sync" | "finalize-docs" | "finalize-git";
+  fileName: FinalizeArtifactFileName;
+  markdown: string;
+  summary: string;
+  planPathHint?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export function publishFinalizeContractReport(
+  context: RuntimeContext,
+  input: PublishFinalizeContractReportInput
+): PublishedWorkflowReport {
+  return publishWorkflowReport(context, {
+    runId: input.runId,
+    checkpoint: input.checkpoint,
+    fileName: input.fileName,
+    markdown: input.markdown,
+    summary: input.summary,
+    ...(input.planPathHint ? { planPathHint: input.planPathHint } : {}),
+    metadata: {
+      finalizeContract: true,
       ...(input.metadata ?? {})
     }
   });
