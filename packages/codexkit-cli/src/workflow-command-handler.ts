@@ -58,6 +58,74 @@ export function tryHandleWorkflowCommand(
   controller: RuntimeController
 ): { handled: boolean; result?: unknown } {
   const [group, second, ...rest] = parsed.positionals;
+  if (group === "init") {
+    if (second || rest.length > 0) {
+      throw new CodexkitError("CLI_USAGE", "init accepts no positional arguments", {
+        code: "WF_INIT_POSITIONAL_INVALID",
+        cause: "Unexpected extra tokens were provided to cdx init.",
+        nextStep: "Use cdx init [--apply] [--init-git] [--approve-git-init] [--approve-protected] [--approve-managed-overwrite]."
+      });
+    }
+    return {
+      handled: true,
+      result: controller.init({
+        ...(hasFlag(parsed.options, "apply") ? { apply: true } : {}),
+        ...(hasFlag(parsed.options, "init-git") ? { initGit: true } : {}),
+        ...(hasFlag(parsed.options, "approve-git-init") ? { approveGitInit: true } : {}),
+        ...(hasFlag(parsed.options, "approve-protected") ? { approveProtected: true } : {}),
+        ...(hasFlag(parsed.options, "approve-managed-overwrite") ? { approveManagedOverwrite: true } : {})
+      })
+    };
+  }
+
+  if (group === "update") {
+    if (second || rest.length > 0) {
+      throw new CodexkitError("CLI_USAGE", "update accepts no positional arguments", {
+        code: "WF_UPDATE_POSITIONAL_INVALID",
+        cause: "Unexpected extra tokens were provided to cdx update.",
+        nextStep: "Use cdx update [--apply] [--approve-protected] [--approve-managed-overwrite]."
+      });
+    }
+    return {
+      handled: true,
+      result: controller.update({
+        ...(hasFlag(parsed.options, "apply") ? { apply: true } : {}),
+        ...(hasFlag(parsed.options, "approve-protected") ? { approveProtected: true } : {}),
+        ...(hasFlag(parsed.options, "approve-managed-overwrite") ? { approveManagedOverwrite: true } : {})
+      })
+    };
+  }
+
+  if (group === "doctor") {
+    if (second || rest.length > 0) {
+      throw new CodexkitError("CLI_USAGE", "doctor does not accept positional arguments", {
+        code: "WF_DOCTOR_POSITIONAL_INVALID",
+        cause: "Unexpected positional tokens were provided to cdx doctor.",
+        nextStep: "Run cdx doctor."
+      });
+    }
+    return {
+      handled: true,
+      result: controller.doctor()
+    };
+  }
+
+  if (group === "resume") {
+    if (rest.length > 0) {
+      throw new CodexkitError("CLI_USAGE", "resume accepts at most one run id positional", {
+        code: "WF_RESUME_POSITIONAL_INVALID",
+        cause: "Multiple resume target identifiers were provided.",
+        nextStep: "Run cdx resume or cdx resume <run-id>."
+      });
+    }
+    return {
+      handled: true,
+      result: controller.resume({
+        ...(second ? { runId: second } : {})
+      })
+    };
+  }
+
   if (group === "brainstorm") {
     const topic = [second, ...rest].filter(Boolean).join(" ").trim();
     if (!topic) {

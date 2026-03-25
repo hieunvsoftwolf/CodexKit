@@ -118,3 +118,33 @@ export interface WorkflowOverride {
   id: string;
   command: string;
 }
+
+export type ManagedFileClass =
+  | "managed"
+  | "protected-managed"
+  | "preserved"
+  | "conflict"
+  | "manual-review";
+
+export interface ManagedFileRecord {
+  path: string;
+  checksum: string;
+  class: ManagedFileClass;
+}
+
+export interface ReleaseManifest {
+  schemaVersion: 1;
+  generatedAt: string;
+  files: ManagedFileRecord[];
+}
+
+export interface InstallState {
+  schemaVersion: 1;
+  installedAt: string;
+  updatedAt: string;
+  repoClass: string;
+  installOnly: boolean;
+  releaseManifestPath: string;
+  sourceRegistryPath: string | null;
+  managedFiles: ManagedFileRecord[];
+}

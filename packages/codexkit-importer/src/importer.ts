@@ -1,4 +1,5 @@
 import path from "node:path";
+import { createHash } from "node:crypto";
 
 import { CORE_WORKFLOW_OVERRIDES, DEFAULT_IMPORTED_AT } from "./constants.ts";
 import { discoverWave1Sources } from "./discovery.ts";
@@ -9,7 +10,18 @@ import { normalizeRole } from "./normalize-role.ts";
 import { normalizeWorkflow } from "./normalize-workflow.ts";
 import { parseSource } from "./parse.ts";
 import { validateManifestBatch } from "./validate.ts";
-import type { BaseManifest, ImportOptions, ImportRegistry, ImportResult, ImportSkippedSource, ParsedSource } from "./types.ts";
+import type {
+  BaseManifest,
+  ImportOptions,
+  ImportRegistry,
+  ImportResult,
+  ImportSkippedSource,
+  InstallState,
+  ManagedFileClass,
+  ManagedFileRecord,
+  ParsedSource,
+  ReleaseManifest
+} from "./types.ts";
 
 function isCoreWorkflowSource(sourcePath: string): boolean {
   const relative = sourcePath.replace(/^\.claude\/skills\//, "");
@@ -92,6 +104,52 @@ async function parseAndNormalize(parsed: ParsedSource, importedAt: string, skill
     return normalizeWorkflow(parsed, importedAt, skillResources[parsed.source.sourcePath] ?? []);
   }
   return normalizePolicy(parsed, importedAt);
+}
+
+function sortManagedFiles(files: ManagedFileRecord[]): ManagedFileRecord[] {
+  return [...files].sort((left, right) => left.path.localeCompare(right.path));
+}
+
+export function managedContentChecksum(content: string): string {
+  return createHash("sha256").update(content, "utf8").digest("hex");
+}
+
+export function createManagedFileRecord(pathValue: string, content: string, classValue: ManagedFileClass): ManagedFileRecord {
+  return {
+    path: pathValue,
+    checksum: managedContentChecksum(content),
+    class: classValue
+  };
+}
+
+export function createReleaseManifest(input: { generatedAt?: string; files: ManagedFileRecord[] }): ReleaseManifest {
+  return {
+    schemaVersion: 1,
+    generatedAt: input.generatedAt ?? new Date().toISOString(),
+    files: sortManagedFiles(input.files)
+  };
+}
+
+export function createInstallState(input: {
+  installedAt?: string;
+  updatedAt?: string;
+  repoClass: string;
+  installOnly: boolean;
+  releaseManifestPath: string;
+  sourceRegistryPath?: string | null;
+  managedFiles: ManagedFileRecord[];
+}): InstallState {
+  const installedAt = input.installedAt ?? new Date().toISOString();
+  return {
+    schemaVersion: 1,
+    installedAt,
+    updatedAt: input.updatedAt ?? installedAt,
+    repoClass: input.repoClass,
+    installOnly: input.installOnly,
+    releaseManifestPath: input.releaseManifestPath,
+    sourceRegistryPath: input.sourceRegistryPath ?? null,
+    managedFiles: sortManagedFiles(input.managedFiles)
+  };
 }
 
 export async function importClaudekitWave1(options: ImportOptions): Promise<ImportResult> {

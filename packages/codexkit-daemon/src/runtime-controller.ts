@@ -5,17 +5,23 @@ import { runReconciliationPass } from "./runtime-kernel.ts";
 import { loadRuntimeConfig } from "./runtime-config.ts";
 import { createSystemClock, openRuntimeContext } from "./runtime-context.ts";
 import {
+  readInstallState,
+  runDoctorWorkflow,
   resumeWorkflowFromApproval,
   runBrainstormWorkflow,
   runCookWorkflow,
   runDebugWorkflow,
   runFinalizeWorkflow,
+  runInitWorkflow,
   runPlanArchiveWorkflow,
   runPlanRedTeamWorkflow,
   runPlanValidateWorkflow,
   runPlanWorkflow,
+  runResumeWorkflow,
   runReviewWorkflow,
+  runSharedRepoScan,
   runTestWorkflow,
+  runUpdateWorkflow,
   type WorkflowName,
   type PlanMode
 } from "./workflows/index.ts";
@@ -31,6 +37,22 @@ export class RuntimeController {
 
   close(): void {
     this.context.close();
+  }
+
+  private assertWorkerWorkflowAllowed(command: string): void {
+    const installState = readInstallState(this.config.paths.rootDir);
+    if (!installState?.installOnly) {
+      return;
+    }
+    const scan = runSharedRepoScan(this.config.paths.rootDir);
+    if (scan.hasInitialCommit) {
+      return;
+    }
+    throw new CodexkitError("WORKFLOW_BLOCKED", `${command} is blocked while repository is install-only`, {
+      code: "WF_INSTALL_ONLY_REPO_BLOCKED",
+      cause: "Repository is marked install-only and has no initial commit, so worker-backed workflows are blocked.",
+      nextStep: `Create the first commit, run cdx doctor, then rerun ${command}.`
+    });
   }
 
   daemonStatus() {
@@ -100,25 +122,57 @@ export class RuntimeController {
   }
 
   cook(input: { planPath?: string; mode?: "interactive" | "auto" | "fast" | "parallel" | "no-test" | "code" }) {
+    this.assertWorkerWorkflowAllowed("cdx cook");
     const result = runCookWorkflow(this.context, input);
     this.reconcile();
     return result;
   }
 
   review(input: { context?: string; scope?: "recent" | "codebase"; parallel?: boolean }) {
+    this.assertWorkerWorkflowAllowed("cdx review");
     const result = runReviewWorkflow(this.context, input);
     this.reconcile();
     return result;
   }
 
   test(input: { context?: string; mode?: "default" | "ui" | "coverage" | "chooser"; url?: string }) {
+    this.assertWorkerWorkflowAllowed("cdx test");
     const result = runTestWorkflow(this.context, input);
     this.reconcile();
     return result;
   }
 
   debug(input: { issue: string; branch?: "code" | "logs-ci" | "database" | "performance" | "frontend" }) {
+    this.assertWorkerWorkflowAllowed("cdx debug");
     const result = runDebugWorkflow(this.context, input);
+    this.reconcile();
+    return result;
+  }
+
+  init(input: {
+    apply?: boolean;
+    initGit?: boolean;
+    approveGitInit?: boolean;
+    approveProtected?: boolean;
+    approveManagedOverwrite?: boolean;
+  }) {
+    const result = runInitWorkflow(this.context, input);
+    this.reconcile();
+    return result;
+  }
+
+  update(input: {
+    apply?: boolean;
+    approveProtected?: boolean;
+    approveManagedOverwrite?: boolean;
+  }) {
+    const result = runUpdateWorkflow(this.context, input);
+    this.reconcile();
+    return result;
+  }
+
+  doctor() {
+    const result = runDoctorWorkflow(this.context);
     this.reconcile();
     return result;
   }
@@ -153,10 +207,10 @@ export class RuntimeController {
     };
   }
 
-  resume() {
-    const lastRunId = this.context.store.settings.get("runtime.last_run_id");
-    const runs = this.context.runService.resumeCandidates();
-    return { lastRunId, runs, suggestion: runs[0] ? `cdx run show ${runs[0].id}` : null };
+  resume(input?: { runId?: string }) {
+    const result = runResumeWorkflow(this.context, input ?? {});
+    this.reconcile();
+    return result;
   }
 
   createTask(input: { runId: string; role: string; subject: string; description?: string; dependsOn?: string[] }) {

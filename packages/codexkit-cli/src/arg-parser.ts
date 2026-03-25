@@ -5,6 +5,10 @@ export interface ParsedArgs {
 }
 
 const BOOLEAN_OPTIONS = new Set([
+  "apply",
+  "approve-git-init",
+  "approve-managed-overwrite",
+  "approve-protected",
   "auto",
   "coverage",
   "delegate",
@@ -24,7 +28,8 @@ const BOOLEAN_OPTIONS = new Set([
   "quick",
   "read-only",
   "review",
-  "two"
+  "two",
+  "init-git"
 ]);
 
 function splitOptionToken(token: string): { key: string; inlineValue?: string } {

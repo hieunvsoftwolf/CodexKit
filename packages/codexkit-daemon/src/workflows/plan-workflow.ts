@@ -109,6 +109,11 @@ export function runPlanWorkflow(context: RuntimeContext, input: PlanWorkflowInpu
   const written = writePlanBundle(planDir, planBundle);
   context.runService.setPlanDir(run.id, planDir);
   context.store.settings.set(ACTIVE_PLAN_KEY, written.planPath);
+  writeWorkflowState(context.runService, run.id, {
+    ...readWorkflowState(context.runService.getRun(run.id)),
+    activePlanPath: written.planPath,
+    ...(suggestedPlanPath ? { suggestedPlanPath } : {})
+  });
 
   const planArtifact = context.artifactService.publishArtifact({
     runId: run.id,

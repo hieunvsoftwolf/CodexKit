@@ -36,6 +36,56 @@ async function listRelativeFiles(rootDir: string, prefix = ""): Promise<string[]
   return files.sort();
 }
 
+export interface ManagedTreeDiff {
+  changedFiles: string[];
+  extraFiles: string[];
+  missingFiles: string[];
+  unchangedFiles: string[];
+}
+
+export async function inspectManagedTreeDiff(
+  outputRoot: string,
+  plannedFiles: Record<string, string>
+): Promise<ManagedTreeDiff> {
+  if (!(await pathExists(outputRoot))) {
+    return {
+      changedFiles: [],
+      extraFiles: [],
+      missingFiles: Object.keys(plannedFiles).sort(),
+      unchangedFiles: []
+    };
+  }
+
+  const existingFiles = await listRelativeFiles(outputRoot);
+  const plannedPaths = Object.keys(plannedFiles).sort();
+  const plannedPathSet = new Set(plannedPaths);
+  const existingPathSet = new Set(existingFiles);
+  const extraFiles = existingFiles.filter((file) => !plannedPathSet.has(file)).sort();
+  const missingFiles = plannedPaths.filter((file) => !existingPathSet.has(file)).sort();
+  const changedFiles: string[] = [];
+  const unchangedFiles: string[] = [];
+
+  for (const relativePath of existingFiles) {
+    if (!plannedPathSet.has(relativePath)) {
+      continue;
+    }
+    const absolutePath = path.join(outputRoot, relativePath);
+    const currentContent = await readFile(absolutePath, "utf8");
+    if (currentContent !== plannedFiles[relativePath]) {
+      changedFiles.push(relativePath);
+      continue;
+    }
+    unchangedFiles.push(relativePath);
+  }
+
+  return {
+    changedFiles: changedFiles.sort(),
+    extraFiles,
+    missingFiles,
+    unchangedFiles: unchangedFiles.sort()
+  };
+}
+
 function trimList(items: string[]): string {
   if (items.length === 0) {
     return "(none)";
@@ -54,27 +104,9 @@ async function ensureNonDestructivePreflight(
     return "create";
   }
 
-  const existingFiles = await listRelativeFiles(outputRoot);
-  const plannedPaths = Object.keys(plannedFiles).sort();
-  const plannedPathSet = new Set(plannedPaths);
-  const existingPathSet = new Set(existingFiles);
+  const diff = await inspectManagedTreeDiff(outputRoot, plannedFiles);
 
-  const extraFiles = existingFiles.filter((file) => !plannedPathSet.has(file)).sort();
-  const missingFiles = plannedPaths.filter((file) => !existingPathSet.has(file)).sort();
-  const changedFiles: string[] = [];
-
-  for (const relativePath of existingFiles) {
-    if (!plannedPathSet.has(relativePath)) {
-      continue;
-    }
-    const absolutePath = path.join(outputRoot, relativePath);
-    const currentContent = await readFile(absolutePath, "utf8");
-    if (currentContent !== plannedFiles[relativePath]) {
-      changedFiles.push(relativePath);
-    }
-  }
-
-  if (extraFiles.length === 0 && missingFiles.length === 0 && changedFiles.length === 0) {
+  if (diff.extraFiles.length === 0 && diff.missingFiles.length === 0 && diff.changedFiles.length === 0) {
     return "noop";
   }
 
@@ -84,9 +116,9 @@ async function ensureNonDestructivePreflight(
       [
         `existing managed manifests differ under ${outputRoot}`,
         "refusing to replace without explicit opt-in",
-        `changed files: ${trimList(changedFiles)}`,
-        `extra files: ${trimList(extraFiles)}`,
-        `missing files: ${trimList(missingFiles)}`,
+        `changed files: ${trimList(diff.changedFiles)}`,
+        `extra files: ${trimList(diff.extraFiles)}`,
+        `missing files: ${trimList(diff.missingFiles)}`,
         "rerun with allowManagedTreeReplace=true to authorize replacement"
       ].join("\n")
     );

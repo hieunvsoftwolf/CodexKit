@@ -1,6 +1,18 @@
 import type { RunMode, WorkflowCheckpointId, WorkflowCheckpointResponse } from "../../../codexkit-core/src/index.ts";
 
-export type WorkflowName = "brainstorm" | "plan" | "cook" | "review" | "test" | "debug" | "fix" | "team";
+export type WorkflowName =
+  | "brainstorm"
+  | "plan"
+  | "cook"
+  | "review"
+  | "test"
+  | "debug"
+  | "fix"
+  | "team"
+  | "init"
+  | "doctor"
+  | "resume"
+  | "update";
 
 export interface WorkflowCheckpointEntry {
   id: WorkflowCheckpointId;
