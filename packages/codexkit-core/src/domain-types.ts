@@ -47,6 +47,13 @@ export const WORKFLOW_CHECKPOINT_IDS = [
   "validation-migration"
 ] as const;
 export type WorkflowCheckpointId = (typeof WORKFLOW_CHECKPOINT_IDS)[number];
+export const VALIDATION_CHECKPOINT_IDS = [
+  "validation-golden",
+  "validation-chaos",
+  "validation-migration"
+] as const;
+export type ValidationCheckpointId = (typeof VALIDATION_CHECKPOINT_IDS)[number];
+export type ValidationSuiteId = ValidationCheckpointId;
 export type WorkflowCheckpointResponse = "approved" | "revised" | "aborted";
 export type RunStatus = "pending" | "running" | "blocked" | "completed" | "failed" | "cancelled";
 export type TeamStatus = "active" | "idle" | "waiting" | "shutting_down" | "deleted";
@@ -81,6 +88,61 @@ export type MessageType =
   | "approval_request"
   | "approval_response"
   | "plan_approval_response";
+
+export interface ValidationHostManifest {
+  os: string;
+  cpu: string;
+  ramBytes: number;
+  filesystem: string;
+  nodeVersion: string;
+  gitVersion: string;
+  codexCliVersion: string;
+}
+
+export interface ValidationArtifactRef {
+  label: string;
+  path: string;
+  durability: "durable";
+  artifactId?: string;
+  checkpointId?: ValidationCheckpointId;
+}
+
+export type ValidationMetricStatus = "pass" | "fail" | "blocked";
+
+export interface ValidationMetricResult {
+  metricId: string;
+  mappedNfrIds: string[];
+  required: boolean;
+  status: ValidationMetricStatus;
+  fixtureRefs: string[];
+  hostManifestRefs: string[];
+  artifactRefs: ValidationArtifactRef[];
+  evidence: string[];
+  notes?: string;
+}
+
+export interface ValidationPassFailSummary {
+  passed: number;
+  failed: number;
+  blocked: number;
+  requiredNonPass: number;
+}
+
+export interface ValidationEvidenceBundle {
+  schemaVersion: "phase9-validation-evidence-v2";
+  baseSha: string;
+  candidateSha: string;
+  generatedAt: string;
+  freshUntil: string;
+  freshnessRule: string;
+  suiteId: ValidationSuiteId;
+  fixtureIds: string[];
+  metricResults: ValidationMetricResult[];
+  hostManifest: ValidationHostManifest;
+  artifactRefs: ValidationArtifactRef[];
+  summary: ValidationPassFailSummary;
+  blockers: string[];
+}
 
 export interface ApprovalOption {
   code: string;

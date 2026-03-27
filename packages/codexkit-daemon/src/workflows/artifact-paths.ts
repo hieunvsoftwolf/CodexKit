@@ -1,9 +1,13 @@
 import { mkdirSync } from "node:fs";
 import path from "node:path";
-import type { RunRecord } from "../../../codexkit-core/src/index.ts";
+import type { RunRecord, ValidationSuiteId } from "../../../codexkit-core/src/index.ts";
 import type { RuntimeContext } from "../runtime-context.ts";
 import { readWorkflowState } from "./workflow-state.ts";
-import type { FinalizeArtifactNames } from "./contracts.ts";
+import {
+  PHASE9_VALIDATION_EVIDENCE_FILE_NAMES,
+  PHASE9_VALIDATION_REPORT_FILE_NAMES,
+  type FinalizeArtifactNames
+} from "./contracts.ts";
 
 export const FINALIZE_ARTIFACT_NAMES: FinalizeArtifactNames = {
   unresolvedMapping: "unresolved-mapping-report.md",
@@ -11,6 +15,14 @@ export const FINALIZE_ARTIFACT_NAMES: FinalizeArtifactNames = {
   gitHandoff: "git-handoff-report.md",
   finalize: "finalize-report.md"
 };
+
+export type Phase9ReportKind = ValidationSuiteId | "migration-checklist" | "release-readiness";
+
+export const PHASE9_REPORT_FILE_NAMES = {
+  ...PHASE9_VALIDATION_EVIDENCE_FILE_NAMES,
+  "migration-checklist": PHASE9_VALIDATION_REPORT_FILE_NAMES.migrationChecklist,
+  "release-readiness": PHASE9_VALIDATION_REPORT_FILE_NAMES.releaseReadiness
+} as const;
 
 export interface ResolvedReportPath {
   absolutePath: string;
@@ -60,4 +72,13 @@ export function resolveReportPath(
     rootDir: runDir,
     scope: "run"
   };
+}
+
+export function resolvePhase9ReportPath(
+  context: RuntimeContext,
+  run: RunRecord,
+  kind: Phase9ReportKind,
+  options?: { planPathHint?: string }
+): ResolvedReportPath {
+  return resolveReportPath(context, run, PHASE9_REPORT_FILE_NAMES[kind], options);
 }

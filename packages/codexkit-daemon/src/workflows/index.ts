@@ -10,6 +10,7 @@ export * from "./plan-files.ts";
 export * from "./hydration-engine.ts";
 export * from "./handoff-policy.ts";
 export * from "./workflow-reporting.ts";
+export * from "./artifact-paths.ts";
 export * from "./approval-continuation.ts";
 export * from "./finalize-workflow.ts";
 export * from "./finalize-sync-back.ts";
