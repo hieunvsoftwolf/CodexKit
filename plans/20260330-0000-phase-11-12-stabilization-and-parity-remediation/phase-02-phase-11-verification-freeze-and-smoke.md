@@ -23,11 +23,11 @@ Convert the stabilized baseline into a trusted release candidate for internal us
 - Tag or otherwise designate the Phase 11 baseline commit only after the verification set is green
 
 ## Todo Checklist
-- [ ] Run baseline verification with `npm run build`, `npm run typecheck`, and `npm run test:runtime` [critical]
-- [ ] Run packaging/smoke verification for the current beta surface using `npm run build:cli-artifact`, `npm run pack:cli`, and `npm run smoke:cli:tarball`
-- [ ] Re-check onboarding and contract tests in `tests/runtime/runtime-workflow-phase10-contract-freeze.integration.test.ts`, `tests/runtime/runtime-workflow-phase10-onboarding-contract.integration.test.ts`, and `tests/runtime/runtime-workflow-phase10-packaged-artifact-smoke.integration.test.ts`
-- [ ] Write a freeze summary and baseline handoff report under this plan directory
-- [ ] Record the exact commit or tag that becomes the Phase 11 baseline for Phase 12
+- [x] Run baseline verification with `npm run build`, `npm run typecheck`, and `npm run test:runtime` [critical]
+- [x] Run packaging/smoke verification for the current beta surface using `npm run build:cli-artifact`, `npm run pack:cli`, and `npm run smoke:cli:tarball`
+- [x] Re-check onboarding and contract tests in `tests/runtime/runtime-workflow-phase10-contract-freeze.integration.test.ts`, `tests/runtime/runtime-workflow-phase10-onboarding-contract.integration.test.ts`, and `tests/runtime/runtime-workflow-phase10-packaged-artifact-smoke.integration.test.ts`
+- [x] Write a freeze summary and baseline handoff report under this plan directory
+- [x] Record the exact commit or tag that becomes the Phase 11 baseline for Phase 12
 
 ## Acceptance Criteria
 - A single baseline commit is identified as the Phase 11 freeze point
@@ -44,6 +44,11 @@ Convert the stabilized baseline into a trusted release candidate for internal us
 
 ## Success Criteria
 - Phase 12 starts from a clean, documented, buildable, and smoke-verified baseline
+
+## Completion Notes
+- Closed on 2026-03-30
+- Frozen baseline commit for Phase 12: `5973f73b2bda2ee66313250594cce89661294c16`
+- See `reports/phase-11-freeze-summary.md` and `reports/phase-11-baseline-handoff.md`
 
 ## Risk Notes
 - Do not treat a build-only result as sufficient

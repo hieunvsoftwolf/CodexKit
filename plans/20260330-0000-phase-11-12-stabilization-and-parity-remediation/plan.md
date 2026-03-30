@@ -1,7 +1,7 @@
 ---
 title: "Phase 11 and 12 stabilization and parity remediation"
 description: "Execution plan for Phase 11 stabilization first, then Phase 12 full parity remediation"
-status: "pending"
+status: "in_progress"
 priority: "high"
 effort: "high"
 branch: "main"
@@ -24,6 +24,11 @@ Mode: hard
 ## Exit Targets
 - Phase 11 exits with one clean baseline that builds, passes runtime verification, and has a documented smoke path
 - Phase 12 exits only when the confirmed missing and partial graph ids are covered by runtime behavior and verification evidence
+
+## Current State
+- Phase 11 is complete
+- Frozen baseline commit: `5973f73b2bda2ee66313250594cce89661294c16`
+- Next execution phase: `phase-03-phase-12-archive-and-preview-parity.md`
 
 ## Phases
 - phase-01-phase-11-baseline-stabilization.md
