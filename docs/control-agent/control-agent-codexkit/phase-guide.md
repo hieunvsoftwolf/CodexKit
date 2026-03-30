@@ -2,97 +2,94 @@
 
 **Project**: CodexKit  
 **Control Agent**: `control-agent-codexkit`  
-**Control Plan**: `plans/20260313-1128-phase-0-preflight-clean-restart/plan.md`  
-**Active Phase Spec**: `docs/phase-1-implementation-plan.md`
+**Control Plan**: `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/plan.md`  
+**Active Phase Spec**: `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-01-phase-11-baseline-stabilization.md`
 
 ## 1. Read Order
 
 Read these in order before routing:
 
 1. `README.md`
-2. `plans/20260313-1128-phase-0-preflight-clean-restart/plan.md`
-3. `plans/20260313-1128-phase-0-preflight-clean-restart/reports/control-state-phase-1-wave-setup.md`
-4. `docs/phase-1-implementation-plan.md`
-5. `docs/verification-policy.md`
-6. `docs/prompt-cookbook-codexkit-phase-guide.md`
-7. `docs/control-agent/control-agent-codexkit/verification-policy.md`
-8. `docs/control-agent/control-agent-codexkit/skill-inventory.md`
-9. `docs/project-overview-pdr.md`
-10. `docs/system-architecture.md`
-11. `docs/project-roadmap.md`
-12. `docs/non-functional-requirements.md`
+2. `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/plan.md`
+3. `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-01-phase-11-baseline-stabilization.md`
+4. `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-02-phase-11-verification-freeze-and-smoke.md`
+5. `docs/control-agent/control-agent-codexkit/verification-policy.md`
+6. `docs/control-agent/control-agent-codexkit/plan-contract.md`
+7. `docs/control-agent/control-agent-codexkit/skill-inventory.md`
+8. `docs/project-overview-pdr.md`
+9. `docs/system-architecture.md`
+10. `docs/project-roadmap.md`
+11. `docs/non-functional-requirements.md`
 
-If a newer durable control-state report exists under `plans/20260313-1128-phase-0-preflight-clean-restart/reports`, read it after step 3 and before deciding the next wave.
+If a durable control-state report exists under `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/reports`, read it before deciding the next wave.
+If no new control-state exists yet, use `plans/20260313-1128-phase-0-preflight-clean-restart/reports/control-state-phase-10-passed.md` as historical context only.
 
 ## 2. Current Plan Snapshot
 
-- current phase: `Phase 1 Runtime Foundation`
-- phase state: `high-rigor Wave 1 ready from pinned BASE_SHA`
-- pinned `BASE_SHA`: `3a805e8c9bf2b6a8e53aba07ab13e39adce34d66`
-- current objective:
+- current phase: `Phase 11 Baseline Stabilization`
+- current phase id: `11`
+- current phase status: `pending`
+- current phase source: `plan-frontmatter`
+- current phase doc: `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-01-phase-11-baseline-stabilization.md`
+- plan status: `pending`
+- project summary:
 
-  Recompute and persist Phase 1 control state, then emit the runnable high-rigor Session A and Session B0 contract from the frozen baseline.
+  Phase 10 is complete and is now historical baseline context only. The active plan starts with Phase 11 stabilization: fix runtime-state safety issues, verify the buildable baseline, and freeze one trusted release candidate before any parity expansion begins.
 
-- next runnable sessions:
+- current phase tasks:
 
-  - Session A implement from a clean branch or worktree rooted at `BASE_SHA`
-  - Session B0 spec-test-design from the same `BASE_SHA` without inspecting candidate implementation artifacts
+- [ ] fix inspection-path state mutation and any adjacent stabilization blockers
+- [ ] verify build, typecheck, runtime suite, and packaging smoke on the stabilized baseline
+- [ ] freeze one baseline commit and write the Phase 11 handoff summary
+- [ ] keep Phase 12 blocked until the Phase 11 baseline is green and frozen
 
-- waiting dependencies:
+- current phase acceptance criteria:
 
-  - Session B tester waits for Session A implementation summary and Session B0 spec-test-design artifact
-  - Session C reviewer waits for Session A implementation summary
-  - Session D lead verdict waits for Session B test report and Session C review report
-
-- phase exit criteria:
-
-  - workspace builds cleanly
-  - schema migrates on a fresh database
-  - daemon can create and persist runs
-  - task dependency resolution works
-  - claim lease expiry and ownership release work
-  - worker registry and heartbeat tracking work
-  - approvals can be created and resolved
-  - CLI can inspect all runtime state from terminal
-  - restart-safe integration tests pass
-  - Phase 1-owned metrics in `docs/non-functional-requirements.md` pass
+  - the inspection-state mutation defect is fixed without weakening the runtime assertion
+  - no implemented inspection or status path mutates durable state unless documented as mutating
+  - build, typecheck, runtime tests, and packaging smoke succeed from the stabilized baseline
+  - one explicit Phase 11 freeze point is recorded before Phase 12 starts
 
 - testing strategy:
 
-  - use Acceptance Tests 1-6 in `docs/phase-1-implementation-plan.md` as the minimum verification contract
-  - map evidence explicitly to `NFR-1.1`, `NFR-5.1`, and `NFR-5.3`
-  - preserve Session B0 independence by freezing expectations from the docs and `BASE_SHA` before candidate implementation is inspected
+  Use runtime-first verification for state-machine safety, then build, typecheck, and packaging smoke to freeze the baseline.
 
 ## 3. Routing Heuristics
 
-- Start with a planner session when the selected Phase 1 slice spans multiple workstreams, shared SQLite schema changes, shared CLI contracts, or unclear daemon and service boundaries.
-- Allow multiple developer sessions only when ownership is split cleanly across disjoint packages or directories and no shared migration or contract must land first.
-- Treat `plans/20260313-1128-phase-0-preflight-clean-restart/reports/control-state-phase-1-wave-setup.md` as the current dependency baseline unless a newer durable control-state report supersedes it.
-- Block parallel execution when acceptance ownership, schema order, or generated artifacts are still ambiguous.
+- Start with a planner session when the current phase has 3 or more substantial tasks, overlapping file ownership, interface uncertainty, or unresolved dependency order.
+- Allow multiple developer sessions only when the planner can assign non-overlapping ownership scopes.
+- Always decide explicitly whether the phase needs a preflight wave before the high-rigor implementation wave.
+- When in doubt, block parallel execution and ask for a smaller sequenced slice.
+- If a durable report already established a host verification constraint, reuse it and route a changed-surface verification step instead of a same-surface retry.
 
 ## 4. TDD Heuristics
 
-- Session B0 should derive its verification contract from the Phase 1 exit criteria, Acceptance Tests 1-6, and the explicit NFR evidence mapping in `docs/phase-1-implementation-plan.md`.
-- Session A may add owned unit or integration tests, but those do not replace Session B0 or Session B independence.
-- If a Phase 1 slice is still too large for reliable verification, use planner-first decomposition before launching Session A and Session B0.
+- Treat the current phase acceptance criteria and testing strategy as the minimum contract for Session B0.
+- If the plan exposes stable function, API, command, or integration boundaries, Session B0 should define tests before implementation finishes.
+- If the current wave exposes a user-facing or operator-facing workflow, Session B0 should freeze the required real-workflow e2e path and the expected harness type, for example browser automation, MCP execution, or CLI execution.
+- If a durable host verification constraint already exists, Session B0 should mark the default failing surface as disallowed for blind retry and identify the accepted changed surface or caveat.
+- If the plan is still ambiguous, Session B0 should at least publish a durable spec-test-design artifact with commands, fixtures, and expected outputs so Session B can verify independently later.
 
 ## 5. Generic Session Prompts
+
+When converting any skeleton below into a runnable prompt, append an in-prompt `## Paste-Back Contract` section that mirrors the outer session-card fields and uses the actual emitted session id, such as `## S65 Result`.
 
 ### Planner
 
 ```text
 You are planner for CodexKit.
 Read first:
-- docs/phase-1-implementation-plan.md
-- plans/20260313-1128-phase-0-preflight-clean-restart/reports/control-state-phase-1-wave-setup.md
+- plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/plan.md
+- plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-01-phase-11-baseline-stabilization.md
+- plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-02-phase-11-verification-freeze-and-smoke.md
+- docs/control-agent/control-agent-codexkit/plan-contract.md
 - docs/control-agent/control-agent-codexkit/verification-policy.md
 - docs/control-agent/control-agent-codexkit/skill-inventory.md
 
-Current phase: Phase 1 Runtime Foundation
-Pinned BASE_SHA: 3a805e8c9bf2b6a8e53aba07ab13e39adce34d66
+Current phase: Phase 11 Baseline Stabilization
 
 Need:
-- map the requested Phase 1 slice to owned workstreams
+- map current phase tasks to owned workstreams
 - decide what can run in parallel and what must stay sequential
 - identify blocking dependencies, shared files, shared contracts, and risky interfaces
 - emit exact handoff prompts for implement, spec-test-design, tester, reviewer, and verdict sessions
@@ -105,18 +102,18 @@ Do not implement code.
 ```text
 You are fullstack-developer for CodexKit.
 Read first:
-- docs/phase-1-implementation-plan.md
-- plans/20260313-1128-phase-0-preflight-clean-restart/reports/control-state-phase-1-wave-setup.md
+- plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/plan.md
+- docs/control-agent/control-agent-codexkit/plan-contract.md
+- the current phase section and acceptance criteria
 - docs/control-agent/control-agent-codexkit/verification-policy.md
 
 Owned scope:
 - <assigned files or workstream only>
 
 Rules:
-- start from a clean branch or worktree rooted at BASE_SHA 3a805e8c9bf2b6a8e53aba07ab13e39adce34d66
 - implement only your owned scope
-- follow the Phase 1 exit criteria and NFR ownership exactly
-- if a stable unit or integration test belongs naturally to your owned scope, add it
+- follow the current phase acceptance criteria exactly
+- if a stable unit test belongs naturally to your owned scope, add it
 - do not act as independent tester or reviewer
 
 Before coding, list:
@@ -130,26 +127,27 @@ Before coding, list:
 ```text
 You are spec-test-designer for CodexKit.
 Read first:
-- docs/phase-1-implementation-plan.md
-- plans/20260313-1128-phase-0-preflight-clean-restart/reports/control-state-phase-1-wave-setup.md
+- plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/plan.md
+- docs/control-agent/control-agent-codexkit/plan-contract.md
 - docs/control-agent/control-agent-codexkit/verification-policy.md
 - docs/control-agent/control-agent-codexkit/skill-inventory.md
 
-Current phase: Phase 1 Runtime Foundation
-Pinned base ref: 3a805e8c9bf2b6a8e53aba07ab13e39adce34d66
+Current phase: Phase 11 Baseline Stabilization
+Pinned base ref: <BASE_SHA>
 
 Source of truth:
-- Phase 1 exit criteria
-- Acceptance Tests 1-6
-- NFR evidence mapping
+- plan acceptance criteria
+- testing strategy
+- public behavior contract
 - repo state at BASE_SHA only
 
 Do not inspect candidate implementation branches or implementation summaries.
 
 Need:
-- freeze acceptance and integration expectations for the assigned Phase 1 slice
+- freeze acceptance and integration expectations
 - define commands, fixtures, and expected outputs
 - author verification-owned tests only in verification scope when stable enough
+- state whether real-workflow e2e evidence is required for the wave, which harness type counts, and when `N/A` is acceptable
 - publish a durable test-design report
 ```
 
@@ -158,20 +156,23 @@ Need:
 ```text
 You are tester for CodexKit.
 Read first:
-- docs/phase-1-implementation-plan.md
+- plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/plan.md
+- docs/control-agent/control-agent-codexkit/plan-contract.md
 - docs/control-agent/control-agent-codexkit/verification-policy.md
 - latest spec-test-design report, if it exists
 
 Source of truth:
 - current candidate repo tree
-- Phase 1 exit criteria and Acceptance Tests 1-6
+- current phase acceptance criteria
 - spec-test-design artifact as frozen expectation when available
 
 Rules:
 - run the frozen spec-test-design tests unchanged first when they exist
 - add follow-up verification only for doc-derived or harness-derived gaps
 - do not change production code by default
-- output structured evidence against the acceptance criteria and NFR mappings
+- when an in-scope user-facing or operator-facing workflow exists, execute a real-workflow e2e path with the harness frozen by Session B0, or mark it `N/A` with explicit justification and residual risk
+- if a host verification constraint exists, do not retry the known-bad surface blindly; use the accepted changed surface or return blocked with the existing caveat preserved
+- output structured evidence against the acceptance criteria
 ```
 
 ### Reviewer
@@ -179,14 +180,14 @@ Rules:
 ```text
 You are code-reviewer for CodexKit.
 Read first:
-- docs/phase-1-implementation-plan.md
-- plans/20260313-1128-phase-0-preflight-clean-restart/reports/control-state-phase-1-wave-setup.md
+- plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/plan.md
+- docs/control-agent/control-agent-codexkit/plan-contract.md
 - docs/control-agent/control-agent-codexkit/verification-policy.md
 
 Review recent changes against:
-- Phase 1 scope and exit criteria
+- current phase scope
+- acceptance criteria
 - architecture and safety constraints
-- restart-safety and durable-state invariants
 
 Output findings first:
 - CRITICAL
@@ -200,14 +201,17 @@ Output findings first:
 ```text
 You are lead verdict for CodexKit.
 Read first:
-- docs/phase-1-implementation-plan.md
+- plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/plan.md
+- docs/control-agent/control-agent-codexkit/plan-contract.md
 - implementation summary
 - spec-test-design report
 - test report
 - review report
 
 Need:
-- decide pass or fail for the current Phase 1 slice
-- map every conclusion to the exit criteria and NFR evidence mapping
+- decide pass or fail for the current phase
+- map every conclusion to the phase acceptance criteria
+- confirm that required real-workflow e2e evidence exists for each in-scope user-facing or operator-facing workflow, or that an explicit `N/A` decision is justified
+- repeat any active host verification caveat explicitly if the accepted evidence depends on it
 - list blockers and next action
 ```

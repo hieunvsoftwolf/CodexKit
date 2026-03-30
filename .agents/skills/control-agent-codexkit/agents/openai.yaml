@@ -2,11 +2,13 @@ interface:
   display_name: "CodexKit Control Agent"
   short_description: "Plan-aware phase orchestration and verification gating for CodexKit"
   default_prompt: >
-    Use $control-agent-codexkit to first read README.md, plans/20260313-1128-phase-0-preflight-clean-restart/plan.md, plans/20260313-1128-phase-0-preflight-clean-restart/reports/control-state-phase-1-wave-setup.md, docs/phase-1-implementation-plan.md, docs/verification-policy.md, docs/prompt-cookbook-codexkit-phase-guide.md, docs/control-agent/control-agent-codexkit/verification-policy.md, docs/control-agent/control-agent-codexkit/phase-guide.md, docs/control-agent/control-agent-codexkit/skill-inventory.md, docs/project-overview-pdr.md, docs/system-architecture.md, docs/project-roadmap.md, docs/non-functional-requirements.md,
-    and any newer durable control-state report when one exists under plans/20260313-1128-phase-0-preflight-clean-restart/reports.
-    Then inspect the current plan phase, decide whether preflight, planner-first sequencing, or the
-    default high-rigor wave applies, recommend the role, model, modal hint, skills, and dependency
-    order for each session, and preserve the generated output contract.
+    Use $control-agent-codexkit to first read README.md, plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/plan.md, plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-01-phase-11-baseline-stabilization.md, plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-02-phase-11-verification-freeze-and-smoke.md, docs/control-agent/control-agent-codexkit/verification-policy.md, docs/control-agent/control-agent-codexkit/phase-guide.md, docs/control-agent/control-agent-codexkit/plan-contract.md, docs/control-agent/control-agent-codexkit/skill-inventory.md, docs/project-overview-pdr.md, docs/system-architecture.md, docs/project-roadmap.md, docs/non-functional-requirements.md,
+    and the latest durable control-state report when one exists under plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/reports.
+    If no Phase 11 or 12 control-state exists yet, read plans/20260313-1128-phase-0-preflight-clean-restart/reports/control-state-phase-10-passed.md as historical context only.
+    Then inspect the current active plan phase, decide whether a runnable baseline-disposition prep
+    session is needed, whether preflight or freeze is needed, whether planner-first sequencing or
+    the default high-rigor wave applies, recommend the role, model, modal hint, skills, and
+    dependency order for each session, and preserve the generated output contract.
 
 policy:
   allow_implicit_invocation: false

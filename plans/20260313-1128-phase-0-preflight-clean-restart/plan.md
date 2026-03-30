@@ -1,8 +1,24 @@
+---
+title: "CodexKit Control Plan"
+status: completed
+current_phase: "10"
+current_phase_doc: "./phase-10-public-cli-packaging-and-onboarding.md"
+current_phase_status: "completed"
+latest_control_state: "reports/control-state-phase-10-passed.md"
+---
+
 # Phase 0 Preflight Clean Restart
 
 **Status**: Completed
 **Date**: 2026-03-13
 **Scope**: Restore a docs-first baseline, remove discarded Phase 1 candidate code, and prepare a git-backed high-rigor restart.
+
+**Active Control Status**: Phase `10` is complete. `P10-S4` passed at `S62`, and the current plan ledger has no later phase doc defined.
+**Planning note**: Latest durable control state is `reports/control-state-phase-10-passed.md`. Any follow-on work should begin from a new planner or phase-definition step rather than assuming an implicit next phase.
+
+## Executive Summary
+
+The original Phase 0 restart work is complete, and this plan file is now a historical control ledger for the completed Phase 1 through Phase 10 program. Phase 10 finished with `P10-S4` passed at `S62`, the frontmatter is intentionally marked `completed`, and follow-on work should continue from a new plan bundle rather than reopening this ledger.
 
 ## Objectives
 
@@ -343,6 +359,44 @@
 - `reports/control-state-phase-9-sixth-remediation-verdict-ready-after-s28-s29.md`
 - `reports/phase-9-sixth-remediation-session-d-verdict.md`
 - `reports/control-state-phase-9-passed-final-baseline-disposition-required.md`
+- `reports/phase-9-final-baseline-disposition-report.md`
+- `reports/control-state-phase-9-completed-clean-synced.md`
+- `reports/control-state-phase-10-planner-ready-public-beta-packaging.md`
+- `reports/phase-10-planner-decomposition-report.md`
+- `reports/control-state-phase-10-wave-1-ready-after-planner.md`
+- `reports/phase-10-wave-1-session-a-implementation-summary.md`
+- `reports/phase-10-wave-1-b0-spec-test-design.md`
+- `reports/control-state-phase-10-wave-2-ready-after-s2-s3.md`
+- `reports/phase-10-wave-1-session-b-test-report.md`
+- `reports/phase-10-wave-1-session-c-review-report.md`
+- `reports/control-state-phase-10-verdict-ready-after-s4-s5.md`
+- `reports/phase-10-wave-1-session-d-verdict.md`
+- `reports/control-state-phase-10-remediation-reroute-after-s6.md`
+- `reports/phase-10-remediation-session-a-implementation-summary.md`
+- `reports/control-state-phase-10-remediation-wave-2-ready-after-s7.md`
+- `reports/phase-10-remediation-session-b-test-report.md`
+- `reports/phase-10-remediation-session-c-review-report.md`
+- `reports/control-state-phase-10-remediation-verdict-ready-after-s8-s9.md`
+- `reports/phase-10-remediation-session-d-verdict.md`
+- `reports/control-state-phase-10-second-remediation-reroute-after-s10.md`
+- `reports/phase-10-second-remediation-session-a-implementation-summary.md`
+- `reports/control-state-phase-10-second-remediation-wave-2-ready-after-s11.md`
+- `reports/phase-10-second-remediation-session-b-test-report.md`
+- `reports/phase-10-second-remediation-session-c-review-report.md`
+- `reports/control-state-phase-10-second-remediation-verdict-ready-after-s12-s13.md`
+- `reports/phase-10-second-remediation-session-d-verdict.md`
+- `reports/control-state-phase-10-third-remediation-reroute-after-s14.md`
+- `reports/phase-10-third-remediation-session-a-implementation-summary.md`
+- `reports/control-state-phase-10-third-remediation-wave-2-ready-after-s15.md`
+- `reports/phase-10-third-remediation-session-b-test-report.md`
+- `reports/phase-10-third-remediation-session-c-review-report.md`
+- `reports/control-state-phase-10-third-remediation-verdict-ready-after-s16-s17.md`
+- `reports/phase-10-third-remediation-session-d-verdict.md`
+- `reports/control-state-phase-10-p10-s0-passed-p10-s1-ready.md`
+- `reports/phase-10-wave-2-session-a-implementation-summary.md`
+- `reports/control-state-phase-10-p10-s1-b0-reroute-after-s20-block.md`
+- `reports/phase-10-wave-2-b0-spec-test-design.md`
+- `reports/control-state-phase-10-p10-s1-wave-3-ready-after-s19-s20r.md`
 - `reports/phase-1-session-d-verdict.md`
 - `reports/phase-1-session-b0-blocked-20260314.md`
 - `reports/phase-1-session-b0-spec-test-design-report.md`

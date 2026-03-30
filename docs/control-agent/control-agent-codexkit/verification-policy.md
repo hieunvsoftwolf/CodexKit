@@ -9,9 +9,9 @@
 The generated control agent must read these sources before routing:
 
 1. `README.md`
-2. `plans/20260313-1128-phase-0-preflight-clean-restart/plan.md`
-3. `plans/20260313-1128-phase-0-preflight-clean-restart/reports/control-state-phase-1-wave-setup.md`
-4. `docs/phase-1-implementation-plan.md`
+2. `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/plan.md`
+3. `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-01-phase-11-baseline-stabilization.md`
+4. `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-02-phase-11-verification-freeze-and-smoke.md`
 5. `docs/verification-policy.md`
 6. `docs/prompt-cookbook-codexkit-phase-guide.md`
 7. `docs/project-overview-pdr.md`
@@ -21,7 +21,8 @@ The generated control agent must read these sources before routing:
 11. `docs/control-agent/control-agent-codexkit/phase-guide.md`
 12. `docs/control-agent/control-agent-codexkit/skill-inventory.md`
 
-If a durable control-state report exists under `plans/20260313-1128-phase-0-preflight-clean-restart/reports`, read it after the plan and before routing new sessions.
+If a durable control-state report exists under `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/reports`, read it after the plan and before routing new sessions.
+If no Phase 11 or 12 control-state exists yet, read `plans/20260313-1128-phase-0-preflight-clean-restart/reports/control-state-phase-10-passed.md` as historical baseline context only.
 
 ## 2. Default High-Rigor Session Model
 
@@ -56,7 +57,33 @@ The generated control agent should classify work into one of these lanes:
 - Session B0 must derive acceptance and integration expectations from the plan acceptance criteria, testing strategy, and public behavior contract before the candidate implementation is inspected.
 - If the current phase exposes stable interfaces and test harness points, Session B0 should author verification-owned tests or harness updates before implementation completes.
 - Session B must run the frozen Session B0 tests unchanged first when they exist.
+- When the current wave touches an in-scope user-facing or operator-facing workflow, Session B0 must state the required real-workflow e2e evidence explicitly and whether browser-style automation such as Playwright, MCP-flow execution, or CLI-flow execution is the correct user-like harness for that surface.
 - Session A may add implementation-adjacent unit tests in owned scope, but Session A does not replace independent verification.
+
+## 3A. Early-Failure And Anti-Debt Rules
+
+- If a frozen Session B0 artifact exists and the docs or acceptance contract did not change, Session A should rerun the frozen B0 verification subset unchanged before claiming the candidate is ready for independent tester or reviewer routing.
+- Do not treat synthetic success or synthetic failure as phase-complete behavior for in-scope public workflows. Either execute against real repo/runtime/tool evidence or return explicit typed blocked, degraded, deferred, or unsupported diagnostics.
+- Do not allow lead verdict to pass an in-scope user-facing or operator-facing workflow without durable real-workflow e2e evidence, unless the tester artifact marks that workflow `N/A` with an explicit rationale and residual-risk note.
+- If the current wave introduces a chooser, approval gate, or resume/continuation entry path, require the same wave to cover both entry and continuation. Stubbed or null continuation remains an in-scope blocker.
+- Planner and Session B0 artifacts should distinguish what is frozen now, what is intentionally deferred, and what is reviewer-only or verdict-only coverage.
+- After a failed verdict, default to remediation lane unless the docs or acceptance contract changed.
+- If the same wave fails verdict twice in a row, route to planner refresh before another blind remediation loop.
+
+## 3B. Host Verification Constraints
+
+- If the same verification blocker repeats twice on the same host/runtime without reaching assertion-layer evidence, the control agent must promote it into a durable host verification constraint.
+- A host verification constraint must record:
+  - the failing surface
+  - the exact blocker class
+  - any changed-surface, browser-channel, startup-budget, or unsandboxed workaround that was proven
+- Once the constraint exists, do not route another same-host same-surface blind retry.
+- The next routed verification step must change at least one of:
+  - host/runtime
+  - browser channel
+  - execution substrate
+  - harness readiness path
+- If later evidence is accepted only under a caveat, for example unsandboxed execution, the tester and lead verdict must repeat that caveat explicitly.
 
 ## 3A. Early-Failure And Anti-Stubbing Rules
 
@@ -83,8 +110,11 @@ Sequence is required when:
 - the current phase still has unresolved scope or ownership ambiguity
 
 Default dependency shape:
-- Wave 0 baseline disposition: emit a runnable fresh-agent session when the intended starting baseline is still dirty, unlanded, or unsynced
-- Wave 0 preflight: capture a reproducible `BASE_SHA` if the repo is not yet ready for the high-rigor wave
+- when the intended starting baseline is dirty, unlanded, or unsynced, emit a runnable baseline-disposition prep session instead of collapsing cleanup into operator-only prose
+- naming rule:
+  - if there is only one preparation step, it may use plain `Wave 0` / `W0`
+  - if both baseline disposition and preflight or freeze are needed, use `Wave 0A` / `W0A` for baseline disposition and `Wave 0B` / `W0B` for preflight or freeze
+- preflight or freeze should capture a reproducible `BASE_SHA` before the high-rigor wave starts
 - Wave 1 parallel: Session A implement + Session B0 spec-test-design
 - Wave 2 after Session A: Session C reviewer
 - Wave 2 after Session A + Session B0: Session B tester
@@ -100,9 +130,15 @@ A phase should not advance without:
 - lead verdict or explicit phase verdict
 - refreshed durable control-state when a canonical plan reports path is already in scope
 
+For in-scope user-facing or operator-facing workflows, the required `test report` must include:
+- the real-workflow e2e harness used, such as browser automation, MCP execution, or CLI execution
+- the exact workflow covered
+- pass or fail status for that workflow
+- if coverage is `N/A`, an explicit justification and residual-risk statement
+
 Every runnable session prompt must also embed a `## Paste-Back Contract` section inside the fenced prompt body. Outer session-card metadata alone is insufficient.
 
-When the repo is not yet clean and synced on the intended baseline, the control agent must emit a runnable `Wave 0` session card instead of leaving only an operator reminder. That `Wave 0` card should route a fresh agent to classify local deltas, land or discard the candidate appropriately, and verify that the repo is clean and synced before freeze.
+When the intended baseline is still dirty, unlanded, or unsynced, the control agent must emit a runnable baseline-disposition session card. Do not leave that step as operator-only prose by default.
 
 That in-prompt contract must require a structured session result reply whose heading matches the emitted session id, for example `## S2 Result`.
 
@@ -116,28 +152,13 @@ The required session result template is:
 - `### Blockers`
 - `### Handoff Notes For Next Sessions`
 
-### Preserved Local Additions
-The control agent should also require, when applicable:
-- explicit evidence that Session A ran the frozen B0 verification subset unchanged before handoff, or an explicit blocker stating why that was impossible
-- explicit chooser and continuation coverage for any new public workflow gate introduced in the current wave
-- explicit typed blocked/deferred behavior instead of synthetic placeholder outcomes for deferred or unsupported paths
-
 ## 6. Control-State Persistence
 
 After a meaningful artifact is pasted back or the task framing changes materially, the control agent must:
 - recompute normalized control state
-- persist a concise `control-state` snapshot under `plans/20260313-1128-phase-0-preflight-clean-restart/reports` before emitting new runnable downstream prompts when that path is in scope
+- persist a concise `control-state` snapshot under `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/reports` before emitting new runnable downstream prompts when that path is in scope
 - update any active `plan.md` references or progress notes if the phase state changes
-
-Freeze-loop exception:
-- for freeze, preflight, or freeze-rerun routing, the control agent must not create a docs-only cleanup loop just because persisting the current `control-state` snapshot, updating `plan.md`, or writing the current freeze report makes the worktree non-empty
-- if the latest durable control-state names a clean synced commit and refs still match that commit, treat that named commit as the authoritative freeze target when the only local deltas are:
-  - `plan.md`
-  - the just-persisted `control-state` snapshot
-  - the current freeze report
-- in that case, the control agent should reroute the freeze or freeze-rerun directly from the named synced commit instead of requiring the new control artifacts to be landed first
-- the freeze must still block when non-control files are dirty, the phase-doc set changed, or `HEAD`/`main`/`origin/main` drifted away from the named commit
-- when this exception is used, record it explicitly in the control-state snapshot and freeze prompt
+- repeat any active host verification constraint explicitly so later sessions do not rediscover the same failure from scratch
 
 The control-state snapshot must include:
 - current objective
@@ -149,9 +170,10 @@ The control-state snapshot must include:
 - waiting dependencies
 - next runnable sessions
 - reduced-rigor exceptions
+- active host verification constraints, if any
 - unresolved questions or blockers
 
-If baseline disposition is still pending, the snapshot should name the `Wave 0` session explicitly as the next runnable step instead of collapsing it into operator-only prose.
+If baseline disposition is still pending, the snapshot should list that prep session explicitly as the next runnable step.
 
 ## 7. Model And Modal Guidance
 
@@ -166,11 +188,11 @@ If the host exposes modal selection:
 
 ## 8. Current Plan Baseline
 
-- plan: `plans/20260313-1128-phase-0-preflight-clean-restart/plan.md`
-- active phase spec: `docs/phase-1-implementation-plan.md`
-- detected current phase: `Phase 1 Runtime Foundation`
-- phase state: `high-rigor Wave 1 ready from pinned BASE_SHA`
-- pinned `BASE_SHA`: `3a805e8c9bf2b6a8e53aba07ab13e39adce34d66`
+- plan: `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/plan.md`
+- active phase spec: `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-01-phase-11-baseline-stabilization.md`
+- detected current phase: `Phase 11 Baseline Stabilization`
+- phase state: `pending; ready for first high-rigor routing`
+- pinned `BASE_SHA`: `capture during Phase 11 freeze or preflight`
 
 ## 9. Enforcement
 
@@ -180,11 +202,6 @@ The control agent must stop phase advancement when:
 - a high-rigor wave should have a durable control-state snapshot but does not
 - the plan acceptance criteria are not yet evidenced by implementation, test, and review artifacts
 - a public workflow path in scope remains synthetic
+- required real-workflow e2e evidence for an in-scope user-facing or operator-facing workflow is missing, failed, or replaced by an unjustified `N/A`
 - chooser or approval continuation in scope remains stubbed or null
 - a frozen Session B0 self-check was required but skipped without an explicit blocker
-
-### Preserved Local Additions
-- Session A did not run the frozen B0 verification subset for the current unchanged wave and did not provide an explicit blocker
-- a public workflow path in scope is implemented with synthetic placeholder behavior instead of real evidence or explicit typed blocked/deferred behavior
-- a chooser or approval entry path was added in scope but its continuation path is still stubbed, null, or unverified
-- the same wave has already failed verdict twice in a row without a planner refresh
