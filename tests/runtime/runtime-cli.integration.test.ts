@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { afterEach, describe, expect, test } from "vitest";
+import { parseCliFailure } from "./helpers/cli-json.ts";
 import { createRuntimeFixture } from "./helpers/runtime-fixture.ts";
 
 const cleanups: Array<() => Promise<void>> = [];
@@ -23,9 +24,7 @@ function runCliFailure(rootDir: string, args: string[]) {
     runCli(rootDir, args);
     throw new Error("expected CLI failure");
   } catch (error) {
-    const execError = error as { stderr?: string };
-    const stderr = execError.stderr ?? "";
-    return JSON.parse(stderr) as Record<string, unknown>;
+    return parseCliFailure(error);
   }
 }
 

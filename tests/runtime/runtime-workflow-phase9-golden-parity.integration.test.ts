@@ -4,6 +4,7 @@ import path from "node:path";
 import { afterEach, describe, expect, test } from "vitest";
 import type { ValidationArtifactRef, ValidationMetricResult } from "../../packages/codexkit-core/src/index.ts";
 import { RuntimeController } from "../../packages/codexkit-daemon/src/index.ts";
+import { parseCliFailure } from "./helpers/cli-json.ts";
 import { createDurableNoteArtifact, writePhase9EvidenceBundle } from "./helpers/phase9-evidence.ts";
 import { createGitRuntimeFixture } from "./helpers/runtime-fixture.ts";
 
@@ -52,8 +53,7 @@ function runCliFailure(rootDir: string, args: string[]): Record<string, unknown>
     runCli(rootDir, args);
     return { code: "UNEXPECTED_SUCCESS" };
   } catch (error) {
-    const execError = error as { stderr?: string };
-    return JSON.parse(execError.stderr ?? "{}") as Record<string, unknown>;
+    return parseCliFailure(error);
   }
 }
 

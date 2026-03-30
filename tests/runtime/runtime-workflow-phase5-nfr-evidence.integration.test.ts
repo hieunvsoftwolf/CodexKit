@@ -13,6 +13,7 @@ import {
   runPlanValidateWorkflow,
   runPlanWorkflow
 } from "../../packages/codexkit-daemon/src/index.ts";
+import { parseCliFailure } from "./helpers/cli-json.ts";
 import { createRuntimeFixture } from "./helpers/runtime-fixture.ts";
 
 const cleanups: Array<() => Promise<void> | void> = [];
@@ -30,8 +31,7 @@ function runCliFailure(rootDir: string, args: string[]) {
     runCli(rootDir, args);
     throw new Error("expected command failure");
   } catch (error) {
-    const execError = error as { stderr?: string };
-    return JSON.parse(execError.stderr ?? "{}") as Record<string, unknown>;
+    return parseCliFailure(error);
   }
 }
 

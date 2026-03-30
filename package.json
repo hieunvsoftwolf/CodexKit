@@ -6,11 +6,11 @@
   "workspaces": [
     "packages/*"
   ],
-  "bin": {
-    "cdx": "./cdx"
-  },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "build:cli-artifact": "npm run build && node scripts/build-cli-artifact.mjs",
+    "pack:cli": "npm_config_cache=.npm-cache npm pack --workspace @codexkit/cli",
+    "smoke:cli:tarball": "node scripts/smoke-cli-tarball.mjs",
     "typecheck": "tsc -p tsconfig.json",
     "test": "TMPDIR=.tmp vitest run tests/unit tests/integration && TMPDIR=.tmp vitest run tests/runtime --no-file-parallelism",
     "impact:claudekit-source-graph": "node scripts/knowledge/claudekit-source-impact.mjs",

@@ -1,6 +1,18 @@
 {
   "name": "@codexkit/cli",
   "version": "0.1.0",
-  "private": true,
-  "type": "module"
+  "private": false,
+  "type": "module",
+  "bin": {
+    "cdx": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "prepack": "npm run --prefix ../.. build:cli-artifact"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
 }

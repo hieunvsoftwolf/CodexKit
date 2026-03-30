@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { afterEach, describe, expect, test } from "vitest";
+import { parseCliFailure } from "./helpers/cli-json.ts";
 import { createGitRuntimeFixture, createRuntimeFixture } from "./helpers/runtime-fixture.ts";
 
 const cleanups: Array<() => Promise<void> | void> = [];
@@ -29,9 +30,7 @@ function runCliFailure(rootDir: string, args: string[], env: NodeJS.ProcessEnv =
     runCliWithEnv(rootDir, args, env);
     throw new Error("expected CLI failure");
   } catch (error) {
-    const execError = error as { stderr?: string };
-    const stderr = execError.stderr ?? "";
-    return JSON.parse(stderr) as Record<string, unknown>;
+    return parseCliFailure(error);
   }
 }
 
@@ -85,6 +84,8 @@ describe("phase 8 CLI workflow contracts", () => {
       expect(initPreview.workflow).toBe("init");
       expect(initPreview.checkpointIds).toEqual(["package-scan", "package-preview"]);
       expect(initPreview.applyExecuted).toBe(false);
+      expect(initPreview.runnerSource).toBe("default");
+      expect(initPreview.runnerCommand).toBe("codex exec");
       expect(existsSync(String(initPreview.initReportPath))).toBe(true);
       expect(existsSync(String(initPreview.migrationAssistantReportPath))).toBe(true);
 
@@ -111,6 +112,9 @@ describe("phase 8 CLI workflow contracts", () => {
       const doctor = runCli(fixture.rootDir, ["doctor"]);
       expect(doctor.workflow).toBe("doctor");
       expect(doctor.checkpointIds).toEqual(["doctor-scan"]);
+      expect(doctor.runnerSource).toBe("default");
+      expect(doctor.runnerCommand).toBe("codex exec");
+      expect(typeof doctor.runnerAvailable).toBe("boolean");
       expect(existsSync(String(doctor.doctorReportPath))).toBe(true);
       expect(existsSync(String(doctor.migrationAssistantReportPath))).toBe(true);
 
@@ -244,6 +248,20 @@ describe("phase 8 CLI workflow contracts", () => {
       expect(findings.some((finding) => finding.code === "DOCTOR_RELEASE_MANIFEST_MISSING")).toBe(true);
       expect(findings.some((finding) => finding.code === "DOCTOR_DAEMON_LOCK_STALE")).toBe(true);
 
+      const doctorWithInvalidRunner = runCliWithEnv(fixture.rootDir, ["doctor"], {
+        ...process.env,
+        CODEXKIT_RUNNER: "definitely-not-a-real-runner --version"
+      });
+      expect(doctorWithInvalidRunner.status).toBe("blocked");
+      expect(
+        (doctorWithInvalidRunner.findings as Array<{ code: string; severity: string }>).some(
+          (finding) => finding.code === "DOCTOR_SELECTED_RUNNER_UNAVAILABLE" && finding.severity === "error"
+        )
+      ).toBe(true);
+      expect(doctorWithInvalidRunner.runnerSource).toBe("env-override");
+      expect(doctorWithInvalidRunner.runnerCommand).toBe("definitely-not-a-real-runner --version");
+      expect(doctorWithInvalidRunner.runnerAvailable).toBe(false);
+
       let filteredPath = process.env.PATH ?? "";
       try {
         const codexBinary = execFileSync("which", ["codex"], { encoding: "utf8" }).trim();
@@ -262,9 +280,12 @@ describe("phase 8 CLI workflow contracts", () => {
       expect(doctorWithHostGap.status).toBe("blocked");
       expect(
         (doctorWithHostGap.findings as Array<{ code: string; severity: string }>).some(
-          (finding) => finding.code === "DOCTOR_CODEX_CLI_MISSING" && finding.severity === "error"
+          (finding) => finding.code === "DOCTOR_SELECTED_RUNNER_UNAVAILABLE" && finding.severity === "error"
         )
       ).toBe(true);
+      expect(doctorWithHostGap.runnerSource).toBe("default");
+      expect(doctorWithHostGap.runnerCommand).toBe("codex exec");
+      expect(doctorWithHostGap.runnerAvailable).toBe(false);
     }
   );
 

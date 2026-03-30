@@ -70,7 +70,7 @@ async function detachDaemon(rootDir: string): Promise<{ pid: number }> {
   }
 
   const scriptPath = fileURLToPath(import.meta.url);
-  const child = spawn(process.execPath, ["--no-warnings", "--experimental-strip-types", scriptPath, "daemon", "start", "--foreground"], {
+  const child = spawn(process.execPath, [scriptPath, "daemon", "start", "--foreground"], {
     cwd: config.paths.rootDir,
     detached: true,
     stdio: "ignore"

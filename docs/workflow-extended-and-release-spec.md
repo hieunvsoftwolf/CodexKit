@@ -880,7 +880,55 @@ Phases 6-9 are done only when all of the following are true:
 - no critical blockers remain on the migration checklist
 - all mandatory metrics in `docs/non-functional-requirements.md` pass on release fixtures
 
-## 15) Unresolved Questions
+## 15) Phase 10 Shared Contract Freeze (`P10-S0`)
+
+`P10-S0` freezes the cross-lane public contract only. It does not deliver the full publish lane, docs/onboarding lane, or packaged-artifact harness lane.
+
+### 15.1 Public Package And Bin Contract
+
+- package name: `@codexkit/cli`
+- bin name: `cdx`
+- public beta supports both:
+  - `npx @codexkit/cli ...` (canonical quickstart)
+  - global install via `npm install -g @codexkit/cli`
+
+### 15.2 Runner Resolution Order Contract
+
+Runner selection must resolve in this order:
+
+1. env override via `CODEXKIT_RUNNER`
+2. `.codexkit/config.toml` via `[runner] command = "..."`
+3. default built-in `codex exec`
+
+Account ownership rule remains frozen:
+
+- CodexKit does not own Codex login/account state
+- CodexKit binds to the selected runner command and current runner session
+- `cdx doctor` must surface active runner source plus effective runner command and fail blocked with typed diagnostics when the selected runner is unavailable or incompatible
+- `cdx init` preview/apply must surface active runner source plus effective runner command before mutation
+
+### 15.3 Public-Beta Smoke Matrix Contract
+
+Phase 10 acceptance matrix for packaged-artifact verification is frozen to these shared cases:
+
+- `fresh-repo`
+- `git-backed-repo`
+- `install-only-repo`
+- `wrapped-runner`
+
+Later slices may implement harness details, but they must not redefine this matrix shape.
+
+### 15.4 Docs Command-Form Contract
+
+Public install and quickstart docs must preserve these exact command forms:
+
+- `npx @codexkit/cli init`
+- `npx @codexkit/cli doctor`
+- `npm install -g @codexkit/cli`
+- `cdx init`
+- `cdx doctor`
+
+## 16) Unresolved Questions
 
 - Whether `cdx test ui` ships as a full V1 path or remains an adapted optional mode when browser helpers are present
 - Whether `cdx update` should ever auto-merge user-modified managed files or always stop at preview

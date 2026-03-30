@@ -88,20 +88,23 @@ worktrees/
 
 # CodexKit local runtime state
 .codexkit/state/
+.codexkit/runtime/
 
 # Local validation artifacts
 codexkit-phase1-test.db*
+codexkit-cli-*.tgz
 .npm-cache/
-.tmp/
+/.tmp/
 .vitest/
+packages/codexkit-cli/.tmp/
 
 # BEGIN CODEXKIT PROJECT ARTIFACTS
 !plans/20260313-1128-phase-0-preflight-clean-restart/
 !plans/20260313-1128-phase-0-preflight-clean-restart/plan.md
 !plans/20260313-1128-phase-0-preflight-clean-restart/reports/
 !plans/20260313-1128-phase-0-preflight-clean-restart/reports/*.md
-!.tmp/
-.tmp/*
-!.tmp/nfr-7.1-launch-latency.json
-!.tmp/nfr-7.2-dispatch-latency.json
+!/.tmp/
+/.tmp/*
+!/.tmp/nfr-7.1-launch-latency.json
+!/.tmp/nfr-7.2-dispatch-latency.json
 # END CODEXKIT PROJECT ARTIFACTS

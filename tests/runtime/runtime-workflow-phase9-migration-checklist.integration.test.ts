@@ -12,6 +12,7 @@ import {
   RuntimeController
 } from "../../packages/codexkit-daemon/src/index.ts";
 import { runReconciliationPass } from "../../packages/codexkit-daemon/src/runtime-kernel.ts";
+import { parseCliFailure } from "./helpers/cli-json.ts";
 import { createDurableNoteArtifact, readPhase9EvidenceBundle, writePhase9EvidenceBundle } from "./helpers/phase9-evidence.ts";
 import { createGitRuntimeFixture, createRuntimeFixture } from "./helpers/runtime-fixture.ts";
 
@@ -52,8 +53,7 @@ function runCliFailure(rootDir: string, args: string[]): Record<string, unknown>
     runCli(rootDir, args);
     return { code: "UNEXPECTED_SUCCESS" };
   } catch (error) {
-    const execError = error as { stderr?: string };
-    return JSON.parse(execError.stderr ?? "{}") as Record<string, unknown>;
+    return parseCliFailure(error);
   }
 }
 
@@ -279,7 +279,9 @@ describe("phase 9 migration validation checklist", () => {
       PATH: filteredPath
     });
     const hostGapPass = hostGapDoctor.status === "blocked"
-      && (hostGapDoctor.findings as Array<{ code: string }>).some((finding) => finding.code === "DOCTOR_CODEX_CLI_MISSING");
+      && (hostGapDoctor.findings as Array<{ code: string }>).some(
+        (finding) => finding.code === "DOCTOR_SELECTED_RUNNER_UNAVAILABLE"
+      );
     rows.push({
       checklistId: "host-capability-gap",
       fixtureId: "host-capability-gap",
@@ -466,10 +468,10 @@ describe("phase 9 migration validation checklist", () => {
           ...process.env,
           PATH: `${shimDir}${path.delimiter}${filteredPath}`
         });
-        const missingCodexDiagnostic = (doctorResult.findings as Array<{ code?: string }> | undefined)?.some(
-          (finding) => finding.code === "DOCTOR_CODEX_CLI_MISSING"
+        const selectedRunnerUnavailable = (doctorResult.findings as Array<{ code?: string }> | undefined)?.some(
+          (finding) => finding.code === "DOCTOR_SELECTED_RUNNER_UNAVAILABLE"
         ) ?? false;
-        const versionPass = doctorResult.status !== "blocked" && !missingCodexDiagnostic;
+        const versionPass = doctorResult.status !== "blocked" && !selectedRunnerUnavailable;
         matrixVersions.push({
           version: candidate.version,
           binaryPath: candidate.binaryPath,

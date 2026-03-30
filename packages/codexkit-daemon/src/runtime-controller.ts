@@ -208,9 +208,7 @@ export class RuntimeController {
   }
 
   resume(input?: { runId?: string }) {
-    const result = runResumeWorkflow(this.context, input ?? {});
-    this.reconcile();
-    return result;
+    return runResumeWorkflow(this.context, input ?? {});
   }
 
   createTask(input: { runId: string; role: string; subject: string; description?: string; dependsOn?: string[] }) {

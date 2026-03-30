@@ -54,6 +54,24 @@ CodexKit should use current Codex host features where they help, but not treat t
 - Continuation remains first-class through both `cdx resume` and explicit plan-path re-entry such as `cdx cook /abs/path/to/plan.md`
 - Public shell syntax is always the space-separated `cdx ...` form; only verbatim ClaudeKit source references may retain legacy labels
 
+## Phase 10 Public Package Contract (Frozen Shared Slice)
+
+- Public npm package contract: `@codexkit/cli`
+- Public binary contract: `cdx`
+- Public install command forms:
+  - `npx @codexkit/cli init`
+  - `npx @codexkit/cli doctor`
+  - `npm install -g @codexkit/cli`
+  - `cdx init`
+  - `cdx doctor`
+- Runner resolution order contract:
+  1. env override `CODEXKIT_RUNNER`
+  2. `.codexkit/config.toml` with `[runner] command = "..."`
+  3. default `codex exec`
+- `cdx doctor` surfaces the active runner source plus effective runner command and blocks with typed diagnostics when the selected runner is unavailable
+- `cdx init` preview/apply surfaces the active runner source plus effective runner command
+- Account/session binding stays external: CodexKit binds to the selected runner and does not own Codex account login state
+
 ## Run, Worker, and Session Relationship
 
 - One top-level workflow invocation maps to one durable run in the CodexKit ledger

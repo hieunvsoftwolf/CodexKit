@@ -1,12 +1,13 @@
 import { execFileSync } from "node:child_process";
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { accessSync, constants as fsConstants, existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import type { WorkflowCheckpointId } from "../../../codexkit-core/src/index.ts";
 import type { RuntimeContext } from "../runtime-context.ts";
+import type { WorkerRunnerConfig } from "../runtime-config.ts";
 import { readDaemonStatus } from "../daemon-state.ts";
 import type { WorkflowBaseResult, WorkflowCommandDiagnostics } from "./contracts.ts";
 import { publishWorkflowReport } from "./workflow-reporting.ts";
-import { PHASE8_ARTIFACT_FILE_NAMES, type PackagingRepoClass } from "./packaging-contracts.ts";
+import { PHASE8_ARTIFACT_FILE_NAMES, quoteCommandArg, type PackagingRepoClass } from "./packaging-contracts.ts";
 import { publishMigrationAssistantReport } from "./migration-assistant.ts";
 import { readInstallState, readReleaseManifest } from "./phase8-install-state.ts";
 import { runSharedRepoScan } from "./repo-scan-engine.ts";
@@ -23,6 +24,9 @@ export interface DoctorFinding {
 export interface DoctorWorkflowResult extends WorkflowBaseResult {
   workflow: "doctor";
   repoClass: PackagingRepoClass;
+  runnerSource: WorkerRunnerConfig["source"];
+  runnerCommand: string;
+  runnerAvailable: boolean;
   status: "healthy" | "degraded" | "blocked";
   findings: DoctorFinding[];
   diagnostics: WorkflowCommandDiagnostics[];
@@ -89,16 +93,144 @@ function normalizeRelativePath(rawPath: string): string {
   return path.normalize(rawPath).replace(/\\/g, "/").replace(/^\.\//, "").replace(/^\/+/, "");
 }
 
+function renderRunnerCommand(command: readonly string[]): string {
+  return command
+    .map((token) => (/[\s"'\\]/.test(token) ? quoteCommandArg(token) : token))
+    .join(" ");
+}
+
+function renderSelectedRunnerCommand(runner: WorkerRunnerConfig): string {
+  if (runner.selectionState === "invalid") {
+    return runner.commandText;
+  }
+  return renderRunnerCommand(runner.command);
+}
+
+interface RunnerExecutableProbe {
+  unavailable: boolean;
+  code: string;
+  details: string;
+}
+
+function probeRunnerExecutable(runnerExecutable: string, rootDir: string): RunnerExecutableProbe | null {
+  const isPathLike = path.isAbsolute(runnerExecutable) || /[\\/]/.test(runnerExecutable);
+  if (isPathLike) {
+    const candidatePath = path.isAbsolute(runnerExecutable)
+      ? runnerExecutable
+      : path.resolve(rootDir, runnerExecutable);
+    try {
+      accessSync(candidatePath, fsConstants.X_OK);
+      return null;
+    } catch (error) {
+      const err = error as NodeJS.ErrnoException;
+      const errorCode = err.code ?? "UNKNOWN";
+      return {
+        unavailable: errorCode === "ENOENT",
+        code: errorCode,
+        details: `path '${candidatePath}'`
+      };
+    }
+  }
+
+  const lookupTool = process.platform === "win32" ? "where" : "which";
+  try {
+    execFileSync(lookupTool, [runnerExecutable], { stdio: ["ignore", "pipe", "pipe"] });
+    return null;
+  } catch (error) {
+    const err = error as NodeJS.ErrnoException & { status?: number; stderr?: Buffer | string };
+    const errorCode = err.code ?? `EXIT_${String(err.status ?? "UNKNOWN")}`;
+    const stderrText = typeof err.stderr === "string"
+      ? err.stderr.trim()
+      : Buffer.isBuffer(err.stderr)
+        ? err.stderr.toString("utf8").trim()
+        : "";
+    return {
+      unavailable: err.code === "ENOENT" || err.status === 1,
+      code: errorCode,
+      details: stderrText.length > 0 ? `lookup stderr: ${stderrText}` : "lookup failed"
+    };
+  }
+}
+
+function selectedRunnerAvailabilityFinding(runner: WorkerRunnerConfig, rootDir: string): DoctorFinding | null {
+  const rendered = renderSelectedRunnerCommand(runner);
+  const nextStepBySource: Record<WorkerRunnerConfig["source"], string> = {
+    "env-override": `Set ${runner.envVar} to an available runner command or unset it, then rerun cdx doctor.`,
+    "config-file": `Update ${runner.configPath} [runner] command to an available runner, then rerun cdx doctor.`,
+    default: "Install Codex CLI (or configure a runner override) and rerun cdx doctor."
+  };
+  if (runner.selectionState === "invalid") {
+    const invalidReason = runner.invalidReason ?? "runner command could not be parsed.";
+    return {
+      severity: "error",
+      code: "DOCTOR_SELECTED_RUNNER_INVALID",
+      cause: `Selected runner command '${rendered}' is invalid (source: ${runner.source}; reason: ${invalidReason}).`,
+      nextStep: nextStepBySource[runner.source]
+    };
+  }
+  const runnerExecutable = runner.command[0];
+  if (!runnerExecutable) {
+    return {
+      severity: "error",
+      code: "DOCTOR_SELECTED_RUNNER_INVALID",
+      cause: `Selected runner source '${runner.source}' resolved to an empty command.`,
+      nextStep: "Set a non-empty runner command and rerun cdx doctor."
+    };
+  }
+  const probe = probeRunnerExecutable(runnerExecutable, rootDir);
+  if (!probe) {
+    return null;
+  }
+  if (probe.unavailable) {
+    return {
+      severity: "error",
+      code: "DOCTOR_SELECTED_RUNNER_UNAVAILABLE",
+      cause: `Selected runner command '${rendered}' is not available (source: ${runner.source}; code: ${probe.code}; ${probe.details}).`,
+      nextStep: nextStepBySource[runner.source]
+    };
+  }
+  return {
+    severity: "error",
+    code: "DOCTOR_SELECTED_RUNNER_INCOMPATIBLE",
+    cause: `Selected runner command '${rendered}' failed executable compatibility checks (source: ${runner.source}; code: ${probe.code}; ${probe.details}).`,
+    nextStep: nextStepBySource[runner.source]
+  };
+}
+
 function renderDoctorReport(input: {
   repoClass: PackagingRepoClass;
+  runnerSource: WorkerRunnerConfig["source"];
+  runnerCommand: string;
+  runnerAvailable: boolean;
   status: "healthy" | "degraded" | "blocked";
   findings: DoctorFinding[];
   diagnostics: WorkflowCommandDiagnostics[];
 }): string {
+  const nextSteps: string[] = [];
+  const installOnlyRepo = input.repoClass === "fresh" || input.repoClass === "install-only-no-initial-commit";
+  if (input.status === "blocked") {
+    nextSteps.push("- Resolve error findings above, then rerun cdx doctor.");
+  } else if (input.status === "degraded") {
+    nextSteps.push("- Resolve warning findings above, then rerun cdx doctor.");
+  } else {
+    nextSteps.push("- Doctor checks are healthy for first workflow onboarding.");
+  }
+
+  if (installOnlyRepo) {
+    nextSteps.push("- Create the first commit before worker-backed workflows.");
+    nextSteps.push("- Rerun cdx doctor after the first commit.");
+    nextSteps.push("- Continue onboarding with cdx brainstorm <task>, then cdx plan <task>, then cdx cook <absolute-plan-path>.");
+  } else if (input.status !== "blocked") {
+    nextSteps.push("- Run cdx brainstorm <task>, then cdx plan <task>, then cdx cook <absolute-plan-path>.");
+  }
+
   return [
     "# Doctor Report",
     "",
     `- Repo class: ${input.repoClass}`,
+    `- Active runner source: ${input.runnerSource}`,
+    `- Active runner command: ${input.runnerCommand}`,
+    `- Selected runner available: ${input.runnerAvailable ? "yes" : "no"}`,
     `- Status: ${input.status}`,
     "",
     "## Findings",
@@ -114,6 +246,9 @@ function renderDoctorReport(input: {
       }))
     ),
     "",
+    "## Next Steps",
+    ...nextSteps,
+    "",
     "## Unresolved Questions",
     "- none",
     ""
@@ -128,8 +263,20 @@ export function runDoctorWorkflow(context: RuntimeContext): DoctorWorkflowResult
   });
   const checkpointIds: WorkflowCheckpointId[] = [];
   const scan = runSharedRepoScan(context.config.paths.rootDir);
+  const selectedRunner = context.config.workerRunner;
+  const renderedRunnerCommand = renderSelectedRunnerCommand(selectedRunner);
   const findings: DoctorFinding[] = [];
   const diagnostics: WorkflowCommandDiagnostics[] = [...scan.diagnostics];
+
+  const runnerAvailabilityFinding = selectedRunnerAvailabilityFinding(selectedRunner, context.config.paths.rootDir);
+  if (runnerAvailabilityFinding) {
+    findings.push(runnerAvailabilityFinding);
+    diagnostics.push({
+      code: runnerAvailabilityFinding.code,
+      cause: runnerAvailabilityFinding.cause,
+      nextStep: runnerAvailabilityFinding.nextStep
+    });
+  }
 
   const migrationAssistant = publishMigrationAssistantReport({
     context,
@@ -139,16 +286,6 @@ export function runDoctorWorkflow(context: RuntimeContext): DoctorWorkflowResult
     workflowName: "doctor"
   });
 
-  const codexCliFound = toolAvailable("codex", ["--version"]);
-  if (!codexCliFound) {
-    addFinding(
-      findings,
-      "error",
-      "DOCTOR_CODEX_CLI_MISSING",
-      "Codex CLI is not available in PATH.",
-      "Install Codex CLI and rerun cdx doctor."
-    );
-  }
   const nodeFound = toolAvailable("node", ["--version"]);
   if (!nodeFound) {
     addFinding(findings, "error", "DOCTOR_NODE_MISSING", "Node runtime is missing.", "Install Node and rerun cdx doctor.");
@@ -318,6 +455,9 @@ export function runDoctorWorkflow(context: RuntimeContext): DoctorWorkflowResult
     summary: "doctor workflow report",
     markdown: renderDoctorReport({
       repoClass: scan.repoClass,
+      runnerSource: selectedRunner.source,
+      runnerCommand: renderedRunnerCommand,
+      runnerAvailable: runnerAvailabilityFinding === null,
       status,
       findings,
       diagnostics
@@ -338,6 +478,9 @@ export function runDoctorWorkflow(context: RuntimeContext): DoctorWorkflowResult
     workflow: "doctor",
     checkpointIds,
     repoClass: scan.repoClass,
+    runnerSource: selectedRunner.source,
+    runnerCommand: renderedRunnerCommand,
+    runnerAvailable: runnerAvailabilityFinding === null,
     status,
     findings,
     diagnostics,

@@ -1,7 +1,9 @@
 import { spawn } from "node:child_process";
 import { appendFileSync, createWriteStream, mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { CodexkitError } from "../../../codexkit-core/src/index.ts";
 import type { RuntimeContext } from "../runtime-context.ts";
+import type { WorkerRunnerConfig } from "../runtime-config.ts";
 import { captureLaunchState } from "./artifact-capture.ts";
 import { normalizeOwnedPathPolicy } from "./path-policy.ts";
 import { writeLaunchBundle } from "./launch-bundle.ts";
@@ -9,10 +11,38 @@ import { WorktreeManager } from "./worktree-manager.ts";
 import { finalizeWorkerRun } from "./worker-runtime-finalize.ts";
 import { captureWorkerIsolationBaseline } from "./worker-isolation-guard.ts";
 import type { ActiveWorker, SpawnWorkerInput, SpawnWorkerResult, WorkerRuntimeResult } from "./worker-runtime-types.ts";
+import { PHASE10_DEFAULT_RUNNER_COMMAND } from "../workflows/packaging-contracts.ts";
 
-export function buildDefaultWorkerCommand(bundle: { promptPath: string; contextPath: string }): string[] {
-  return ["codex", "exec", "--input-file", bundle.promptPath, "--context-file", bundle.contextPath];
+export function buildDefaultWorkerCommand(
+  bundle: { promptPath: string; contextPath: string },
+  runnerCommand: readonly string[] = PHASE10_DEFAULT_RUNNER_COMMAND
+): string[] {
+  return [...runnerCommand, "--input-file", bundle.promptPath, "--context-file", bundle.contextPath];
 }
+
+function assertRunnerSelectionIsLaunchable(runner: WorkerRunnerConfig): void {
+  if (runner.selectionState !== "invalid") {
+    return;
+  }
+  const invalidReason = runner.invalidReason ?? "runner command could not be parsed.";
+  const nextStepBySource: Record<WorkerRunnerConfig["source"], string> = {
+    "env-override": `Set ${runner.envVar} to a valid runner command (or unset it), run cdx doctor, then retry the workflow.`,
+    "config-file": `Fix ${runner.configPath} [runner] command, run cdx doctor, then retry the workflow.`,
+    default: "Set a valid runner override, run cdx doctor, then retry the workflow."
+  };
+  const cause =
+    `Selected runner command '${runner.commandText}' is invalid `
+    + `(source: ${runner.source}; reason: ${invalidReason}).`;
+  throw new CodexkitError("WORKFLOW_BLOCKED", "worker launch blocked by invalid selected runner", {
+    code: "WF_SELECTED_RUNNER_INVALID",
+    cause,
+    nextStep: nextStepBySource[runner.source],
+    source: runner.source,
+    commandText: runner.commandText,
+    invalidReason
+  });
+}
+
 export class WorkerRuntime {
   private readonly context: RuntimeContext;
   private readonly worktreeManager: WorktreeManager;
@@ -32,6 +62,7 @@ export class WorkerRuntime {
   }
   spawnWorker(input: SpawnWorkerInput): SpawnWorkerResult {
     const launchStartedAt = Date.now();
+    assertRunnerSelectionIsLaunchable(this.context.config.workerRunner);
     const policy = normalizeOwnedPathPolicy(input.ownedPaths);
     const worker = this.context.workerService.registerWorker({
       runId: input.runId,
@@ -72,7 +103,7 @@ export class WorkerRuntime {
       workerId: worker.id
     });
     const launchState = captureLaunchState(created.worktreePath);
-    const command = input.command ?? buildDefaultWorkerCommand(bundle);
+    const command = input.command ?? buildDefaultWorkerCommand(bundle, this.context.config.workerRunner.command);
     const spawnedAt = Date.now();
     const child = spawn(command[0]!, command.slice(1), {
       cwd: created.worktreePath,

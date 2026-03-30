@@ -2,6 +2,13 @@ import type { RuntimeContext } from "../runtime-context.ts";
 import { publishWorkflowReport } from "./workflow-reporting.ts";
 import { PHASE8_ARTIFACT_FILE_NAMES, type MigrationAssistantSummary, type SharedRepoScanResult } from "./packaging-contracts.ts";
 
+const ONBOARDING_SEQUENCE = [
+  "cdx doctor",
+  "cdx brainstorm <task>",
+  "cdx plan <task>",
+  "cdx cook <absolute-plan-path>"
+] as const;
+
 function recommendedCommands(scan: SharedRepoScanResult, workflowName: "init" | "doctor" | "update"): string[] {
   if (scan.repoClass === "fresh") {
     return ["cdx init", "cdx init --apply", "cdx doctor"];
@@ -10,13 +17,13 @@ function recommendedCommands(scan: SharedRepoScanResult, workflowName: "init" | 
     return ["cdx init", "cdx init --apply --approve-protected", "cdx doctor"];
   }
   if (scan.repoClass === "install-only-no-initial-commit") {
-    return ["git add . && git commit -m 'bootstrap codexkit install'", "cdx doctor", "cdx resume"];
+    return ["git add . && git commit -m 'bootstrap codexkit install'", ...ONBOARDING_SEQUENCE];
   }
   if (scan.repoClass === "existing-codexkit") {
     if (workflowName === "update") {
       return ["cdx update", "cdx update --apply", "cdx doctor"];
     }
-    return ["cdx doctor", "cdx update", "cdx resume"];
+    return [...ONBOARDING_SEQUENCE];
   }
   return ["cdx doctor", "repair .codexkit install metadata", "cdx init --apply once repo state is fixed"];
 }

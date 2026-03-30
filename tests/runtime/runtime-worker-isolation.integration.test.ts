@@ -116,4 +116,22 @@ describe("phase 2 worker isolation enforcement", () => {
       "/tmp/context.json"
     ]);
   });
+
+  test("appends launch bundle args to wrapper runner command", () => {
+    expect(
+      buildDefaultWorkerCommand(
+        { promptPath: "/tmp/prompt.md", contextPath: "/tmp/context.json" },
+        ["codex-safe", "exec", "--profile", "beta"]
+      )
+    ).toEqual([
+      "codex-safe",
+      "exec",
+      "--profile",
+      "beta",
+      "--input-file",
+      "/tmp/prompt.md",
+      "--context-file",
+      "/tmp/context.json"
+    ]);
+  });
 });

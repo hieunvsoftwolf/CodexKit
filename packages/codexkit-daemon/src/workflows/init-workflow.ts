@@ -3,11 +3,13 @@ import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import type { WorkflowCheckpointId } from "../../../codexkit-core/src/index.ts";
 import type { RuntimeContext } from "../runtime-context.ts";
+import type { WorkerRunnerConfig } from "../runtime-config.ts";
 import type { WorkflowBaseResult, WorkflowCommandDiagnostics } from "./contracts.ts";
 import { publishWorkflowReport } from "./workflow-reporting.ts";
 import {
   PHASE8_ARTIFACT_FILE_NAMES,
   PHASE8_CHECKPOINT_IDS,
+  quoteCommandArg,
   type PackagingActionPlan,
   type PackagingBlockedAction,
   type PackagingRepoClass
@@ -34,6 +36,8 @@ export interface InitWorkflowInput {
 export interface InitWorkflowResult extends WorkflowBaseResult {
   workflow: "init";
   repoClass: PackagingRepoClass;
+  runnerSource: WorkerRunnerConfig["source"];
+  runnerCommand: string;
   installOnly: boolean;
   applyRequested: boolean;
   applyExecuted: boolean;
@@ -115,6 +119,10 @@ function buildInitPreviewFingerprint(input: {
   repoClass: PackagingRepoClass;
   hasGitRepo: boolean;
   hasInitialCommit: boolean;
+  runnerSource: WorkerRunnerConfig["source"];
+  runnerCommand: string;
+  runnerSelectionState: WorkerRunnerConfig["selectionState"];
+  runnerInvalidReason: string | null;
   actionPlan: PackagingActionPlan;
   blockedActions: PackagingBlockedAction[];
   payloadFingerprints: ManagedTemplatePayloadFingerprint[];
@@ -127,6 +135,12 @@ function buildInitPreviewFingerprint(input: {
     repoClass: input.repoClass,
     hasGitRepo: input.hasGitRepo,
     hasInitialCommit: input.hasInitialCommit,
+    runner: {
+      source: input.runnerSource,
+      command: input.runnerCommand,
+      selectionState: input.runnerSelectionState,
+      invalidReason: input.runnerInvalidReason
+    },
     initGitRequested: input.initGitRequested,
     approvals: {
       gitInit: input.approveGitInit,
@@ -199,8 +213,23 @@ function renderActionList(items: string[]): string[] {
   return items.map((item) => `- ${item}`);
 }
 
+function renderRunnerCommand(command: readonly string[]): string {
+  return command
+    .map((token) => (/[\s"'\\]/.test(token) ? quoteCommandArg(token) : token))
+    .join(" ");
+}
+
+function renderSelectedRunnerCommand(runner: WorkerRunnerConfig): string {
+  if (runner.selectionState === "invalid") {
+    return runner.commandText;
+  }
+  return renderRunnerCommand(runner.command);
+}
+
 function renderInitReport(input: {
   repoClass: PackagingRepoClass;
+  runnerSource: WorkerRunnerConfig["source"];
+  runnerCommand: string;
   applyRequested: boolean;
   applyExecuted: boolean;
   installOnly: boolean;
@@ -213,6 +242,8 @@ function renderInitReport(input: {
     "# Init Report",
     "",
     `- Repo class: ${input.repoClass}`,
+    `- Runner source: ${input.runnerSource}`,
+    `- Runner command: ${input.runnerCommand}`,
     `- Apply requested: ${input.applyRequested ? "yes" : "no"}`,
     `- Apply executed: ${input.applyExecuted ? "yes" : "no"}`,
     `- Install-only state: ${input.installOnly ? "yes" : "no"}`,
@@ -238,8 +269,15 @@ function renderInitReport(input: {
     "",
     "## Next Steps",
     ...(input.installOnly
-      ? ["- Create the first commit before worker-backed workflows.", "- Run cdx doctor."]
-      : ["- Run cdx doctor.", "- Run cdx resume or cdx cook <absolute-plan-path> as needed."]),
+      ? [
+          "- Create the first commit before worker-backed workflows.",
+          "- Run cdx doctor (or npx @codexkit/cli doctor).",
+          "- Start onboarding flow: cdx brainstorm <task> -> cdx plan <task> -> cdx cook <absolute-plan-path>."
+        ]
+      : [
+          "- Run cdx doctor (or npx @codexkit/cli doctor).",
+          "- Start onboarding flow: cdx brainstorm <task> -> cdx plan <task> -> cdx cook <absolute-plan-path>."
+        ]),
     "",
     "## Unresolved Questions",
     "- none",
@@ -269,6 +307,8 @@ export function runInitWorkflow(context: RuntimeContext, input: InitWorkflowInpu
     prompt: "cdx init"
   });
   const scan = runSharedRepoScan(context.config.paths.rootDir);
+  const selectedRunner = context.config.workerRunner;
+  const renderedRunnerCommand = renderSelectedRunnerCommand(selectedRunner);
   const diagnostics: WorkflowCommandDiagnostics[] = [...scan.diagnostics];
   const checkpointIds: WorkflowCheckpointId[] = [];
   const migrationAssistant = publishMigrationAssistantReport({
@@ -304,6 +344,10 @@ export function runInitWorkflow(context: RuntimeContext, input: InitWorkflowInpu
     repoClass: scan.repoClass,
     hasGitRepo: scan.hasGitRepo,
     hasInitialCommit: scan.hasInitialCommit,
+    runnerSource: selectedRunner.source,
+    runnerCommand: renderedRunnerCommand,
+    runnerSelectionState: selectedRunner.selectionState,
+    runnerInvalidReason: selectedRunner.invalidReason,
     actionPlan: planned.plan,
     blockedActions,
     payloadFingerprints: buildManagedTemplatePayloadFingerprints(planned.writableTemplates),
@@ -362,6 +406,8 @@ export function runInitWorkflow(context: RuntimeContext, input: InitWorkflowInpu
     summary: "init workflow report",
     markdown: renderInitReport({
       repoClass: scan.repoClass,
+      runnerSource: selectedRunner.source,
+      runnerCommand: renderedRunnerCommand,
       applyRequested,
       applyExecuted,
       installOnly,
@@ -383,11 +429,13 @@ export function runInitWorkflow(context: RuntimeContext, input: InitWorkflowInpu
   });
   checkpointIds.push("package-preview");
 
-  writeInitPreviewState(context, {
-    fingerprint: previewFingerprint,
-    runId: run.id,
-    recordedAt: context.clock.now().toISOString()
-  });
+  if (!applyRequested) {
+    writeInitPreviewState(context, {
+      fingerprint: previewFingerprint,
+      runId: run.id,
+      recordedAt: context.clock.now().toISOString()
+    });
+  }
 
   if (applyRequested) {
     context.runService.recordWorkflowCheckpoint(run.id, "package-apply", {
@@ -403,6 +451,8 @@ export function runInitWorkflow(context: RuntimeContext, input: InitWorkflowInpu
     workflow: "init",
     checkpointIds,
     repoClass: scan.repoClass,
+    runnerSource: selectedRunner.source,
+    runnerCommand: renderedRunnerCommand,
     installOnly,
     applyRequested,
     applyExecuted,
