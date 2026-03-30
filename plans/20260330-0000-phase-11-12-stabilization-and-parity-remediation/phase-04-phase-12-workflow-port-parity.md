@@ -13,7 +13,6 @@ Port the remaining standalone workflow surfaces that still exist only as vendore
 - `workflow.team`
 - `workflow.docs`
 - `workflow.scout`
-- `workflow.preview`
 
 ## Related Code Files
 - `packages/codexkit-cli/src/workflow-command-handler.ts`
@@ -26,7 +25,7 @@ Port the remaining standalone workflow surfaces that still exist only as vendore
 
 ## Implementation Steps
 - Replace deferred `fix` and `team` command paths with runnable workflow/controller entries
-- Add standalone docs, scout, and preview workflow ports that reuse existing artifact and primitive infrastructure
+- Add standalone docs and scout workflow ports that reuse existing artifact and primitive infrastructure
 - Keep team workflow built on current `team` primitives rather than introducing a separate orchestration substrate
 - Add targeted runtime tests for each newly ported workflow
 
@@ -35,7 +34,7 @@ Port the remaining standalone workflow surfaces that still exist only as vendore
 - [ ] Implement `workflow.team` using existing team/message/task primitives in `packages/codexkit-daemon/src/runtime-controller.ts` and `packages/codexkit-compat-mcp/src/invoke-tool.ts`
 - [ ] Add standalone `docs` workflow port with explicit artifact outputs instead of finalize-only docs impact
 - [ ] Add standalone `scout` workflow port that produces a scout report rather than relying on internal review-only scout steps
-- [ ] Add or update runtime tests for `fix`, `team`, `docs`, `scout`, and `preview`
+- [ ] Add or update runtime tests for `fix`, `team`, `docs`, and `scout`
 
 ## Acceptance Criteria
 - The CLI no longer reports `fix` or `team` as deferred for their represented workflow surfaces

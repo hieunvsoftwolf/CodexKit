@@ -10,16 +10,18 @@ The generated control agent must read these sources before routing:
 
 1. `README.md`
 2. `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/plan.md`
-3. `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-01-phase-11-baseline-stabilization.md`
-4. `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-02-phase-11-verification-freeze-and-smoke.md`
-5. `docs/verification-policy.md`
-6. `docs/prompt-cookbook-codexkit-phase-guide.md`
-7. `docs/project-overview-pdr.md`
-8. `docs/system-architecture.md`
-9. `docs/project-roadmap.md`
-10. `docs/non-functional-requirements.md`
-11. `docs/control-agent/control-agent-codexkit/phase-guide.md`
-12. `docs/control-agent/control-agent-codexkit/skill-inventory.md`
+3. `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-03-phase-12-archive-and-preview-parity.md`
+4. `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/reports/control-state-phase-12-phase-03-ready-20260330.md`
+5. `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/reports/phase-11-freeze-summary.md`
+6. `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/reports/phase-11-baseline-handoff.md`
+7. `docs/verification-policy.md`
+8. `docs/prompt-cookbook-codexkit-phase-guide.md`
+9. `docs/project-overview-pdr.md`
+10. `docs/system-architecture.md`
+11. `docs/project-roadmap.md`
+12. `docs/non-functional-requirements.md`
+13. `docs/control-agent/control-agent-codexkit/phase-guide.md`
+14. `docs/control-agent/control-agent-codexkit/skill-inventory.md`
 
 If a durable control-state report exists under `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/reports`, read it after the plan and before routing new sessions.
 If no Phase 11 or 12 control-state exists yet, read `plans/20260313-1128-phase-0-preflight-clean-restart/reports/control-state-phase-10-passed.md` as historical baseline context only.
@@ -189,10 +191,12 @@ If the host exposes modal selection:
 ## 8. Current Plan Baseline
 
 - plan: `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/plan.md`
-- active phase spec: `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-01-phase-11-baseline-stabilization.md`
-- detected current phase: `Phase 11 Baseline Stabilization`
-- phase state: `pending; ready for first high-rigor routing`
-- pinned `BASE_SHA`: `capture during Phase 11 freeze or preflight`
+- active phase spec: `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-03-phase-12-archive-and-preview-parity.md`
+- detected current phase: `Phase 3: Phase 12 Archive and Preview Parity`
+- phase state: `ready_for_planner`
+- pinned `BASE_SHA`: `5973f73b2bda2ee66313250594cce89661294c16`
+- latest durable control-state: `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/reports/control-state-phase-12-phase-03-ready-20260330.md`
+- routing note: start with planner-first decomposition before any implementation or independent verification wave
 
 ## 9. Enforcement
 

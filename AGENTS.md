@@ -82,5 +82,5 @@ For project control in this repository:
 - Do not route plain `control-agent` to a repo-local generic skill in this repository.
 - If the user message is exactly `control-agent-codexkit`, treat it as an explicit request to activate that repo skill immediately.
 - If the user message is exactly `/control-agent-codexkit` and the host forwards that literal text to the model, treat it the same way.
-- When `control-agent-codexkit` is activated, read `docs/control-agent/control-agent-codexkit/verification-policy.md`, `docs/control-agent/control-agent-codexkit/phase-guide.md`, `docs/control-agent/control-agent-codexkit/skill-inventory.md`, `plans/20260313-1128-phase-0-preflight-clean-restart/plan.md`, and the latest control-state report if one exists under `plans/20260313-1128-phase-0-preflight-clean-restart/reports`.
+- When `control-agent-codexkit` is activated, read `docs/control-agent/control-agent-codexkit/verification-policy.md`, `docs/control-agent/control-agent-codexkit/phase-guide.md`, `docs/control-agent/control-agent-codexkit/skill-inventory.md`, `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/plan.md`, and the latest control-state report if one exists under `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/reports`.
 <!-- END GENERATED CONTROL AGENT SHORTCUT: control-agent-codexkit -->

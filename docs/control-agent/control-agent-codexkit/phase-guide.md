@@ -3,7 +3,7 @@
 **Project**: CodexKit  
 **Control Agent**: `control-agent-codexkit`  
 **Control Plan**: `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/plan.md`  
-**Active Phase Spec**: `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-01-phase-11-baseline-stabilization.md`
+**Active Phase Spec**: `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-03-phase-12-archive-and-preview-parity.md`
 
 ## 1. Read Order
 
@@ -11,48 +11,50 @@ Read these in order before routing:
 
 1. `README.md`
 2. `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/plan.md`
-3. `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-01-phase-11-baseline-stabilization.md`
-4. `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-02-phase-11-verification-freeze-and-smoke.md`
-5. `docs/control-agent/control-agent-codexkit/verification-policy.md`
-6. `docs/control-agent/control-agent-codexkit/plan-contract.md`
-7. `docs/control-agent/control-agent-codexkit/skill-inventory.md`
-8. `docs/project-overview-pdr.md`
-9. `docs/system-architecture.md`
-10. `docs/project-roadmap.md`
-11. `docs/non-functional-requirements.md`
+3. `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-03-phase-12-archive-and-preview-parity.md`
+4. `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/reports/control-state-phase-12-phase-03-ready-20260330.md`
+5. `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/reports/phase-11-freeze-summary.md`
+6. `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/reports/phase-11-baseline-handoff.md`
+7. `docs/control-agent/control-agent-codexkit/verification-policy.md`
+8. `docs/control-agent/control-agent-codexkit/plan-contract.md`
+9. `docs/control-agent/control-agent-codexkit/skill-inventory.md`
+10. `docs/project-overview-pdr.md`
+11. `docs/system-architecture.md`
+12. `docs/project-roadmap.md`
+13. `docs/non-functional-requirements.md`
 
 If a durable control-state report exists under `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/reports`, read it before deciding the next wave.
 If no new control-state exists yet, use `plans/20260313-1128-phase-0-preflight-clean-restart/reports/control-state-phase-10-passed.md` as historical context only.
 
 ## 2. Current Plan Snapshot
 
-- current phase: `Phase 11 Baseline Stabilization`
-- current phase id: `11`
-- current phase status: `pending`
-- current phase source: `plan-frontmatter`
-- current phase doc: `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-01-phase-11-baseline-stabilization.md`
-- plan status: `pending`
+- current phase: `Phase 3: Phase 12 Archive and Preview Parity`
+- current phase id: `12.3`
+- current phase status: `ready_for_planner`
+- current phase source: `latest_control_state + plan-frontmatter`
+- current phase doc: `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-03-phase-12-archive-and-preview-parity.md`
+- plan status: `in_progress`
 - project summary:
 
-  Phase 10 is complete and is now historical baseline context only. The active plan starts with Phase 11 stabilization: fix runtime-state safety issues, verify the buildable baseline, and freeze one trusted release candidate before any parity expansion begins.
+  Phase 11 is complete. Baseline code is frozen at `5973f73b2bda2ee66313250594cce89661294c16` and the next execution phase is the first Phase 12 parity wave. Start with archive confirmation plus journal artifact closeout, then land preview workflow/artifact parity in the same phase.
 
 - current phase tasks:
 
-- [ ] fix inspection-path state mutation and any adjacent stabilization blockers
-- [ ] verify build, typecheck, runtime suite, and packaging smoke on the stabilized baseline
-- [ ] freeze one baseline commit and write the Phase 11 handoff summary
-- [ ] keep Phase 12 blocked until the Phase 11 baseline is green and frozen
+- [ ] add archive confirmation handling before `cdx plan archive` mutates state
+- [ ] emit `artifact.journal_entry_md` during archive closeout
+- [ ] add dedicated preview workflow support through CLI, controller, and workflow exports
+- [ ] verify preview emits both markdown output and view URL artifacts
 
 - current phase acceptance criteria:
 
-  - the inspection-state mutation defect is fixed without weakening the runtime assertion
-  - no implemented inspection or status path mutates durable state unless documented as mutating
-  - build, typecheck, runtime tests, and packaging smoke succeed from the stabilized baseline
-  - one explicit Phase 11 freeze point is recorded before Phase 12 starts
+  - `cdx plan archive` does not mutate state before the confirmation gate resolves
+  - archive emits both archive summary and journal artifact output
+  - preview emits markdown output and view URL output consistent with the represented graph contract
+  - preview is fully owned by this phase and leaves the missing or partial bucket after the phase passes
 
 - testing strategy:
 
-  Use runtime-first verification for state-machine safety, then build, typecheck, and packaging smoke to freeze the baseline.
+  Use planner-first decomposition, then runtime-first verification with artifact assertions for archive and preview surfaces.
 
 ## 3. Routing Heuristics
 
@@ -80,13 +82,14 @@ When converting any skeleton below into a runnable prompt, append an in-prompt `
 You are planner for CodexKit.
 Read first:
 - plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/plan.md
-- plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-01-phase-11-baseline-stabilization.md
-- plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-02-phase-11-verification-freeze-and-smoke.md
+- plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-03-phase-12-archive-and-preview-parity.md
+- plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/reports/control-state-phase-12-phase-03-ready-20260330.md
+- plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/reports/phase-11-baseline-handoff.md
 - docs/control-agent/control-agent-codexkit/plan-contract.md
 - docs/control-agent/control-agent-codexkit/verification-policy.md
 - docs/control-agent/control-agent-codexkit/skill-inventory.md
 
-Current phase: Phase 11 Baseline Stabilization
+Current phase: Phase 3: Phase 12 Archive and Preview Parity
 
 Need:
 - map current phase tasks to owned workstreams
@@ -128,11 +131,12 @@ Before coding, list:
 You are spec-test-designer for CodexKit.
 Read first:
 - plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/plan.md
+- plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-03-phase-12-archive-and-preview-parity.md
 - docs/control-agent/control-agent-codexkit/plan-contract.md
 - docs/control-agent/control-agent-codexkit/verification-policy.md
 - docs/control-agent/control-agent-codexkit/skill-inventory.md
 
-Current phase: Phase 11 Baseline Stabilization
+Current phase: Phase 3: Phase 12 Archive and Preview Parity
 Pinned base ref: <BASE_SHA>
 
 Source of truth:

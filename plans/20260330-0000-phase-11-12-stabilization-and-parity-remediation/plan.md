@@ -2,6 +2,10 @@
 title: "Phase 11 and 12 stabilization and parity remediation"
 description: "Execution plan for Phase 11 stabilization first, then Phase 12 full parity remediation"
 status: "in_progress"
+current_phase: "12.3"
+current_phase_doc: "phase-03-phase-12-archive-and-preview-parity.md"
+current_phase_status: "ready_for_planner"
+latest_control_state: "reports/control-state-phase-12-phase-03-ready-20260330.md"
 priority: "high"
 effort: "high"
 branch: "main"
@@ -29,6 +33,12 @@ Mode: hard
 - Phase 11 is complete
 - Frozen baseline commit: `5973f73b2bda2ee66313250594cce89661294c16`
 - Next execution phase: `phase-03-phase-12-archive-and-preview-parity.md`
+- Latest durable control-state: `reports/control-state-phase-12-phase-03-ready-20260330.md`
+
+## Phase 12 Notes
+- Phase 3 owns all preview-related graph surface so preview is not reopened in later phases
+- Phase 4 is limited to the remaining standalone workflow ports: `fix`, `team`, `docs`, and `scout`
+- Phase 5 closes remaining gate/template parity and ends with the final represented-surface audit
 
 ## Phases
 - phase-01-phase-11-baseline-stabilization.md

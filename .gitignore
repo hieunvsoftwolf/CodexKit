@@ -60,6 +60,11 @@ repomix-output.xml
 .serena/cache
 plans/**/*
 !plans/templates/*
+!plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/
+!plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/plan.md
+!plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-*.md
+!plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/reports/
+!plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/reports/*.md
 screenshots/*
 docs/screenshots/*
 logs.txt

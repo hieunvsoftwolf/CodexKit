@@ -28,6 +28,7 @@ Close the smallest high-value parity gaps first: archive confirmation/journal se
 - Emit a journal artifact as part of archive closeout
 - Add a dedicated preview workflow port with markdown output and view URL emission
 - Route preview through the CLI/controller surface and verify artifact publishing
+- Treat preview as fully owned by this phase; later phases should not reopen preview except for regression fixes
 
 ## Todo Checklist
 - [ ] Add archive confirmation handling for `gate.plan_archive_confirmation_required` in `packages/codexkit-daemon/src/workflows/plan-subcommand-workflow.ts` and `packages/codexkit-cli/src/workflow-command-handler.ts` [critical]
@@ -40,6 +41,7 @@ Close the smallest high-value parity gaps first: archive confirmation/journal se
 - `cdx plan archive` no longer mutates state before a confirmation gate resolves
 - Archive emits both archive summary and journal artifact output
 - Preview emits a markdown artifact and a view URL artifact/field consistent with the represented graph contract
+- `workflow.preview` and its required artifacts leave the missing/partial buckets after this phase
 
 ## Verification Commands
 - `npm run test:runtime -- tests/runtime/runtime-workflow-wave2.integration.test.ts`

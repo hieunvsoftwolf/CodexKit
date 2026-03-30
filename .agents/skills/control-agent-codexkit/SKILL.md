@@ -19,8 +19,11 @@ Read these first, in order:
 
 - `README.md`
 - `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/plan.md`
-- `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-01-phase-11-baseline-stabilization.md`
-- `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-02-phase-11-verification-freeze-and-smoke.md`
+- `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-03-phase-12-archive-and-preview-parity.md`
+- `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-04-phase-12-workflow-port-parity.md`
+- `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-05-phase-12-closeout-gates-and-template-parity.md`
+- `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/reports/phase-11-freeze-summary.md`
+- `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/reports/phase-11-baseline-handoff.md`
 - `docs/project-overview-pdr.md`
 - `docs/system-architecture.md`
 - `docs/project-roadmap.md`
@@ -144,7 +147,7 @@ Use planning or reasoning modal when available for planner, spec-test-designer, 
 ## Decision Process
 
 1. Read the required docs and plan.
-2. Detect the current phase, current plan status, and whether a high-rigor wave is ready.
+2. Detect the current phase, current plan status, and whether a planner-first high-rigor wave is ready.
 3. Detect completed artifacts, waiting dependencies, whether a durable control-state report already exists, and whether an active host verification constraint is already known.
 4. Recompute normalized control state before routing new runnable sessions.
 5. Persist updated control state when a durable path is already in scope.
