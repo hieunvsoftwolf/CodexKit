@@ -15,6 +15,7 @@ export type WorkflowName =
   | "brainstorm"
   | "plan"
   | "cook"
+  | "preview"
   | "review"
   | "test"
   | "debug"
@@ -79,6 +80,27 @@ export interface WorkflowBaseResult {
   runId: string;
   workflow: WorkflowName;
   checkpointIds: WorkflowCheckpointId[];
+}
+
+export type PreviewMode = "explain" | "slides" | "diagram" | "ascii";
+
+export interface PreviewWorkflowInput {
+  target?: string;
+  mode?: PreviewMode;
+  stop?: boolean;
+}
+
+export interface PreviewWorkflowResult extends WorkflowBaseResult {
+  workflow: "preview";
+  mode: PreviewMode;
+  target: string;
+  stopRequested: boolean;
+  previewOutputPath: string;
+  previewOutputArtifactId: string;
+  previewViewUrl: string;
+  previewViewUrlPath: string;
+  previewViewUrlArtifactId: string;
+  diagnostics: WorkflowCommandDiagnostics[];
 }
 
 export type FinalizeArtifactFileName =

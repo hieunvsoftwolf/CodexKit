@@ -8,6 +8,7 @@ const COOK_MODES = ["auto", "fast", "parallel", "no-test"] as const;
 const FIX_MODES = ["auto", "review", "quick", "parallel"] as const;
 const DEBUG_BRANCHES = new Set(["code", "logs-ci", "database", "performance", "frontend"]);
 const TEAM_PRIMITIVE_ACTIONS = new Set(["create", "list", "delete"]);
+const PREVIEW_MODES = new Set(["explain", "slides", "diagram", "ascii"]);
 
 function assertSingleMode(modes: string[], command: string): string | undefined {
   if (modes.length > 1) {
@@ -201,6 +202,31 @@ export function tryHandleWorkflowCommand(
         task,
         ...(modeFromFlag ? { mode: modeFromFlag as never } : {}),
         ...(hasFlag(parsed.options, "no-tasks") ? { noTasks: true } : {})
+      })
+    };
+  }
+
+  if (group === "preview") {
+    const modeFromOption = optionValue(parsed.options, "mode");
+    let mode = modeFromOption;
+    const targetTokens = [second, ...rest].filter(Boolean);
+    if (!mode && targetTokens.length > 0 && PREVIEW_MODES.has(targetTokens[0]!)) {
+      mode = targetTokens.shift()!;
+    }
+    if (mode && !PREVIEW_MODES.has(mode)) {
+      throw new CodexkitError("CLI_USAGE", "unsupported preview mode", {
+        code: "WF_PREVIEW_MODE_INVALID",
+        cause: `Unsupported mode '${mode}'.`,
+        nextStep: "Use preview modes: explain, slides, diagram, ascii."
+      });
+    }
+    const target = targetTokens.join(" ").trim();
+    return {
+      handled: true,
+      result: controller.preview({
+        ...(target ? { target } : {}),
+        ...(mode ? { mode: mode as never } : {}),
+        ...(hasFlag(parsed.options, "stop") ? { stop: true } : {})
       })
     };
   }

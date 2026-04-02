@@ -3,6 +3,7 @@ export * from "./brainstorm-workflow.ts";
 export * from "./plan-workflow.ts";
 export * from "./plan-subcommand-workflow.ts";
 export * from "./cook-workflow.ts";
+export * from "./preview-workflow.ts";
 export * from "./review-workflow.ts";
 export * from "./test-workflow.ts";
 export * from "./debug-workflow.ts";

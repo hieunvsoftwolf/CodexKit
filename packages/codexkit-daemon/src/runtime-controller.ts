@@ -17,11 +17,13 @@ import {
   runPlanRedTeamWorkflow,
   runPlanValidateWorkflow,
   runPlanWorkflow,
+  runPreviewWorkflow,
   runResumeWorkflow,
   runReviewWorkflow,
   runSharedRepoScan,
   runTestWorkflow,
   runUpdateWorkflow,
+  resumePlanArchiveWorkflowFromApproval,
   type WorkflowName,
   type PlanMode
 } from "./workflows/index.ts";
@@ -117,6 +119,12 @@ export class RuntimeController {
 
   planArchive(input: { planPath?: string }) {
     const result = runPlanArchiveWorkflow(this.context, input);
+    this.reconcile();
+    return result;
+  }
+
+  preview(input: { target?: string; mode?: "explain" | "slides" | "diagram" | "ascii"; stop?: boolean }) {
+    const result = runPreviewWorkflow(this.context, input);
     this.reconcile();
     return result;
   }
@@ -382,7 +390,7 @@ export class RuntimeController {
 
   respondApproval(input: { approvalId: string; status: "approved" | "revised" | "rejected" | "aborted" | "expired"; responseText?: string }) {
     const approval = this.context.approvalService.respondApproval(input.approvalId, input.status, input.responseText);
-    const continuation = resumeWorkflowFromApproval(this.context, approval);
+    const continuation = resumePlanArchiveWorkflowFromApproval(this.context, approval) ?? resumeWorkflowFromApproval(this.context, approval);
     this.reconcile();
     return continuation ? { ...approval, continuation } : approval;
   }

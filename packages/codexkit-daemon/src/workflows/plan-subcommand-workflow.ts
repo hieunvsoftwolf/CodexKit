@@ -1,6 +1,11 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { CodexkitError } from "../../../codexkit-core/src/index.ts";
+import {
+  approvalStatusToCheckpointResponse,
+  CodexkitError,
+  type ApprovalRecord,
+  type WorkflowCheckpointResponse
+} from "../../../codexkit-core/src/index.ts";
 import type { RuntimeContext } from "../runtime-context.ts";
 import { resolveReportPath } from "./artifact-paths.ts";
 import type { WorkflowBaseResult, WorkflowCommandDiagnostics } from "./contracts.ts";
@@ -9,9 +14,16 @@ import { readPlanBundle } from "./plan-files.ts";
 
 const ACTIVE_PLAN_KEY = "workflow.plan.active.path";
 const ARCHIVED_PLAN_KEY = "workflow.plan.archived.latest.path";
+const PLAN_ARCHIVE_CONFIRMATION_CHECKPOINT = "plan-archive-confirmation";
+const PLAN_ARCHIVE_CONTINUATION_METADATA_KEY = "planArchiveContinuation";
 
-type PlanSubcommandStatus = "valid" | "revise" | "blocked";
+type PlanSubcommandStatus = "valid" | "revise" | "blocked" | "pending";
 type PlanSubcommandKind = "validate" | "red-team" | "archive";
+
+interface PlanArchiveContinuationState {
+  stage: "archive-confirmation";
+  planPath: string;
+}
 
 export interface PlanSubcommandWorkflowResult extends WorkflowBaseResult {
   workflow: "plan";
@@ -24,8 +36,20 @@ export interface PlanSubcommandWorkflowResult extends WorkflowBaseResult {
   handoffCommand?: string;
   recommendedNextCommand?: string;
   archiveSummaryPath?: string;
+  archiveSummaryArtifactId?: string;
+  archiveJournalPath?: string;
+  archiveJournalArtifactId?: string;
   failureDiagnosticPath?: string;
   failureDiagnosticArtifactId?: string;
+  pendingApproval?: {
+    approvalId: string;
+    checkpoint: string;
+    nextStep: string;
+  };
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
 }
 
 function toAbsolutePlanPath(planPath: string | undefined): string {
@@ -445,6 +469,149 @@ export function runPlanRedTeamWorkflow(
   };
 }
 
+function writePlanArchiveContinuationState(
+  context: RuntimeContext,
+  runId: string,
+  state: PlanArchiveContinuationState | null
+): void {
+  context.runService.updateRunMetadata(runId, {
+    [PLAN_ARCHIVE_CONTINUATION_METADATA_KEY]: state
+  });
+}
+
+function readPlanArchiveContinuationState(context: RuntimeContext, runId: string): PlanArchiveContinuationState | null {
+  const run = context.runService.getRun(runId);
+  const continuation = asRecord(asRecord(run.metadata)[PLAN_ARCHIVE_CONTINUATION_METADATA_KEY]);
+  if (continuation.stage !== "archive-confirmation" || typeof continuation.planPath !== "string") {
+    return null;
+  }
+  return {
+    stage: "archive-confirmation",
+    planPath: continuation.planPath
+  };
+}
+
+function mapArchiveApprovalToCheckpointResponse(status: ApprovalRecord["status"]): WorkflowCheckpointResponse {
+  return approvalStatusToCheckpointResponse(status) ?? "aborted";
+}
+
+function requestPlanArchiveConfirmation(
+  context: RuntimeContext,
+  runId: string,
+  planPath: string
+): { approvalId: string; checkpoint: string; nextStep: string } {
+  const approval = context.approvalService.requestApproval({
+    runId,
+    checkpoint: PLAN_ARCHIVE_CONFIRMATION_CHECKPOINT,
+    question: `Confirm archive for '${planPath}'. This will set plan.md status to archived and clear active-plan selection if it matches this path.`,
+    options: [
+      { code: "approve", label: "Archive plan", description: "Proceed with archive mutation and artifact closeout." },
+      { code: "abort", label: "Do not archive", description: "Cancel archive; keep plan.md and active-plan settings unchanged." }
+    ]
+  });
+  writePlanArchiveContinuationState(context, runId, {
+    stage: "archive-confirmation",
+    planPath
+  });
+  return {
+    approvalId: approval.id,
+    checkpoint: PLAN_ARCHIVE_CONFIRMATION_CHECKPOINT,
+    nextStep: `cdx approval respond ${approval.id} --response approve`
+  };
+}
+
+function completePlanArchive(
+  context: RuntimeContext,
+  input: { runId: string; planPath: string }
+): {
+  planArtifactId: string;
+  summaryPath: string;
+  summaryArtifactId: string;
+  journalPath: string;
+  journalArtifactId: string;
+} {
+  const previousPlanMarkdown = readFileSync(input.planPath, "utf8");
+  const archivedPlanMarkdown = upsertFrontmatterStatus(previousPlanMarkdown, "archived");
+  writeFileSync(input.planPath, archivedPlanMarkdown, "utf8");
+
+  const run = context.runService.getRun(input.runId);
+  const timestamp = context.clock.now().toISOString();
+  const summaryPath = resolveReportPath(context, run, "archive-summary.md", {
+    planPathHint: input.planPath
+  });
+  const summaryMarkdown = [
+    "# Archive Summary",
+    "",
+    `- Timestamp: ${timestamp}`,
+    `- Plan: ${input.planPath}`,
+    "- Confirmation: approved",
+    `- Status: archived`,
+    "- Historical report files were preserved without mutation.",
+    ""
+  ].join("\n");
+  writeFileSync(summaryPath.absolutePath, summaryMarkdown, "utf8");
+
+  const journalPath = resolveReportPath(context, run, "archive-journal-entry.md", {
+    planPathHint: input.planPath
+  });
+  const journalMarkdown = [
+    "# Archive Journal Entry",
+    "",
+    `- Timestamp: ${timestamp}`,
+    `- Run ID: ${input.runId}`,
+    `- Plan: ${input.planPath}`,
+    "- Action: plan archived after explicit confirmation checkpoint",
+    "- Durable artifacts: archive-summary.md, archive-journal-entry.md",
+    ""
+  ].join("\n");
+  writeFileSync(journalPath.absolutePath, journalMarkdown, "utf8");
+
+  context.store.settings.set(ARCHIVED_PLAN_KEY, input.planPath);
+  if (context.store.settings.get(ACTIVE_PLAN_KEY) === input.planPath) {
+    context.store.settings.set(ACTIVE_PLAN_KEY, "");
+  }
+  context.runService.updateRunMetadata(input.runId, {
+    archive: {
+      planPath: input.planPath,
+      archivedAt: timestamp,
+      summaryPath: summaryPath.absolutePath,
+      journalPath: journalPath.absolutePath
+    }
+  });
+
+  const planArtifactId = publishPlanArtifacts(context, input.runId, "plan-draft", input.planPath, []);
+  const summaryArtifact = context.artifactService.publishArtifact({
+    runId: input.runId,
+    artifactKind: "report",
+    path: summaryPath.absolutePath,
+    summary: "plan archive summary",
+    metadata: {
+      checkpoint: "plan-draft",
+      subcommand: "archive",
+      artifact: "archive-summary"
+    }
+  });
+  const journalArtifact = context.artifactService.publishArtifact({
+    runId: input.runId,
+    artifactKind: "docs",
+    path: journalPath.absolutePath,
+    summary: "archive journal entry",
+    metadata: {
+      checkpoint: "plan-draft",
+      subcommand: "archive",
+      artifact: "journal-entry"
+    }
+  });
+
+  return {
+    planArtifactId,
+    summaryPath: summaryPath.absolutePath,
+    summaryArtifactId: summaryArtifact.id,
+    journalPath: journalPath.absolutePath,
+    journalArtifactId: journalArtifact.id
+  };
+}
+
 function resolveArchiveTargetPath(context: RuntimeContext, inputPath?: string): string {
   if (inputPath && inputPath.trim().length > 0) {
     return toAbsolutePlanPath(inputPath);
@@ -473,66 +640,103 @@ export function runPlanArchiveWorkflow(
   const planDir = path.dirname(planPath);
   context.runService.setPlanDir(run.id, planDir);
   context.runService.recordWorkflowCheckpoint(run.id, "plan-context", { noFile: true });
-
-  const previousPlanMarkdown = readFileSync(planPath, "utf8");
-  const archivedPlanMarkdown = upsertFrontmatterStatus(previousPlanMarkdown, "archived");
-  writeFileSync(planPath, archivedPlanMarkdown, "utf8");
-
-  const summaryPath = resolveReportPath(context, context.runService.getRun(run.id), "archive-summary.md", {
-    planPathHint: planPath
-  });
-  const summaryMarkdown = [
-    "# Archive Summary",
-    "",
-    `- Timestamp: ${context.clock.now().toISOString()}`,
-    `- Plan: ${planPath}`,
-    `- Status: archived`,
-    "- Historical report files were preserved without mutation.",
-    ""
-  ].join("\n");
-  writeFileSync(summaryPath.absolutePath, summaryMarkdown, "utf8");
-
-  context.store.settings.set(ARCHIVED_PLAN_KEY, planPath);
-  if (context.store.settings.get(ACTIVE_PLAN_KEY) === planPath) {
-    context.store.settings.set(ACTIVE_PLAN_KEY, "");
-  }
-  context.runService.updateRunMetadata(run.id, {
-    archive: {
-      planPath,
-      archivedAt: context.clock.now().toISOString(),
-      summaryPath: summaryPath.absolutePath
-    }
-  });
-
-  const planArtifactId = publishPlanArtifacts(context, run.id, "plan-draft", planPath, []);
-  context.artifactService.publishArtifact({
-    runId: run.id,
-    artifactKind: "report",
-    path: summaryPath.absolutePath,
-    summary: "plan archive summary",
-    metadata: { checkpoint: "plan-draft", subcommand: "archive" }
-  });
-  context.runService.recordWorkflowCheckpoint(run.id, "plan-draft", {
-    artifactPath: planPath,
-    artifactId: planArtifactId
-  });
+  const pendingApproval = requestPlanArchiveConfirmation(context, run.id, planPath);
+  context.runService.recordWorkflowCheckpoint(run.id, PLAN_ARCHIVE_CONFIRMATION_CHECKPOINT, { noFile: true });
 
   return {
     runId: run.id,
     workflow: "plan",
     subcommand: "archive",
-    checkpointIds: ["plan-context", "plan-draft"],
+    checkpointIds: ["plan-context", PLAN_ARCHIVE_CONFIRMATION_CHECKPOINT],
+    status: "pending",
+    planPath,
+    planDir,
+    diagnostics: [
+      {
+        code: "PLAN_ARCHIVE_CONFIRMATION_REQUIRED",
+        cause: "Archive mutation is gated until explicit confirmation resolves.",
+        nextStep: pendingApproval.nextStep
+      }
+    ],
+    updatedPhasePaths: [],
+    pendingApproval
+  };
+}
+
+export function resumePlanArchiveWorkflowFromApproval(
+  context: RuntimeContext,
+  approval: ApprovalRecord
+): PlanSubcommandWorkflowResult | null {
+  if (approval.status === "pending" || approval.checkpoint !== PLAN_ARCHIVE_CONFIRMATION_CHECKPOINT) {
+    return null;
+  }
+  const run = context.runService.getRun(approval.runId);
+  if (run.workflow !== "plan") {
+    return null;
+  }
+  const continuation = readPlanArchiveContinuationState(context, run.id);
+  if (!continuation || continuation.stage !== "archive-confirmation") {
+    return null;
+  }
+
+  const planPath = toAbsolutePlanPath(continuation.planPath);
+  const planDir = path.dirname(planPath);
+  const checkpointResponse = mapArchiveApprovalToCheckpointResponse(approval.status);
+  context.runService.recordWorkflowCheckpoint(run.id, PLAN_ARCHIVE_CONFIRMATION_CHECKPOINT, {
+    response: checkpointResponse,
+    noFile: true
+  });
+
+  if (checkpointResponse !== "approved") {
+    writePlanArchiveContinuationState(context, run.id, null);
+    return {
+      runId: run.id,
+      workflow: "plan",
+      subcommand: "archive",
+      checkpointIds: ["plan-context", PLAN_ARCHIVE_CONFIRMATION_CHECKPOINT],
+      status: "blocked",
+      planPath,
+      planDir,
+      diagnostics: [
+        {
+          code: "PLAN_ARCHIVE_CANCELLED",
+          cause: `Archive confirmation ended with '${approval.status}'.`,
+          nextStep: "Run cdx plan archive <absolute-plan-path> again when ready to confirm."
+        }
+      ],
+      updatedPhasePaths: []
+    };
+  }
+
+  const completed = completePlanArchive(context, {
+    runId: run.id,
+    planPath
+  });
+  context.runService.recordWorkflowCheckpoint(run.id, "plan-draft", {
+    artifactPath: planPath,
+    artifactId: completed.planArtifactId
+  });
+  writePlanArchiveContinuationState(context, run.id, null);
+
+  return {
+    runId: run.id,
+    workflow: "plan",
+    subcommand: "archive",
+    checkpointIds: ["plan-context", PLAN_ARCHIVE_CONFIRMATION_CHECKPOINT, "plan-draft"],
     status: "valid",
     planPath,
     planDir,
     diagnostics: [
       {
         code: "PLAN_ARCHIVE_COMPLETED",
-        cause: "Plan was archived and archive summary was published.",
+        cause: "Plan was archived after confirmation, and summary/journal artifacts were published.",
         nextStep: "Use cdx plan <task> to create a new active plan when ready."
       }
     ],
     updatedPhasePaths: [],
-    archiveSummaryPath: summaryPath.absolutePath
+    archiveSummaryPath: completed.summaryPath,
+    archiveSummaryArtifactId: completed.summaryArtifactId,
+    archiveJournalPath: completed.journalPath,
+    archiveJournalArtifactId: completed.journalArtifactId
   };
 }

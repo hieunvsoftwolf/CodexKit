@@ -4,8 +4,8 @@ description: "Execution plan for Phase 11 stabilization first, then Phase 12 ful
 status: "in_progress"
 current_phase: "12.3"
 current_phase_doc: "phase-03-phase-12-archive-and-preview-parity.md"
-current_phase_status: "ready_for_w0"
-latest_control_state: "reports/control-state-phase-12-phase-03-w0-required-20260330.md"
+current_phase_status: "landing_required"
+latest_control_state: "reports/control-state-phase-12-phase-03-landing-required-after-s6-20260402-182921.md"
 priority: "high"
 effort: "high"
 branch: "main"
@@ -33,8 +33,8 @@ Mode: hard
 - Phase 11 is complete
 - Frozen baseline commit: `5973f73b2bda2ee66313250594cce89661294c16`
 - Next execution phase: `phase-03-phase-12-archive-and-preview-parity.md`
-- Latest durable control-state: `reports/control-state-phase-12-phase-03-w0-required-20260330.md`
-- Planner decomposition is complete; run `W0` baseline disposition before opening the first high-rigor implementation and verification wave.
+- Latest durable control-state: `reports/control-state-phase-12-phase-03-landing-required-after-s6-20260402-182921.md`
+- Phase 12.3 passed on the current candidate tree, but the wave is not operationally complete; a dedicated baseline-disposition / landing step is now the only runnable action before follow-up parity-sync work.
 
 ## Phase 12 Notes
 - Phase 3 owns all preview-related graph surface so preview is not reopened in later phases
