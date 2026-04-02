@@ -7,8 +7,9 @@
 **Pinned BASE_SHA**: `75a5af42d2f18e3ffee23ebebc6dc99ba20b5606`  
 **Landing Commit SHA**: `05b7a72e0c6948739bd0cb8f578c8d1dc077a3b0`  
 **Landing Commit Subject**: `feat(phase12): land archive and preview parity candidate`  
+**Report Commit SHA**: `f9e86055ddb72eb79166f485c9216805e7f4282e`  
 **Branch**: `main`  
-**Remote Sync**: synced (`HEAD == origin/main == 05b7a72e0c6948739bd0cb8f578c8d1dc077a3b0`)  
+**Remote Sync**: synced (`HEAD == origin/main == f9e86055ddb72eb79166f485c9216805e7f4282e`)  
 **Working Tree Clean**: no (unrelated/transient churn intentionally left unstaged)
 
 ## Source Inputs Used
@@ -68,7 +69,8 @@
 ## Landing Outcome
 
 - Passed Phase 12.3 candidate landed to `main` as commit `05b7a72e0c6948739bd0cb8f578c8d1dc077a3b0`.
-- Push succeeded to `origin/main`.
+- Durable disposition report committed as `f9e86055ddb72eb79166f485c9216805e7f4282e`.
+- Push succeeded to `origin/main` for both commits.
 - Local remote tracking was refreshed after push; branch is synced.
 - Checkout remains intentionally dirty only from excluded unrelated/transient files listed above.
 
