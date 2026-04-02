@@ -4,8 +4,8 @@ description: "Execution plan for Phase 11 stabilization first, then Phase 12 ful
 status: "in_progress"
 current_phase: "12.4"
 current_phase_doc: "phase-04-phase-12-workflow-port-parity.md"
-current_phase_status: "w0_required"
-latest_control_state: "reports/control-state-phase-12-phase-04-w0-rerouted-after-stale-pasteback-20260402-185125.md"
+current_phase_status: "ready_for_w0b"
+latest_control_state: "reports/control-state-phase-12-phase-04-w0b-required-after-local-clean-20260402-190039.md"
 priority: "high"
 effort: "high"
 branch: "main"
@@ -33,8 +33,8 @@ Mode: hard
 - Phase 11 is complete
 - Frozen baseline commit: `5973f73b2bda2ee66313250594cce89661294c16`
 - Next execution phase: `phase-04-phase-12-workflow-port-parity.md`
-- Latest durable control-state: `reports/control-state-phase-12-phase-04-w0-rerouted-after-stale-pasteback-20260402-185125.md`
-- Phase 12.3 is landed and synced on `main`; Phase 12.4 remains blocked on `W0` because the pasted result reused the old Phase 12.3 landing report, no Phase 12.4 wave-0 report exists yet, and root `main` is still dirty from excluded unrelated/transient churn.
+- Latest durable control-state: `reports/control-state-phase-12-phase-04-w0b-required-after-local-clean-20260402-190039.md`
+- Phase 12.3 is landed and synced on `main`; Phase 12.4 now has a locally clean control surface and a real Phase 12.4 Wave 0 report, but local `main` is still ahead of `origin/main` by one control-surface commit, so `W0B` sync is the only runnable prep step before planner routing.
 
 ## Phase 12 Notes
 - Phase 3 owns all preview-related graph surface so preview is not reopened in later phases
