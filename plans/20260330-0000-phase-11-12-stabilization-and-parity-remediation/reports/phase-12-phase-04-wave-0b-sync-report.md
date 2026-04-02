@@ -43,11 +43,18 @@
    - This did not block remote push completion.
 3. Post-push proof fetch: `git fetch origin main`
    - Result: success, local tracking ref advanced to `7118965`.
+4. Landed this report as a report-only artifact commit:
+   - Commit SHA: `0a89890df5fb18e3342570926a17662349ff3ad7`
+   - Commit message: `chore(control): add phase 12.4 w0b sync report`
+5. `git push origin main`
+   - Result: success, remote advanced from `7118965` to `0a89890`.
+6. Final proof fetch: `git fetch origin main`
+   - Result: success.
 
 ## Final Sync Proof
 
-- Final `HEAD`: `711896514259887f78d431c390db749995902aa8`
-- Final `origin/main`: `711896514259887f78d431c390db749995902aa8`
+- Final `HEAD`: `0a89890df5fb18e3342570926a17662349ff3ad7`
+- Final `origin/main`: `0a89890df5fb18e3342570926a17662349ff3ad7`
 - Final `git status --short --branch`:
 
 ```text
@@ -64,6 +71,7 @@
 
 - Routed base branch is now both clean and synced.
 - `W0B` preflight/sync requirement is satisfied for control routing.
+- Durable W0B sync report artifact is landed on `origin/main`.
 
 ## Unresolved Questions
 
