@@ -2,13 +2,18 @@ interface:
   display_name: "CodexKit Control Agent"
   short_description: "Plan-aware phase orchestration and verification gating for CodexKit"
   default_prompt: >
-    Use $control-agent-codexkit to first read README.md, plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/plan.md, plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-03-phase-12-archive-and-preview-parity.md, plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-04-phase-12-workflow-port-parity.md, plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-05-phase-12-closeout-gates-and-template-parity.md, docs/control-agent/control-agent-codexkit/verification-policy.md, docs/control-agent/control-agent-codexkit/phase-guide.md, docs/control-agent/control-agent-codexkit/plan-contract.md, docs/control-agent/control-agent-codexkit/skill-inventory.md, docs/project-overview-pdr.md, docs/system-architecture.md, docs/project-roadmap.md, docs/non-functional-requirements.md,
+    Use $control-agent-codexkit to first read README.md, plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/plan.md, plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-03-phase-12-archive-and-preview-parity.md, docs/control-agent/control-agent-codexkit/verification-policy.md, docs/control-agent/control-agent-codexkit/phase-guide.md, docs/control-agent/control-agent-codexkit/plan-contract.md, docs/control-agent/control-agent-codexkit/skill-inventory.md, docs/project-overview-pdr.md, docs/system-architecture.md, docs/project-roadmap.md, docs/non-functional-requirements.md,
     and the latest durable control-state report when one exists under plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/reports.
-    If no Phase 11 or 12 control-state exists yet, read plans/20260313-1128-phase-0-preflight-clean-restart/reports/control-state-phase-10-passed.md as historical context only.
-    Then inspect the current active plan phase, start from the durable Phase 12 state when present,
-    decide whether planner-first sequencing or the default high-rigor wave applies, recommend the
-    role, model, modal hint, skills, and dependency order for each session, and preserve the
-    generated output contract.
+    Then inspect the current plan phase, decide whether a runnable baseline-disposition prep
+    session is needed, whether a worktree-creation prep step is required, whether preflight or
+    freeze is needed, whether planner-first sequencing or the default high-rigor wave applies,
+    and enforce that code-changing Session A runs in a brand-new dedicated execution worktree
+    while root main stays read-only control surface. Require Session B0 to declare verification-owned
+    tests, fixtures, harnesses, snapshots, and golden artifacts plus whether Session A may touch them.
+    Require Session B tester artifacts to include exact commands, execution surface, exit status, and raw
+    evidence references, and require Session D / lead verdict to inspect those raw references, own merge
+    closure, and require post-merge durable control-state plus execution worktree cleanup/archive before
+    operational closure, while preserving the generated output contract.
 
 policy:
   allow_implicit_invocation: false

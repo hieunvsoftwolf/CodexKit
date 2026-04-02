@@ -58,6 +58,7 @@ Generated control-agents should resolve current phase in this order:
 - Keep `current_phase_doc` and `latest_control_state` relative to `plan.md`.
 - When a phase becomes accepted or complete, advance `current_phase` to the next execution phase instead of leaving stale values behind.
 - If a host verification constraint becomes durable, record it in the latest control-state report and update `latest_control_state` accordingly.
+- When code work is in flight, the durable control-state should record the active execution worktree or merge surface so root `main` is not mistaken for the coding surface.
 
 ## 6. Example
 
@@ -65,9 +66,13 @@ Generated control-agents should resolve current phase in this order:
 ---
 title: "CodexKit Implementation Plan"
 status: in_progress
-current_phase: "10"
-current_phase_doc: "phase-10-public-cli-packaging-and-onboarding.md"
-current_phase_status: "blocked"
-latest_control_state: "reports/control-state-phase-10-p10-s2-remediation-reroute-control-agent-20260328-195610.md"
+current_phase: "12.3"
+current_phase_doc: "phase-03-phase-12-archive-and-preview-parity.md"
+current_phase_status: "verificationrouted"
+latest_control_state: "reports/control-state-phase-12-phase-03-session-b-c-routed-20260331.md"
 ---
 ```
+
+### Preserved Local Additions
+current_phase_status: "ready"
+latest_control_state: "reports/control-state-phase-12-phase-03-verification-ready-after-s2r-20260331.md"

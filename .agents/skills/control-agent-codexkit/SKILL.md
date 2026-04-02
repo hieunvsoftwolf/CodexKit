@@ -20,10 +20,6 @@ Read these first, in order:
 - `README.md`
 - `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/plan.md`
 - `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-03-phase-12-archive-and-preview-parity.md`
-- `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-04-phase-12-workflow-port-parity.md`
-- `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-05-phase-12-closeout-gates-and-template-parity.md`
-- `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/reports/phase-11-freeze-summary.md`
-- `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/reports/phase-11-baseline-handoff.md`
 - `docs/project-overview-pdr.md`
 - `docs/system-architecture.md`
 - `docs/project-roadmap.md`
@@ -35,7 +31,6 @@ Read these first, in order:
 
 Then read:
 - the latest control-state report under `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/reports`, if one exists
-- if no Phase 11/12 control-state exists yet, read `plans/20260313-1128-phase-0-preflight-clean-restart/reports/control-state-phase-10-passed.md` as historical baseline context only
 - any implementation summary
 - any spec-test-design report
 - any test report
@@ -45,9 +40,8 @@ Then read:
 ## Source Of Truth Priority
 
 1. the latest durable control-state report in the active plan reports path, when one exists
-2. README plus current repo docs and the active plan bundle for the current task
-3. if the active plan has no durable control-state yet, use the final completed control-state from the prior completed plan as historical context only
-4. this skill, `docs/control-agent/control-agent-codexkit/verification-policy.md`, `docs/control-agent/control-agent-codexkit/phase-guide.md`, `docs/control-agent/control-agent-codexkit/plan-contract.md`, and `.agents/skills/control-agent-codexkit/agents/openai.yaml` for output shape and routing mechanics
+2. README plus current repo docs and plan, especially the detected current phase doc
+3. this skill, `docs/control-agent/control-agent-codexkit/verification-policy.md`, `docs/control-agent/control-agent-codexkit/phase-guide.md`, `docs/control-agent/control-agent-codexkit/plan-contract.md`, and `.agents/skills/control-agent-codexkit/agents/openai.yaml` for output shape and routing mechanics
 
 ## Shortcut Handling
 
@@ -78,6 +72,8 @@ Use reduced rigor only for docs-only work, verification-only work, or when the o
 
 - Session B0 derives the verification contract from plan acceptance criteria and testing strategy before the candidate implementation is inspected.
 - Session B0 must explicitly call out any in-scope user-facing or operator-facing workflow that needs real-workflow e2e evidence and identify whether browser automation, MCP execution, or CLI execution is the correct user-like harness.
+- Session B0 should declare which tests, fixtures, harnesses, snapshots, or golden artifacts are verification-owned for the wave and whether Session A may touch any of them.
+- Session A must not modify verification-owned tests, fixtures, harnesses, snapshots, or golden artifacts unless the routed prompt explicitly grants that scope.
 - Session A and Session B0 may run in parallel only after a reproducible `BASE_SHA` exists and the current phase docs are stable enough for the wave.
 - Allow multiple implementation sessions only when ownership is clearly split across disjoint files or components.
 - Sequence work when tasks share files, schemas, generated artifacts, or unresolved interfaces.
@@ -111,6 +107,13 @@ After a failed verdict:
   - harness readiness path
 - If later evidence is accepted only with a caveat, for example unsandboxed execution, carry that caveat forward into tester and verdict prompts until a later durable report proves the default surface is healthy again.
 
+## Evidence Integrity Rule
+
+- Session B tester artifacts must record exact commands run, execution surface used, and exit status or equivalent for each required step.
+- Session B tester artifacts must cite raw artifact, log, trace, screenshot, report, or CI job/check references for every claimed result. Summary prose alone is insufficient.
+- Session D lead verdict must inspect tester and reviewer artifacts plus the raw evidence references they cite, and must name the exact evidence references and machine-gate statuses checked.
+- Session D must leave the wave blocked when tester evidence lacks command-level proof or when a required machine gate is missing or failing.
+
 ## Control-State Persistence
 
 After any meaningful artifact paste-back or material task change:
@@ -118,7 +121,16 @@ After any meaningful artifact paste-back or material task change:
 - recompute normalized control state
 - persist a concise control-state snapshot under `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/reports` before emitting new runnable downstream prompts when that path is in scope
 - update plan references or progress notes if phase state changed
+- when code work is in flight, record the active execution worktree or merge surface so root `main` is not mistaken for the coding surface
 - when a host verification constraint exists, repeat it explicitly in the new snapshot instead of assuming later sessions will remember it
+
+## Execution Surface And Closure Rules
+
+- For any code-changing wave, Session A must run in a brand-new dedicated execution worktree created from the clean routed base branch.
+- Root `main` stays read-only control surface and durable-truth surface during code-changing work.
+- Session D / lead verdict owns merge closure; do not treat a code-changing wave as complete until merge or explicit no-merge disposition to `main` is recorded.
+- After merge or explicit no-merge disposition, persist a fresh durable control-state showing post-merge truth on `main`.
+- Require explicit execution worktree cleanup/archive confirmation before treating the wave as operationally closed.
 
 ## Wave 0 Routing Rule
 
@@ -147,11 +159,11 @@ Use planning or reasoning modal when available for planner, spec-test-designer, 
 ## Decision Process
 
 1. Read the required docs and plan.
-2. Detect the current phase, current plan status, and whether a planner-first high-rigor wave is ready.
+2. Detect the current phase, current plan status, and whether a high-rigor wave is ready.
 3. Detect completed artifacts, waiting dependencies, whether a durable control-state report already exists, and whether an active host verification constraint is already known.
 4. Recompute normalized control state before routing new runnable sessions.
 5. Persist updated control state when a durable path is already in scope.
-6. Decide whether the next step is baseline disposition, preflight or freeze, planner-first decomposition, a changed-surface verification step, or a runnable implementation / verification wave.
+6. Decide whether the next step is baseline disposition, worktree-creation prep, preflight or freeze, planner-first decomposition, a changed-surface verification step, a runnable implementation / verification wave, or a merge/disposition closure step.
 7. Use plain `W0` only when there is a single preparation step; use `W0A` and `W0B` when both cleanup and preflight or freeze are required.
 8. Emit the execution plan, session cards, skill routing, model hints, paste-back contract, and advancement rule.
 

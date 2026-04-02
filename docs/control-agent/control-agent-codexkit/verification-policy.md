@@ -58,9 +58,11 @@ The generated control agent should classify work into one of these lanes:
 
 - Session B0 must derive acceptance and integration expectations from the plan acceptance criteria, testing strategy, and public behavior contract before the candidate implementation is inspected.
 - If the current phase exposes stable interfaces and test harness points, Session B0 should author verification-owned tests or harness updates before implementation completes.
+- Session B0 should declare which tests, fixtures, harnesses, snapshots, or golden artifacts become verification-owned for the wave, and whether Session A may touch any of them.
 - Session B must run the frozen Session B0 tests unchanged first when they exist.
 - When the current wave touches an in-scope user-facing or operator-facing workflow, Session B0 must state the required real-workflow e2e evidence explicitly and whether browser-style automation such as Playwright, MCP-flow execution, or CLI-flow execution is the correct user-like harness for that surface.
 - Session A may add implementation-adjacent unit tests in owned scope, but Session A does not replace independent verification.
+- Session A must not modify verification-owned tests, fixtures, harnesses, snapshots, or golden artifacts unless the routed prompt explicitly grants that scope.
 
 ## 3A. Early-Failure And Anti-Debt Rules
 
@@ -86,6 +88,15 @@ The generated control agent should classify work into one of these lanes:
   - execution substrate
   - harness readiness path
 - If later evidence is accepted only under a caveat, for example unsandboxed execution, the tester and lead verdict must repeat that caveat explicitly.
+
+## 3C. Evidence Integrity Rules
+
+- Session B tester evidence must include the exact commands run, the execution surface used, and the resulting exit status or equivalent pass/fail signal for each required step.
+- Session B tester evidence must cite the raw artifact, log, trace, screenshot, report, or CI job path or identifier that supports each claimed result. Summary prose alone is insufficient.
+- If Session B runs on CI or another machine gate, the tester artifact must record the exact job, check, or pipeline status that was observed.
+- Session D lead verdict must inspect the tester and reviewer artifacts plus the raw evidence references they cite before passing the wave. Do not pass based only on session summaries.
+- Session D must name the exact tester artifacts, log paths, trace paths, screenshots, reports, and CI or machine-gate statuses that were checked.
+- If a required machine gate or CI check does not exist for the wave, Session D must say so explicitly and justify why the remaining evidence is sufficient or leave the wave blocked.
 
 ## 3A. Early-Failure And Anti-Stubbing Rules
 
@@ -122,6 +133,39 @@ Default dependency shape:
 - Wave 2 after Session A + Session B0: Session B tester
 - Wave 3 after Session B + Session C: Session D lead verdict
 
+## 4A. Execution Surface Discipline
+
+- For any code-changing implementation or remediation wave, Session A must run in a brand-new dedicated execution worktree created from the clean routed base branch.
+- Root `main` is the control surface and durable-source surface. Do not edit production code directly on root `main`.
+- The control agent must name the execution worktree strategy explicitly in the routed session card:
+  - base branch or ref
+  - new branch name
+  - whether the root checkout is read-only control surface only
+- Session B0 may run read-only from the control surface because it freezes expectations against the pinned baseline.
+- Session B tester may execute against the candidate execution worktree or its merged candidate state, but the routed prompt must state which surface is authoritative.
+- If the host/runtime cannot guarantee a separate execution worktree for Session A, the control agent must block and emit a worktree-creation prep step instead of routing implementation on root `main`.
+
+## 4B. Merge Closure Rule
+
+- A code-changing wave is not complete just because Session D returned pass.
+- Session D lead verdict owns merge closure for the wave:
+  - either confirm that the accepted candidate has been merged back to `main`
+  - or emit the exact merge/disposition step required next
+- Do not mark the wave or bundle complete while merge-to-`main` is still pending, conflicted, or left as informal operator prose.
+- If human approval is required before merge, Session D must record that explicitly and leave the wave in blocked merge-pending state rather than complete.
+- After merge or explicit no-merge disposition, the control agent must persist a fresh durable control-state showing the post-merge truth on `main`.
+
+## 4C. Worktree Cleanup Rule
+
+- After merge-to-`main` or explicit no-merge archival disposition is confirmed durably, the execution worktree must be cleaned up or archived explicitly.
+- Do not leave an old execution worktree as an active control surface after the wave closes.
+- If the execution worktree is fully merged and clean, emit a cleanup step that removes it.
+- If the execution worktree still contains unmerged or intentionally preserved state, emit an archival disposition step and rename it or its branch clearly before removing it from active use.
+- A closed wave is not operationally complete until:
+  - merge/disposition is confirmed
+  - post-merge durable control-state is persisted
+  - execution worktree cleanup/archive disposition is confirmed
+
 ## 5. Required Artifacts
 
 A phase should not advance without:
@@ -130,6 +174,8 @@ A phase should not advance without:
 - test report
 - review report
 - lead verdict or explicit phase verdict
+- merge/disposition confirmation when the wave changed production code
+- execution worktree cleanup/archive confirmation when the wave used a dedicated coding surface
 - refreshed durable control-state when a canonical plan reports path is already in scope
 
 For in-scope user-facing or operator-facing workflows, the required `test report` must include:
@@ -137,6 +183,19 @@ For in-scope user-facing or operator-facing workflows, the required `test report
 - the exact workflow covered
 - pass or fail status for that workflow
 - if coverage is `N/A`, an explicit justification and residual-risk statement
+
+Every required `test report` should also include:
+- exact commands run
+- execution surface used, such as worktree path, browser channel, CI job, or external host
+- exit code or equivalent terminal status for each required command or harness step
+- raw artifact, log, trace, screenshot, or report paths that support the claimed result
+- any CI or machine-gate identifier and final status when such a gate was used
+
+Every required `lead verdict` should also include:
+- the exact tester artifacts and review artifacts inspected
+- the raw evidence references checked, not just prose summaries
+- whether a machine gate or CI gate was required for merge closure, and its status
+- an explicit blocked state when the tester artifact lacks command-level evidence or when a required gate is missing or failing
 
 Every runnable session prompt must also embed a `## Paste-Back Contract` section inside the fenced prompt body. Outer session-card metadata alone is insufficient.
 
@@ -168,6 +227,7 @@ The control-state snapshot must include:
 - rigor mode
 - pinned `BASE_SHA`, if any
 - candidate ref, if any
+- active execution worktree or merge surface, when code work is in flight
 - completed artifacts
 - waiting dependencies
 - next runnable sessions
@@ -207,5 +267,7 @@ The control agent must stop phase advancement when:
 - the plan acceptance criteria are not yet evidenced by implementation, test, and review artifacts
 - a public workflow path in scope remains synthetic
 - required real-workflow e2e evidence for an in-scope user-facing or operator-facing workflow is missing, failed, or replaced by an unjustified `N/A`
+- the tester artifact lacks command-level evidence, execution-surface disclosure, or raw evidence references for a claimed result
+- a required machine gate or CI gate is missing, failing, or left implicit when the wave requires it
 - chooser or approval continuation in scope remains stubbed or null
 - a frozen Session B0 self-check was required but skipped without an explicit blocker
