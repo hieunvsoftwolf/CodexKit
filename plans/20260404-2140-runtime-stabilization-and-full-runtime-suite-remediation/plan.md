@@ -2,10 +2,10 @@
 title: "Runtime stabilization and full runtime suite remediation"
 description: "Stabilize the landed main baseline so build, typecheck, and full runtime verification align with current CodexKit workflow contracts."
 status: "in_progress"
-current_phase: "3"
-current_phase_doc: "phase-03-phase9-golden-trace-canonicalization.md"
+current_phase: "4"
+current_phase_doc: "phase-04-full-runtime-suite-closeout.md"
 current_phase_status: "ready_for_planner"
-latest_control_state: "reports/control-state-phase-03-ready-for-planner-after-phase-02-landing-20260405-014355.md"
+latest_control_state: "reports/control-state-phase-04-ready-for-planner-after-phase-03-landing-20260405-025800.md"
 priority: "high"
 effort: "high"
 branch: "main"
@@ -44,8 +44,9 @@ Mode: hard
     - Phase 9 golden parity frozen-trace source drift due to a historical report-path dependency that is no longer a canonical live source
 - Phase 01 accepted test-only landing is complete on `main`; closure evidence is persisted
 - Phase 02 accepted test-only landing is complete on `main` at `7b6640c91a0406f58fd9f5f12a96d4b4f757eb32`
-- Next execution wave: planner-first routing for Phase 03 (`phase-03-phase9-golden-trace-canonicalization.md`)
-- Latest durable control-state: `reports/control-state-phase-03-ready-for-planner-after-phase-02-landing-20260405-014355.md`
+- Phase 03 accepted landing is complete on `main` at `a4af456746248ff53f112a5ad2ceafb9b001c770`
+- Next execution wave: `S22` planner routing and closeout execution for Phase 04
+- Latest durable control-state: `reports/control-state-phase-04-ready-for-planner-after-phase-03-landing-20260405-025800.md`
 
 ## Plan Notes
 - This plan treats historical Phase 9 and Phase 12 reports as trace evidence, not as live runtime dependencies, unless a current phase doc explicitly restores them as canonical inputs

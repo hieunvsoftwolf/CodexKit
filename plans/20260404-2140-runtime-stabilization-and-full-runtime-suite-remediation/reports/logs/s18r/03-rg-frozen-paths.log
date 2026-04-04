@@ -1,0 +1,2 @@
+$ rg -n "phase-9-frozen-claudekit-plan-cook-trace.json|tests/fixtures/phase9/frozen-claudekit-plan-cook-trace.json" tests/runtime/runtime-workflow-phase9-golden-parity.integration.test.ts
+[exit_code]=1

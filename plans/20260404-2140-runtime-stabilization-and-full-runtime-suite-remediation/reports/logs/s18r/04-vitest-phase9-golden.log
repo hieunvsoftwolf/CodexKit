@@ -1,0 +1,13 @@
+$ TMPDIR=.tmp NODE_NO_WARNINGS=1 npm_config_cache="$PWD/.npm-cache" npx vitest run --no-file-parallelism tests/runtime/runtime-workflow-phase9-golden-parity.integration.test.ts
+
+ RUN  v3.2.4 /Users/hieunv/Claude Agent/CodexKit-p03-phase9-golden-s16
+
+ ✓ tests/runtime/runtime-workflow-phase9-golden-parity.integration.test.ts (1 test) 18953ms
+   ✓ phase 9 golden parity evidence suite > publishes validation-golden evidence with parity checks and explicit blockers  18946ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  02:47:34
+   Duration  27.06s (transform 4.57s, setup 0ms, collect 6.83s, tests 18.95s, environment 1ms, prepare 434ms)
+
+[exit_code]=0

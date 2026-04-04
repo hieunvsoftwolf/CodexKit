@@ -1,0 +1,2 @@
+$ rg -n "plans/20260313-1128-phase-0-preflight-clean-restart/reports/phase-9-frozen-claudekit-plan-cook-trace.json" tests/runtime/runtime-workflow-phase9-golden-parity.integration.test.ts
+[exit_code]=1

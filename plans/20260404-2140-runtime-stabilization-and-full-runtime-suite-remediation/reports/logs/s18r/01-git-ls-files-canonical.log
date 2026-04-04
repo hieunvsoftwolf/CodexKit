@@ -1,0 +1,3 @@
+$ git ls-files --stage tests/fixtures/phase9/frozen-claudekit-plan-cook-trace.json
+100644 2a186a5483a4a584ba12d6016cd96db1b51c721b 0	tests/fixtures/phase9/frozen-claudekit-plan-cook-trace.json
+[exit_code]=0

@@ -1,0 +1,4 @@
+$ rg -n "phase-9-frozen-claudekit-plan-cook-trace.json|frozen-claudekit-plan-cook-trace.json|tests/fixtures|path\.join\(" tests/runtime/runtime-workflow-phase9-golden-parity.integration.test.ts
+11:const FROZEN_CLAUDEKIT_PLAN_COOK_TRACE_PATH = path.join(
+16:  "frozen-claudekit-plan-cook-trace.json"
+[exit_code]=0

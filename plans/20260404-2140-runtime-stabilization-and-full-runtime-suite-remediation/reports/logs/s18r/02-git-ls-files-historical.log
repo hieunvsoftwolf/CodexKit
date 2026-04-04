@@ -1,0 +1,2 @@
+$ git ls-files --stage plans/20260313-1128-phase-0-preflight-clean-restart/reports/phase-9-frozen-claudekit-plan-cook-trace.json
+[exit_code]=0
