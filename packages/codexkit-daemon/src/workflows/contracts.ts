@@ -21,6 +21,8 @@ export type WorkflowName =
   | "debug"
   | "fix"
   | "team"
+  | "docs"
+  | "scout"
   | "init"
   | "doctor"
   | "resume"

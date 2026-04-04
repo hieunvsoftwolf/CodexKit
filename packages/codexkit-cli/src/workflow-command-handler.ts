@@ -8,6 +8,8 @@ const COOK_MODES = ["auto", "fast", "parallel", "no-test"] as const;
 const FIX_MODES = ["auto", "review", "quick", "parallel"] as const;
 const DEBUG_BRANCHES = new Set(["code", "logs-ci", "database", "performance", "frontend"]);
 const TEAM_PRIMITIVE_ACTIONS = new Set(["create", "list", "delete"]);
+const TEAM_TEMPLATES = new Set(["research", "cook", "review", "debug"]);
+const DOCS_OPERATIONS = new Set(["init", "update", "summarize"]);
 const PREVIEW_MODES = new Set(["explain", "slides", "diagram", "ascii"]);
 
 function assertSingleMode(modes: string[], command: string): string | undefined {
@@ -25,12 +27,19 @@ function detectFlagMode(options: ParsedArgs["options"], modes: readonly string[]
   return modes.filter((mode) => hasFlag(options, mode));
 }
 
-function throwWaveDeferred(command: string, code: string, nextStep: string): never {
-  throw new CodexkitError("CLI_USAGE", `${command} is deferred in Phase 6 Wave 1`, {
-    code,
-    cause: `${command} workflow orchestration is intentionally out of Wave 1 scope.`,
-    nextStep
-  });
+function parseTeamWorkerCount(raw: string | undefined, flagName: string): number | undefined {
+  if (!raw) {
+    return undefined;
+  }
+  const parsed = Number.parseInt(raw, 10);
+  if (!Number.isInteger(parsed) || parsed < 0 || parsed > 8) {
+    throw new CodexkitError("CLI_USAGE", `${flagName} must be an integer between 0 and 8`, {
+      code: "WF_TEAM_COUNT_INVALID",
+      cause: `Received '${raw}' for ${flagName}.`,
+      nextStep: `Retry with --${flagName} <0..8>.`
+    });
+  }
+  return parsed;
 }
 
 function assertNoPlanCreationFlags(parsed: ParsedArgs, subcommand: string): void {
@@ -343,13 +352,6 @@ export function tryHandleWorkflowCommand(
   }
 
   if (group === "fix") {
-    if (!second) {
-      throw new CodexkitError("CLI_USAGE", "fix issue is required", {
-        code: "WF_FIX_ISSUE_REQUIRED",
-        cause: "No issue description was provided.",
-        nextStep: "Run cdx fix <issue> [--auto|--review|--quick|--parallel]."
-      });
-    }
     const explicitMode = optionValue(parsed.options, "mode");
     if (explicitMode && !FIX_MODES.includes(explicitMode as typeof FIX_MODES[number])) {
       throw new CodexkitError("CLI_USAGE", "unsupported fix mode", {
@@ -366,7 +368,22 @@ export function tryHandleWorkflowCommand(
         nextStep: "Retry with one fix mode selector."
       });
     }
-    throwWaveDeferred("cdx fix", "WF_FIX_DEFERRED_WAVE2", "Use cdx debug <issue> in Wave 1, then route fix in Wave 2.");
+    const issue = [second, ...rest].filter(Boolean).join(" ").trim();
+    const selectedMode = explicitMode ?? flagMode;
+    if (!issue && selectedMode) {
+      throw new CodexkitError("CLI_USAGE", "fix issue is required when selecting mode", {
+        code: "WF_FIX_ISSUE_REQUIRED",
+        cause: "No issue description was provided for explicit fix mode routing.",
+        nextStep: "Run cdx fix <issue> [--auto|--review|--quick|--parallel], or run bare cdx fix to choose mode first."
+      });
+    }
+    return {
+      handled: true,
+      result: controller.fix({
+        issue,
+        ...(selectedMode ? { mode: selectedMode as never } : {})
+      })
+    };
   }
 
   if (group === "debug") {
@@ -399,6 +416,14 @@ export function tryHandleWorkflowCommand(
     if (!second || TEAM_PRIMITIVE_ACTIONS.has(second)) {
       return { handled: false };
     }
+    const template = second.toLowerCase();
+    if (!TEAM_TEMPLATES.has(template)) {
+      throw new CodexkitError("CLI_USAGE", "unsupported team template", {
+        code: "WF_TEAM_TEMPLATE_INVALID",
+        cause: `Unsupported template '${second}'.`,
+        nextStep: "Use one of: research, cook, review, debug."
+      });
+    }
     if (rest.length === 0) {
       throw new CodexkitError("CLI_USAGE", "team template context is required", {
         code: "WF_TEAM_CONTEXT_REQUIRED",
@@ -406,7 +431,64 @@ export function tryHandleWorkflowCommand(
         nextStep: "Run cdx team <template> <context>."
       });
     }
-    throwWaveDeferred("cdx team", "WF_TEAM_DEFERRED_WAVE2", "Use direct team primitives in Wave 1; workflow template support starts in Wave 2.");
+    if (hasFlag(parsed.options, "plan-approval") && hasFlag(parsed.options, "no-plan-approval")) {
+      throw new CodexkitError("CLI_USAGE", "team received conflicting plan approval flags", {
+        code: "WF_TEAM_PLAN_APPROVAL_CONFLICT",
+        cause: "Both --plan-approval and --no-plan-approval were provided.",
+        nextStep: "Retry with one plan-approval selector."
+      });
+    }
+    const contextText = rest.filter(Boolean).join(" ").trim();
+    const devs = parseTeamWorkerCount(optionValue(parsed.options, "devs"), "devs");
+    const researchers = parseTeamWorkerCount(optionValue(parsed.options, "researchers"), "researchers");
+    const reviewers = parseTeamWorkerCount(optionValue(parsed.options, "reviewers"), "reviewers");
+    const debuggers = parseTeamWorkerCount(optionValue(parsed.options, "debuggers"), "debuggers");
+    return {
+      handled: true,
+      result: controller.team({
+        template,
+        context: contextText,
+        ...(devs !== undefined ? { devs } : {}),
+        ...(researchers !== undefined ? { researchers } : {}),
+        ...(reviewers !== undefined ? { reviewers } : {}),
+        ...(debuggers !== undefined ? { debuggers } : {}),
+        ...(hasFlag(parsed.options, "plan-approval") ? { planApproval: true } : {}),
+        ...(hasFlag(parsed.options, "no-plan-approval") ? { planApproval: false } : {}),
+        ...(hasFlag(parsed.options, "delegate") ? { delegate: true } : {})
+      })
+    };
+  }
+
+  if (group === "docs") {
+    const normalized = second?.toLowerCase();
+    const operation = normalized && DOCS_OPERATIONS.has(normalized) ? normalized : undefined;
+    const contextTokens = operation ? rest : [second, ...rest];
+    const contextText = contextTokens.filter(Boolean).join(" ").trim();
+    return {
+      handled: true,
+      result: controller.docs({
+        ...(operation ? { operation: operation as never } : {}),
+        ...(contextText ? { context: contextText } : {})
+      })
+    };
+  }
+
+  if (group === "scout") {
+    const isExtToken = second?.toLowerCase() === "ext";
+    const externalFlagPresent = Object.prototype.hasOwnProperty.call(parsed.options, "external");
+    const externalOptionValue = optionValue(parsed.options, "external");
+    const contextTokens = isExtToken ? rest : [second, ...rest];
+    if (externalOptionValue && externalOptionValue !== "true") {
+      contextTokens.unshift(externalOptionValue);
+    }
+    const contextText = contextTokens.filter(Boolean).join(" ").trim();
+    return {
+      handled: true,
+      result: controller.scout({
+        ...(contextText ? { context: contextText } : {}),
+        ...(isExtToken || externalFlagPresent ? { external: true } : {})
+      })
+    };
   }
 
   return { handled: false };

@@ -11,7 +11,9 @@ import {
   runBrainstormWorkflow,
   runCookWorkflow,
   runDebugWorkflow,
+  runDocsWorkflow,
   runFinalizeWorkflow,
+  runFixWorkflow,
   runInitWorkflow,
   runPlanArchiveWorkflow,
   runPlanRedTeamWorkflow,
@@ -21,6 +23,8 @@ import {
   runResumeWorkflow,
   runReviewWorkflow,
   runSharedRepoScan,
+  runScoutWorkflow,
+  runTeamWorkflow,
   runTestWorkflow,
   runUpdateWorkflow,
   resumePlanArchiveWorkflowFromApproval,
@@ -153,6 +157,43 @@ export class RuntimeController {
   debug(input: { issue: string; branch?: "code" | "logs-ci" | "database" | "performance" | "frontend" }) {
     this.assertWorkerWorkflowAllowed("cdx debug");
     const result = runDebugWorkflow(this.context, input);
+    this.reconcile();
+    return result;
+  }
+
+  fix(input: { issue: string; mode?: "auto" | "review" | "quick" | "parallel" }) {
+    this.assertWorkerWorkflowAllowed("cdx fix");
+    const result = runFixWorkflow(this.context, input);
+    this.reconcile();
+    return result;
+  }
+
+  team(input: {
+    template: string;
+    context: string;
+    devs?: number;
+    researchers?: number;
+    reviewers?: number;
+    debuggers?: number;
+    planApproval?: boolean;
+    delegate?: boolean;
+  }) {
+    this.assertWorkerWorkflowAllowed("cdx team");
+    const result = runTeamWorkflow(this.context, input);
+    this.reconcile();
+    return result;
+  }
+
+  docs(input: { operation?: "init" | "update" | "summarize"; context?: string }) {
+    this.assertWorkerWorkflowAllowed("cdx docs");
+    const result = runDocsWorkflow(this.context, input);
+    this.reconcile();
+    return result;
+  }
+
+  scout(input: { context?: string; external?: boolean }) {
+    this.assertWorkerWorkflowAllowed("cdx scout");
+    const result = runScoutWorkflow(this.context, input);
     this.reconcile();
     return result;
   }
