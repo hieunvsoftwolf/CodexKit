@@ -5,7 +5,7 @@ status: "in_progress"
 current_phase: "12.5"
 current_phase_doc: "phase-05-phase-12-closeout-gates-and-template-parity.md"
 current_phase_status: "w0_required"
-latest_control_state: "reports/control-state-phase-12-phase-05-w0-required-after-s8-20260404-181240.md"
+latest_control_state: "reports/control-state-phase-12-phase-05-w0-required-after-s9abcd-20260404-183748.md"
 priority: "high"
 effort: "high"
 branch: "main"
@@ -33,8 +33,8 @@ Mode: hard
 - Phase 11 is complete
 - Frozen baseline commit: `5973f73b2bda2ee66313250594cce89661294c16`
 - Next execution phase: `phase-05-phase-12-closeout-gates-and-template-parity.md`
-- Latest durable control-state: `reports/control-state-phase-12-phase-05-w0-required-after-s8-20260404-181240.md`
-- Phase 12.3 and Phase 12.4 are landed and synced on `main`. Phase 12.5 planning is complete on baseline `26129189981209dbd868a33d9342691bc6114738`, but root `main` is dirty again with planner/control deltas and control-template edits. The next step is `W0` to land or explicitly disposition those five control-only files, return root `main` to a clean synced control surface, and only then open the Phase 12.5 implementation and B0 lanes from the pinned baseline.
+- Latest durable control-state: `reports/control-state-phase-12-phase-05-w0-required-after-s9abcd-20260404-183748.md`
+- Phase 12.3 and Phase 12.4 are landed and synced on `main`. Phase 12.5 Wave 1 has produced three implementation candidates in dedicated worktrees plus a frozen S9D verification surface on root `main`, but that verification surface is still unlanded locally. The next step is `W0`: land the S9D verification-owned files and updated control state onto `main`, return root `main` to a clean synced control surface, and then reroute remediation reruns so each candidate worktree consumes the frozen B0 files unchanged before tester/reviewer.
 
 ## Phase 12 Notes
 - Phase 3 owns all preview-related graph surface so preview is not reopened in later phases
