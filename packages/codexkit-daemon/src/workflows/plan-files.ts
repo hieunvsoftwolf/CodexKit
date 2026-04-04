@@ -1,5 +1,6 @@
-import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { invariant } from "../../../codexkit-core/src/index.ts";
 import type { PlanMode } from "./contracts.ts";
 
@@ -66,6 +67,70 @@ export interface ParsedPlanBundle {
   phases: ParsedPhase[];
 }
 
+type PlanTemplateKind = "feature_implementation" | "bug_fix" | "refactor";
+
+interface PlanTemplateDefinition {
+  fileName: string;
+  publicId: string;
+  signatureHeading: string;
+}
+
+interface TemplatePhaseSpec {
+  phase: number;
+  title: string;
+  todos: string[];
+}
+
+interface ParsedPlanTemplate {
+  kind: PlanTemplateKind;
+  title: string;
+  publicId: string;
+  sourceFile: string;
+  signatureHeading: string;
+  taskSignals: string[];
+  phases: TemplatePhaseSpec[];
+}
+
+const TEMPLATE_DEFINITION_BY_KIND: Record<PlanTemplateKind, PlanTemplateDefinition> = {
+  feature_implementation: {
+    fileName: "feature-implementation-template.md",
+    publicId: "feature-implementation",
+    signatureHeading: "## Deliverable"
+  },
+  bug_fix: {
+    fileName: "bug-fix-template.md",
+    publicId: "bug-fix",
+    signatureHeading: "## Reproduction"
+  },
+  refactor: {
+    fileName: "refactor-template.md",
+    publicId: "refactor",
+    signatureHeading: "## Safety Checks"
+  }
+};
+
+const TRACKED_TEMPLATE_FILE_NAMES = [
+  ...new Set([...Object.values(TEMPLATE_DEFINITION_BY_KIND).map((definition) => definition.fileName), "template-usage-guide.md"])
+];
+
+const DEFAULT_PHASE_SPECS: TemplatePhaseSpec[] = [
+  {
+    phase: 1,
+    title: "Discovery",
+    todos: ["Collect baseline context [critical]", "Confirm constraints", "Define acceptance criteria"]
+  },
+  {
+    phase: 2,
+    title: "Implementation",
+    todos: ["Implement workflow changes [critical]", "Add integration coverage", "Validate runtime contracts"]
+  },
+  {
+    phase: 3,
+    title: "Verification",
+    todos: ["Run typecheck and tests", "Prepare implementation summary", "Record unresolved questions"]
+  }
+];
+
 function slugify(input: string): string {
   return input.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 72) || "plan";
 }
@@ -88,6 +153,149 @@ function parseFrontmatter(markdown: string): Record<string, string> {
     parsed[pair[1]!] = rawValue;
   }
   return parsed;
+}
+
+function parseCommaList(value: string | undefined): string[] {
+  if (!value) {
+    return [];
+  }
+  return value
+    .split(",")
+    .map((entry) => entry.trim().toLowerCase())
+    .filter((entry) => entry.length > 0);
+}
+
+function parseTemplatePhaseSpecs(markdown: string): TemplatePhaseSpec[] {
+  const phases: TemplatePhaseSpec[] = [];
+  let active: TemplatePhaseSpec | null = null;
+  for (const line of markdown.replace(/\r\n/g, "\n").split("\n")) {
+    const phaseMatch = line.match(/^##\s+Phase\s+(\d+):\s+(.+)$/i);
+    if (phaseMatch) {
+      active = {
+        phase: Number(phaseMatch[1] ?? "0"),
+        title: phaseMatch[2]?.trim() ?? "Untitled",
+        todos: []
+      };
+      phases.push(active);
+      continue;
+    }
+    if (!active) {
+      continue;
+    }
+    const todoMatch = line.match(/^\s*-\s*\[\s*[xX ]\s*\]\s+(.+)$/);
+    if (!todoMatch) {
+      continue;
+    }
+    active.todos.push(todoMatch[1]!.trim());
+  }
+  return phases.filter((phase) => Number.isFinite(phase.phase) && phase.phase > 0 && phase.title.length > 0 && phase.todos.length > 0);
+}
+
+function fallbackSignalsForKind(kind: PlanTemplateKind): string[] {
+  if (kind === "bug_fix") {
+    return ["bug", "fix", "hotfix", "regression", "defect", "incident", "issue"];
+  }
+  if (kind === "refactor") {
+    return ["refactor", "cleanup", "restructure", "tech debt", "technical debt"];
+  }
+  return ["feature", "implement", "implementation", "add", "build", "create", "new"];
+}
+
+function trackedTemplateRoot(): string {
+  const workflowDir = path.dirname(fileURLToPath(import.meta.url));
+  return path.resolve(workflowDir, "../../../../plans/templates");
+}
+
+function ensureDurablePlanTemplates(rootDir: string): void {
+  const sourceRoot = trackedTemplateRoot();
+  if (!existsSync(sourceRoot)) {
+    return;
+  }
+  const targetRoot = path.join(rootDir, "plans", "templates");
+  if (path.resolve(targetRoot) === path.resolve(sourceRoot)) {
+    return;
+  }
+  mkdirSync(targetRoot, { recursive: true });
+  for (const fileName of TRACKED_TEMPLATE_FILE_NAMES) {
+    const sourcePath = path.join(sourceRoot, fileName);
+    const targetPath = path.join(targetRoot, fileName);
+    if (!existsSync(sourcePath) || existsSync(targetPath)) {
+      continue;
+    }
+    writeFileSync(targetPath, readFileSync(sourcePath, "utf8"), "utf8");
+  }
+}
+
+function resolveTemplatePath(rootDir: string, fileName: string): string | null {
+  const templatePath = path.join(rootDir, "plans", "templates", fileName);
+  if (existsSync(templatePath)) {
+    return templatePath;
+  }
+  return null;
+}
+
+function readPlanTemplate(rootDir: string, kind: PlanTemplateKind): ParsedPlanTemplate | null {
+  const definition = TEMPLATE_DEFINITION_BY_KIND[kind];
+  const templatePath = resolveTemplatePath(rootDir, definition.fileName);
+  if (!templatePath) {
+    return null;
+  }
+  try {
+    const markdown = readFileSync(templatePath, "utf8");
+    const frontmatter = parseFrontmatter(markdown);
+    const phases = parseTemplatePhaseSpecs(markdown);
+    if (phases.length === 0) {
+      return null;
+    }
+    const signals = parseCommaList(frontmatter.task_match);
+    return {
+      kind,
+      title: frontmatter.title?.trim() || kind,
+      publicId: definition.publicId,
+      sourceFile: definition.fileName,
+      signatureHeading: definition.signatureHeading,
+      taskSignals: signals.length > 0 ? signals : fallbackSignalsForKind(kind),
+      phases
+    };
+  } catch {
+    return null;
+  }
+}
+
+function escapeRegExp(raw: string): string {
+  return raw.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function taskMatchesSignals(task: string, signals: string[]): boolean {
+  const normalizedTask = task.toLowerCase();
+  return signals.some((signal) => {
+    const normalized = signal.trim().toLowerCase();
+    if (!normalized) {
+      return false;
+    }
+    if (normalized.includes(" ")) {
+      return normalizedTask.includes(normalized);
+    }
+    const pattern = new RegExp(`\\b${escapeRegExp(normalized)}\\b`, "i");
+    return pattern.test(normalizedTask);
+  });
+}
+
+function resolveTemplatePhaseSpecs(task: string, rootDir?: string): ParsedPlanTemplate | null {
+  if (!rootDir) {
+    return null;
+  }
+  // Seed fixed-name tracked templates into the target root before citing them in generated plans.
+  ensureDurablePlanTemplates(rootDir);
+  const priority: PlanTemplateKind[] = ["bug_fix", "refactor", "feature_implementation"];
+  const templates = priority
+    .map((kind) => readPlanTemplate(rootDir, kind))
+    .filter((entry): entry is ParsedPlanTemplate => entry !== null);
+  const matched = templates.find((entry) => taskMatchesSignals(task, entry.taskSignals));
+  if (!matched) {
+    return null;
+  }
+  return matched;
 }
 
 function checklist(markdown: string): Array<{ checked: boolean; text: string }> {
@@ -318,19 +526,24 @@ export function createPlanBundle(input: {
   branch: string;
   createdAt: string;
   mode: PlanMode;
+  rootDir?: string;
   priority?: string;
   effort?: string;
 }): PlanBundleDraft {
-  const slug = slugify(input.task);
+  const templateSelection = resolveTemplatePhaseSpecs(input.task, input.rootDir);
+  const phaseSpecs = templateSelection?.phases ?? DEFAULT_PHASE_SPECS;
   const frontmatter: PlanFrontmatter = {
     title: input.task,
-    description: `Execution plan for ${input.task}`,
+    description: templateSelection ? `${templateSelection.title} execution plan for ${input.task}` : `Execution plan for ${input.task}`,
     status: "pending",
     priority: input.priority ?? "medium",
     effort: input.effort ?? "medium",
     branch: input.branch,
     created: input.createdAt
   };
+  const phaseFileList = phaseSpecs.map(
+    (phaseSpec) => `- phase-${String(phaseSpec.phase).padStart(2, "0")}-${slugify(phaseSpec.title)}.md`
+  );
   const header = [
     "---",
     yamlLine("title", frontmatter.title),
@@ -340,38 +553,21 @@ export function createPlanBundle(input: {
     yamlLine("effort", frontmatter.effort),
     yamlLine("branch", frontmatter.branch),
     yamlLine("created", frontmatter.created),
+    ...(templateSelection ? [yamlLine("template", templateSelection.publicId)] : []),
     "---",
     "",
     "# Plan",
     "",
     `Mode: ${input.mode}`,
     "",
+    ...(templateSelection ? [`Template source: plans/templates/${templateSelection.sourceFile}`, ""] : []),
     "## Scope",
     `- ${input.task}`,
     "",
     "## Phases",
-    "- phase-01-discovery.md",
-    "- phase-02-implementation.md",
-    "- phase-03-verification.md",
+    ...phaseFileList,
     ""
   ].join("\n");
-  const phaseSpecs: Array<{ phase: number; title: string; todos: string[] }> = [
-    {
-      phase: 1,
-      title: "Discovery",
-      todos: ["Collect baseline context [critical]", "Confirm constraints", "Define acceptance criteria"]
-    },
-    {
-      phase: 2,
-      title: "Implementation",
-      todos: ["Implement workflow changes [critical]", "Add integration coverage", "Validate runtime contracts"]
-    },
-    {
-      phase: 3,
-      title: "Verification",
-      todos: ["Run typecheck and tests", "Prepare implementation summary", "Record unresolved questions"]
-    }
-  ];
   const totalTodos = phaseSpecs.reduce((sum, phaseSpec) => sum + phaseSpec.todos.length, 0);
   frontmatter.progress = `0/${totalTodos} (0%)`;
   const phases: PlanPhaseDraft[] = phaseSpecs.map((phaseSpec) => {
@@ -385,6 +581,9 @@ export function createPlanBundle(input: {
       "## Requirements",
       "- Keep scope aligned with the active phase spec",
       "",
+      ...(templateSelection && phaseSpec.phase === phaseSpecs[0]?.phase
+        ? [templateSelection.signatureHeading, "- Template-selected durable section marker", ""]
+        : []),
       "## Related Code Files",
       "- TBD",
       "",

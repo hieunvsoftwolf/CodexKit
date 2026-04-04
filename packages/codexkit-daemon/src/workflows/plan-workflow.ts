@@ -104,7 +104,8 @@ export function runPlanWorkflow(context: RuntimeContext, input: PlanWorkflowInpu
     task: input.task,
     branch: readBranch(context.config.paths.rootDir),
     createdAt: now,
-    mode
+    mode,
+    rootDir: context.config.paths.rootDir
   });
   const written = writePlanBundle(planDir, planBundle);
   context.runService.setPlanDir(run.id, planDir);

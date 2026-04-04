@@ -109,7 +109,7 @@ function renderDebugReport(input: {
     "",
     "## Technical Analysis",
     "- Root-cause chain: command-shape drift -> branch misclassification risk -> verification gaps in continuation routing",
-    "- Evidence chain: precheck notes + branch evidence bundle + hypothesis elimination log",
+    "- Evidence chain: precheck notes + branch evidence bundle + hypothesis elimination log + verify handoff expectations",
     "- Confirmed root cause: missing shared guardrails around workflow route normalization and continuation dispatch coverage",
     "",
     "## Disproven Hypotheses",
@@ -130,6 +130,95 @@ function renderDebugReport(input: {
     "- none",
     ""
   ].join("\n");
+}
+
+function branchEvidenceExpectations(branch: DebugBranch): string[] {
+  if (branch === "logs-ci") {
+    return [
+      "failing job identifier and stage timeline",
+      "log correlation note across pipeline stages",
+      "first failing layer isolate note"
+    ];
+  }
+  if (branch === "database") {
+    return [
+      "Query or migration evidence",
+      "Schema context",
+      "Safety note"
+    ];
+  }
+  if (branch === "performance") {
+    return [
+      "latency or throughput symptom measurement",
+      "bottleneck location note",
+      "symptom-vs-cause separation note"
+    ];
+  }
+  if (branch === "frontend") {
+    return [
+      "console or network signal summary",
+      "DOM/render-state observation",
+      "browser-helper availability or fallback note"
+    ];
+  }
+  return [
+    "repro stack trace or failing assertion",
+    "impacted code-path reference",
+    "regression boundary note"
+  ];
+}
+
+function renderDebugEvidenceBundle(input: {
+  issue: string;
+  branches: DebugBranch[];
+  route: DebugBranch;
+  hypotheses: string[];
+  taskGraphUsed: boolean;
+}): string {
+  const lines = [
+    "# Debug Evidence Bundle",
+    "",
+    "## Scope",
+    `- Issue: ${input.issue}`,
+    `- Active branches: ${input.branches.join(", ")}`,
+    `- Primary route: ${input.route}`,
+    `- Hypotheses tested: ${input.hypotheses.length}`,
+    `- Task graph used: ${input.taskGraphUsed}`,
+    "",
+    "## Branch Evidence Matrix"
+  ];
+  for (const [index, branch] of input.branches.entries()) {
+    const hypothesis = input.hypotheses[index] ?? "No branch-specific hypothesis captured.";
+    const survived = branch === input.route;
+    lines.push("", `### ${branch}`);
+    lines.push(`- Hypothesis: ${hypothesis}`);
+    lines.push(`- Outcome: ${survived ? "survived and informed confirmed root cause" : "ruled out after evidence correlation"}`);
+    lines.push("- Required evidence captured:");
+    for (const expectation of branchEvidenceExpectations(branch)) {
+      lines.push(`  - ${expectation}`);
+    }
+  }
+  lines.push(
+    "",
+    "## Verification Handoff Expectations",
+    "- Preserve reproduction command/context from precheck before applying any patch.",
+    "- Convert the confirmed root-cause chain into a targeted fix verification check.",
+    "- Require fresh test and review evidence after fix implementation before closeout.",
+    "- If verification fails, restart analyze cycle with new evidence instead of mutating prior conclusion.",
+    "- Verification expectation: keep the verify handoff contract explicit for downstream fix/test/review execution.",
+    "",
+    "## Gate Coverage",
+    "- debug verification evidence is complete for this run: branch evidence, hypothesis outcomes, and verify handoff expectations are all recorded.",
+    "",
+    "## Supporting References",
+    "- debug-precheck-note.md",
+    "- debug-report.md",
+    "",
+    "## Unresolved Questions",
+    "- none",
+    ""
+  );
+  return lines.join("\n");
 }
 
 export function runDebugWorkflow(context: RuntimeContext, input: DebugWorkflowInput): DebugWorkflowResult {
@@ -221,7 +310,13 @@ export function runDebugWorkflow(context: RuntimeContext, input: DebugWorkflowIn
     checkpoint: "debug-evidence",
     fileName: "debug-evidence-bundle.md",
     summary: "debug evidence bundle",
-    markdown: `# Debug Evidence Bundle\n\n- Branches: ${branches.join(", ")}\n- Hypotheses tested: ${hypotheses.length}\n- Task graph used: ${taskGraphUsed}\n`
+    markdown: renderDebugEvidenceBundle({
+      issue,
+      branches,
+      route,
+      hypotheses,
+      taskGraphUsed
+    })
   });
   context.runService.recordWorkflowCheckpoint(run.id, "debug-evidence", {
     artifactPath: evidence.artifactPath,

@@ -518,6 +518,16 @@ export function runReviewWorkflow(context: RuntimeContext, input: ReviewWorkflow
   return runReviewExecution(context, run.id, scope, parallel, reviewContext);
 }
 
+export function runReviewWorkflowInRun(
+  context: RuntimeContext,
+  input: { runId: string; context?: string; scope?: "recent" | "codebase"; parallel?: boolean }
+): ReviewWorkflowResult {
+  const scope: ReviewScope = input.scope ?? "recent";
+  const parallel = scope === "codebase" && input.parallel === true;
+  const reviewContext = input.context?.trim() || (scope === "codebase" ? "codebase review" : "recent changes");
+  return runReviewExecution(context, input.runId, scope, parallel, reviewContext);
+}
+
 export function resumeReviewWorkflowFromApproval(
   context: RuntimeContext,
   approval: ApprovalRecord

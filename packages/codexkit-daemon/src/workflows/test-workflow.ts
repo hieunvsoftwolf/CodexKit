@@ -815,6 +815,15 @@ export function runTestWorkflow(context: RuntimeContext, input: TestWorkflowInpu
   return runTestExecution(context, run.id, mode, testContext || "default test context", input.url);
 }
 
+export function runTestWorkflowInRun(
+  context: RuntimeContext,
+  input: { runId: string; context?: string; mode?: "default" | "ui" | "coverage"; url?: string }
+): TestWorkflowResult {
+  const mode = input.mode ?? "default";
+  const testContext = input.context?.trim() || "default test context";
+  return runTestExecution(context, input.runId, mode, testContext, input.url);
+}
+
 export function resumeTestWorkflowFromApproval(
   context: RuntimeContext,
   approval: ApprovalRecord
