@@ -6,6 +6,7 @@ import { afterEach, describe, expect, test } from "vitest";
 import {
   loadRuntimeConfig,
   openRuntimeContext,
+  RuntimeController,
   runBrainstormWorkflow,
   runCookWorkflow,
   runPlanArchiveWorkflow,
@@ -102,7 +103,20 @@ describe("phase 5 workflow-level NFR evidence harness", () => {
       && livePhaseTasksAfterB === baselineLivePhaseTasks;
 
     const cookAuto = runCookWorkflow(context, { planPath: plan.planPath, mode: "auto" });
+    const planBeforeArchive = readFileSync(plan.planPath, "utf8");
     const archive = runPlanArchiveWorkflow(context, { planPath: plan.planPath });
+    const planAfterArchiveRequest = readFileSync(plan.planPath, "utf8");
+    const approvedArchive = new RuntimeController(fixture.rootDir).respondApproval({
+      approvalId: String(archive.pendingApproval?.approvalId),
+      status: "approved"
+    }) as {
+      continuation?: {
+        status?: string;
+        checkpointIds?: string[];
+        archiveSummaryPath?: string;
+        archiveJournalPath?: string;
+      };
+    };
     const blockedValidate = runPlanValidateWorkflow(context, { planPath: plan.planPath });
     const blockedValidateArtifacts = context.artifactService.listArtifacts({ runId: blockedValidate.runId });
     const blockedValidateFailureArtifact = blockedValidateArtifacts.find(
@@ -125,7 +139,20 @@ describe("phase 5 workflow-level NFR evidence harness", () => {
       cookAuto.completedThroughPostImplementation
       && cookAuto.implementationSummaryPath
       && existsSync(cookAuto.implementationSummaryPath)
-      && archive.status === "valid"
+      && archive.status === "pending"
+      && archive.pendingApproval?.checkpoint === "plan-archive-confirmation"
+      && typeof archive.pendingApproval?.approvalId === "string"
+      && String(archive.pendingApproval?.nextStep ?? "").includes("cdx approval respond")
+      && archive.archiveSummaryPath === undefined
+      && archive.archiveJournalPath === undefined
+      && planAfterArchiveRequest === planBeforeArchive
+      && approvedArchive.continuation?.status === "valid"
+      && approvedArchive.continuation?.checkpointIds?.includes("plan-archive-confirmation")
+      && typeof approvedArchive.continuation?.archiveSummaryPath === "string"
+      && typeof approvedArchive.continuation?.archiveJournalPath === "string"
+      && existsSync(String(approvedArchive.continuation?.archiveSummaryPath))
+      && existsSync(String(approvedArchive.continuation?.archiveJournalPath))
+      && readFileSync(plan.planPath, "utf8").includes('status: "archived"')
       && blockedValidate.status === "blocked"
       && blockedValidate.diagnostics.some((entry) => entry.code === "PLAN_VALIDATE_BLOCKED_ARCHIVED")
       && blockedValidateFailurePath.length > 0

@@ -64,10 +64,34 @@ describe("phase 5 wave 2 workflow runtime", () => {
     expect(afterRedTeam).toContain("## Red Team Review");
     expect(readFileSync(plan.phasePaths[0]!, "utf8")).toContain("## Red Team Notes");
 
+    const planBeforeArchive = readFileSync(plan.planPath, "utf8");
     const archive = runPlanArchiveWorkflow(context, { planPath: plan.planPath });
-    expect(archive.status).toBe("valid");
-    expect(typeof archive.archiveSummaryPath).toBe("string");
-    expect(existsSync(String(archive.archiveSummaryPath))).toBe(true);
+    expect(archive.status).toBe("pending");
+    expect(archive.pendingApproval?.checkpoint).toBe("plan-archive-confirmation");
+    expect(typeof archive.pendingApproval?.approvalId).toBe("string");
+    expect(String(archive.pendingApproval?.nextStep ?? "")).toContain("cdx approval respond");
+    expect(archive.archiveSummaryPath).toBeUndefined();
+    expect(archive.archiveJournalPath).toBeUndefined();
+    expect(readFileSync(plan.planPath, "utf8")).toBe(planBeforeArchive);
+
+    const approved = new RuntimeController(fixture.rootDir).respondApproval({
+      approvalId: String(archive.pendingApproval?.approvalId),
+      status: "approved"
+    }) as {
+      continuation?: {
+        status?: string;
+        checkpointIds?: string[];
+        archiveSummaryPath?: string;
+        archiveJournalPath?: string;
+      };
+    };
+    expect(approved.continuation?.status).toBe("valid");
+    expect(approved.continuation?.checkpointIds).toContain("plan-archive-confirmation");
+    expect(typeof approved.continuation?.archiveSummaryPath).toBe("string");
+    expect(typeof approved.continuation?.archiveJournalPath).toBe("string");
+    expect(existsSync(String(approved.continuation?.archiveSummaryPath))).toBe(true);
+    expect(existsSync(String(approved.continuation?.archiveJournalPath))).toBe(true);
+
     const afterArchive = readFileSync(plan.planPath, "utf8");
     const phaseAfterArchive = readFileSync(plan.phasePaths[0]!, "utf8");
     expect(afterArchive).toContain('status: "archived"');

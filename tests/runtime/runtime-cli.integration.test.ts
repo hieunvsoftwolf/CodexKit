@@ -247,7 +247,7 @@ describe("phase 1 CLI", () => {
   );
 
   test(
-    "plan validate/red-team/archive subcommands mutate in-place artifacts and return deterministic outputs",
+    "plan validate/red-team/archive subcommands require archive approval continuation before mutation and return deterministic outputs",
     { timeout: 90_000 },
     async () => {
       const fixture = await createRuntimeFixture("codexkit-runtime-cli-plan-subcommands-wave1");
@@ -266,11 +266,50 @@ describe("phase 1 CLI", () => {
       expect(redTeam.status).toBe("revise");
       expect(String(redTeam.recommendedNextCommand)).toBe(`cdx plan validate ${shellQuote(planPath)}`);
 
-      const archive = runCli(fixture.rootDir, ["plan", "archive", planPath]);
+      const planBeforeArchive = readFileSync(planPath, "utf8");
+      const archive = runCli(fixture.rootDir, ["plan", "archive", planPath]) as {
+        runId?: string;
+        subcommand?: string;
+        status?: string;
+        pendingApproval?: { approvalId?: string; checkpoint?: string; nextStep?: string };
+        archiveSummaryPath?: string;
+        archiveJournalPath?: string;
+      };
       expect(archive.subcommand).toBe("archive");
-      expect(archive.status).toBe("valid");
-      expect(typeof archive.archiveSummaryPath).toBe("string");
-      expect(existsSync(String(archive.archiveSummaryPath))).toBe(true);
+      expect(archive.status).toBe("pending");
+      expect(archive.pendingApproval?.checkpoint).toBe("plan-archive-confirmation");
+      expect(typeof archive.pendingApproval?.approvalId).toBe("string");
+      expect(String(archive.pendingApproval?.nextStep ?? "")).toContain("cdx approval respond");
+      expect(archive.archiveSummaryPath).toBeUndefined();
+      expect(archive.archiveJournalPath).toBeUndefined();
+      expect(readFileSync(planPath, "utf8")).toBe(planBeforeArchive);
+
+      const approved = runCli(fixture.rootDir, [
+        "approval",
+        "respond",
+        String(archive.pendingApproval?.approvalId),
+        "--response",
+        "approve"
+      ]) as {
+        continuation?: {
+          status?: string;
+          archiveSummaryPath?: string;
+          archiveJournalPath?: string;
+          archiveJournalArtifactId?: string;
+        };
+      };
+      expect(approved.continuation?.status).toBe("valid");
+      expect(typeof approved.continuation?.archiveSummaryPath).toBe("string");
+      expect(typeof approved.continuation?.archiveJournalPath).toBe("string");
+      expect(typeof approved.continuation?.archiveJournalArtifactId).toBe("string");
+      expect(existsSync(String(approved.continuation?.archiveSummaryPath))).toBe(true);
+      expect(existsSync(String(approved.continuation?.archiveJournalPath))).toBe(true);
+
+      const shownRun = runCli(fixture.rootDir, ["run", "show", String(archive.runId)]);
+      const artifacts = (shownRun.artifacts ?? []) as Array<{ id?: string; path?: string }>;
+      expect(artifacts.some((artifact) => artifact.path === approved.continuation?.archiveSummaryPath)).toBe(true);
+      expect(artifacts.some((artifact) => artifact.path === approved.continuation?.archiveJournalPath)).toBe(true);
+      expect(artifacts.some((artifact) => artifact.id === approved.continuation?.archiveJournalArtifactId)).toBe(true);
 
       const planText = readFileSync(planPath, "utf8");
       expect(planText).toContain("## Validation Log");
