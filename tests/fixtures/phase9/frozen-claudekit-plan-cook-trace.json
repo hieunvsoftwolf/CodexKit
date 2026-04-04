@@ -1,0 +1,17 @@
+{
+  "traceId": "claudekit-plan-cook-git-clean-v1",
+  "fixtureId": "git-clean",
+  "capturedAt": "2026-03-25T00:00:00.000Z",
+  "sourceRef": ".claude/skills/cook/references/workflow-steps.md",
+  "operatorActions": [
+    {
+      "checkpoint": "plan-invocation",
+      "command": "ck plan <task>"
+    },
+    {
+      "checkpoint": "cook-continuation",
+      "command": "ck cook <absolute-plan-path>"
+    }
+  ],
+  "notes": "Frozen ClaudeKit comparative reference trace for Phase 9 NFR-3.6 plan->cook operator-action benchmarking."
+}

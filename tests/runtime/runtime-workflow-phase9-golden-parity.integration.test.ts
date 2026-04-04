@@ -10,10 +10,10 @@ import { createGitRuntimeFixture } from "./helpers/runtime-fixture.ts";
 const cleanups: Array<() => Promise<void> | void> = [];
 const FROZEN_CLAUDEKIT_PLAN_COOK_TRACE_PATH = path.join(
   process.cwd(),
-  "plans",
-  "20260313-1128-phase-0-preflight-clean-restart",
-  "reports",
-  "phase-9-frozen-claudekit-plan-cook-trace.json"
+  "tests",
+  "fixtures",
+  "phase9",
+  "frozen-claudekit-plan-cook-trace.json"
 );
 
 interface FrozenClaudekitPlanCookTrace {
