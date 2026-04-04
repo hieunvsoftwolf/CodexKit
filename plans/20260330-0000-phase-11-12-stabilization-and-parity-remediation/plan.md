@@ -4,8 +4,8 @@ description: "Execution plan for Phase 11 stabilization first, then Phase 12 ful
 status: "in_progress"
 current_phase: "12.4"
 current_phase_doc: "phase-04-phase-12-workflow-port-parity.md"
-current_phase_status: "landing_required"
-latest_control_state: "reports/control-state-phase-12-phase-04-landing-required-after-s7d-20260404-165836.md"
+current_phase_status: "ready_for_w0b"
+latest_control_state: "reports/control-state-phase-12-phase-04-w0b-required-after-local-landing-20260404-175122.md"
 priority: "high"
 effort: "high"
 branch: "main"
@@ -33,8 +33,8 @@ Mode: hard
 - Phase 11 is complete
 - Frozen baseline commit: `5973f73b2bda2ee66313250594cce89661294c16`
 - Next execution phase: `phase-04-phase-12-workflow-port-parity.md`
-- Latest durable control-state: `reports/control-state-phase-12-phase-04-landing-required-after-s7d-20260404-165836.md`
-- Phase 12.3 is landed and synced on `main`; Phase 12.4 now passes on candidate evidence in `/Users/hieunv/Claude Agent/CodexKit-s7a-workflows`, but it is not operationally closed. The next step is a landing/disposition session that creates a clean Phase 12.4 landing commit from the candidate worktree, excludes transient/unrelated churn, explicitly classifies the copied B0 spec artifact, merges or cherry-picks the clean commit onto `main`, and then confirms execution-worktree cleanup/archive disposition.
+- Latest durable control-state: `reports/control-state-phase-12-phase-04-w0b-required-after-local-landing-20260404-175122.md`
+- Phase 12.3 is landed and synced on `main`; Phase 12.4 is now landed locally on `main` via `c58387ceffe45762a260e9eb6ace5b68cfcd76af`, with control/report disposition captured separately in `a1d8d007d4343cbb7572ce213563fa5bd89ff0be`. The remaining step is `W0B` push/sync so root `main` and `origin/main` converge before control advances to the next phase.
 
 ## Phase 12 Notes
 - Phase 3 owns all preview-related graph surface so preview is not reopened in later phases
