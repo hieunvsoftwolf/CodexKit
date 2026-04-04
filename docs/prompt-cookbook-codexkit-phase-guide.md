@@ -107,7 +107,6 @@ Recommended control-agent output shape:
 ```text
 Skills: none required
 Session role expected: fullstack-developer
-If this session was opened with the wrong role or modal, say that first and stop.
 Source of truth: current repo tree, latest durable control-state, and current phase docs.
 Prior session artifacts are handoff context only.
 Goal: classify and disposition the current candidate baseline so the repo ends clean and synced for freeze.
@@ -138,7 +137,6 @@ Goal: classify and disposition the current candidate baseline so the repo ends c
 ```text
 Skills: ...
 Session role expected: ...
-If this session was opened with the wrong role or modal, say that first and stop.
 Source of truth: current repo tree or pinned BASE_SHA tree, plus relevant phase docs + exit criteria.
 For spec-test-design sessions, use the pinned BASE_SHA repo state instead of the candidate implementation tree and do not inspect candidate implementation artifacts.
 Prior session artifacts are handoff context only.
