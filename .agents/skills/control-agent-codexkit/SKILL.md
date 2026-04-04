@@ -18,8 +18,8 @@ Use this skill as the delivery control plane for CodexKit. Do not implement prod
 Read these first, in order:
 
 - `README.md`
-- `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/plan.md`
-- `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-03-phase-12-archive-and-preview-parity.md`
+- `plans/20260404-2140-runtime-stabilization-and-full-runtime-suite-remediation/plan.md`
+- `plans/20260404-2140-runtime-stabilization-and-full-runtime-suite-remediation/phase-01-archive-confirmation-contract-alignment.md`
 - `docs/project-overview-pdr.md`
 - `docs/system-architecture.md`
 - `docs/project-roadmap.md`
@@ -30,7 +30,7 @@ Read these first, in order:
 - `docs/control-agent/control-agent-codexkit/skill-inventory.md`
 
 Then read:
-- the latest control-state report under `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/reports`, if one exists
+- the latest control-state report under `plans/20260404-2140-runtime-stabilization-and-full-runtime-suite-remediation/reports`, if one exists
 - any implementation summary
 - any spec-test-design report
 - any test report
@@ -119,7 +119,7 @@ After a failed verdict:
 After any meaningful artifact paste-back or material task change:
 - ingest the delta
 - recompute normalized control state
-- persist a concise control-state snapshot under `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/reports` before emitting new runnable downstream prompts when that path is in scope
+- persist a concise control-state snapshot under `plans/20260404-2140-runtime-stabilization-and-full-runtime-suite-remediation/reports` before emitting new runnable downstream prompts when that path is in scope
 - update plan references or progress notes if phase state changed
 - when code work is in flight, record the active execution worktree or merge surface so root `main` is not mistaken for the coding surface
 - when a host verification constraint exists, repeat it explicitly in the new snapshot instead of assuming later sessions will remember it

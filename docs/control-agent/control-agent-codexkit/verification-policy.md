@@ -9,11 +9,11 @@
 The generated control agent must read these sources before routing:
 
 1. `README.md`
-2. `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/plan.md`
-3. `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-03-phase-12-archive-and-preview-parity.md`
-4. `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/reports/control-state-phase-12-phase-03-ready-20260330.md`
-5. `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/reports/phase-11-freeze-summary.md`
-6. `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/reports/phase-11-baseline-handoff.md`
+2. `plans/20260404-2140-runtime-stabilization-and-full-runtime-suite-remediation/plan.md`
+3. `plans/20260404-2140-runtime-stabilization-and-full-runtime-suite-remediation/phase-01-archive-confirmation-contract-alignment.md`
+4. `plans/20260404-2140-runtime-stabilization-and-full-runtime-suite-remediation/reports/control-state-runtime-stabilization-ready-20260404-214000.md`
+5. `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/reports/control-state-phase-12-phase-05-operational-closure-complete-after-w0b-sync-20260404-210557.md`
+6. `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/reports/phase-12-phase-05-post-landing-sync-and-closure-report-20260404-210557.md`
 7. `docs/verification-policy.md`
 8. `docs/prompt-cookbook-codexkit-phase-guide.md`
 9. `docs/project-overview-pdr.md`
@@ -23,7 +23,7 @@ The generated control agent must read these sources before routing:
 13. `docs/control-agent/control-agent-codexkit/phase-guide.md`
 14. `docs/control-agent/control-agent-codexkit/skill-inventory.md`
 
-If a durable control-state report exists under `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/reports`, read it after the plan and before routing new sessions.
+If a durable control-state report exists under `plans/20260404-2140-runtime-stabilization-and-full-runtime-suite-remediation/reports`, read it after the plan and before routing new sessions.
 If no Phase 11 or 12 control-state exists yet, read `plans/20260313-1128-phase-0-preflight-clean-restart/reports/control-state-phase-10-passed.md` as historical baseline context only.
 
 ## 2. Default High-Rigor Session Model
@@ -217,7 +217,7 @@ The required session result template is:
 
 After a meaningful artifact is pasted back or the task framing changes materially, the control agent must:
 - recompute normalized control state
-- persist a concise `control-state` snapshot under `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/reports` before emitting new runnable downstream prompts when that path is in scope
+- persist a concise `control-state` snapshot under `plans/20260404-2140-runtime-stabilization-and-full-runtime-suite-remediation/reports` before emitting new runnable downstream prompts when that path is in scope
 - update any active `plan.md` references or progress notes if the phase state changes
 - repeat any active host verification constraint explicitly so later sessions do not rediscover the same failure from scratch
 
@@ -250,12 +250,12 @@ If the host exposes modal selection:
 
 ## 8. Current Plan Baseline
 
-- plan: `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/plan.md`
-- active phase spec: `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-03-phase-12-archive-and-preview-parity.md`
-- detected current phase: `Phase 3: Phase 12 Archive and Preview Parity`
+- plan: `plans/20260404-2140-runtime-stabilization-and-full-runtime-suite-remediation/plan.md`
+- active phase spec: `plans/20260404-2140-runtime-stabilization-and-full-runtime-suite-remediation/phase-01-archive-confirmation-contract-alignment.md`
+- detected current phase: `Phase 1: Archive Confirmation Contract Alignment`
 - phase state: `ready_for_planner`
-- pinned `BASE_SHA`: `5973f73b2bda2ee66313250594cce89661294c16`
-- latest durable control-state: `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/reports/control-state-phase-12-phase-03-ready-20260330.md`
+- pinned `BASE_SHA`: `c11a8abf11703df92b4c81152d39d52f356964bd`
+- latest durable control-state: `plans/20260404-2140-runtime-stabilization-and-full-runtime-suite-remediation/reports/control-state-runtime-stabilization-ready-20260404-214000.md`
 - routing note: start with planner-first decomposition before any implementation or independent verification wave
 
 ## 9. Enforcement

@@ -66,6 +66,11 @@ plans/**/*
 !plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-*.md
 !plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/reports/
 !plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/reports/*.md
+!plans/20260404-2140-runtime-stabilization-and-full-runtime-suite-remediation/
+!plans/20260404-2140-runtime-stabilization-and-full-runtime-suite-remediation/plan.md
+!plans/20260404-2140-runtime-stabilization-and-full-runtime-suite-remediation/phase-*.md
+!plans/20260404-2140-runtime-stabilization-and-full-runtime-suite-remediation/reports/
+!plans/20260404-2140-runtime-stabilization-and-full-runtime-suite-remediation/reports/*.md
 screenshots/*
 docs/screenshots/*
 logs.txt

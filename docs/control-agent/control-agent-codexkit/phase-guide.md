@@ -2,16 +2,16 @@
 
 **Project**: CodexKit  
 **Control Agent**: `control-agent-codexkit`  
-**Control Plan**: `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/plan.md`  
-**Active Phase Spec**: `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-03-phase-12-archive-and-preview-parity.md`
+**Control Plan**: `plans/20260404-2140-runtime-stabilization-and-full-runtime-suite-remediation/plan.md`  
+**Active Phase Spec**: `plans/20260404-2140-runtime-stabilization-and-full-runtime-suite-remediation/phase-01-archive-confirmation-contract-alignment.md`
 
 ## 1. Read Order
 
 Read these in order before routing:
 
 1. `README.md`
-2. `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/plan.md`
-3. `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-03-phase-12-archive-and-preview-parity.md`
+2. `plans/20260404-2140-runtime-stabilization-and-full-runtime-suite-remediation/plan.md`
+3. `plans/20260404-2140-runtime-stabilization-and-full-runtime-suite-remediation/phase-01-archive-confirmation-contract-alignment.md`
 4. `docs/control-agent/control-agent-codexkit/verification-policy.md`
 5. `docs/control-agent/control-agent-codexkit/plan-contract.md`
 6. `docs/control-agent/control-agent-codexkit/skill-inventory.md`
@@ -20,34 +20,40 @@ Read these in order before routing:
 9. `docs/project-roadmap.md`
 10. `docs/non-functional-requirements.md`
 
-If a durable control-state report exists under `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/reports`, read it before deciding the next wave.
+If a durable control-state report exists under `plans/20260404-2140-runtime-stabilization-and-full-runtime-suite-remediation/reports`, read it before deciding the next wave.
 
 ## 2. Current Plan Snapshot
 
-- current phase: `Phase 3: Phase 12 Archive and Preview Parity`
-- current phase id: `12.3`
-- current phase status: `verificationrouted`
+- current phase: `Phase 1: Archive Confirmation Contract Alignment`
+- current phase id: `1`
+- current phase status: `ready_for_planner`
 - current phase source: `plan-frontmatter`
-- current phase doc: `plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/phase-03-phase-12-archive-and-preview-parity.md`
+- current phase doc: `plans/20260404-2140-runtime-stabilization-and-full-runtime-suite-remediation/phase-01-archive-confirmation-contract-alignment.md`
 - plan status: `in_progress`
 - project summary:
 
-  Close the smallest high-value parity gaps first: archive confirmation/journal semantics and preview workflow/artifact output. These are isolated enough to land early and reduce the remaining missing graph surface.
+  Stabilize the landed runtime surface until `npm run test:runtime` is green on `main`, clearing test-contract drift and stale historical fixture dependencies without reopening already-closed Phase 12.5 product scope.
 
 - current phase tasks:
 
-- No explicit task list found in the current phase doc or legacy phase section.
+  - Align archive workflow tests and harnesses to the current `pending -> approval -> valid` contract.
+  - Update archive-focused runtime assertions to follow the Phase 12 archive-preview contract instead of the superseded immediate-valid expectation.
+  - Re-run focused archive suites and capture whether failures are eliminated before advancing to the next bundle.
 
 - current phase acceptance criteria:
 
-  - All currently confirmed missing archive/preview graph ids move out of the missing bucket
+  - `tests/runtime/runtime-workflow-wave2.integration.test.ts` no longer fails because of archive immediate-valid expectations.
+  - `tests/runtime/runtime-cli.integration.test.ts` archive assertions align with the current preview/approval contract.
+  - `tests/runtime/runtime-workflow-phase5-nfr-evidence.integration.test.ts` archive evidence assertions align with the current contract.
+  - No production workflow code changes are introduced unless a focused proof shows the tests are wrong about the current contract.
 
 - testing strategy:
 
-  No explicit testing strategy section found.
+  - Run targeted Vitest reruns for the three archive-affected suites first.
+  - Keep the reruns focused until the contract drift is removed, then use the resulting stable baseline for later phases.
 
 ### Preserved Local Additions
-- current phase status: `ready`
+- current phase status: `ready_for_planner`
 
 ## 3. Routing Heuristics
 
@@ -77,12 +83,12 @@ When converting any skeleton below into a runnable prompt, append an in-prompt `
 ```text
 You are planner for CodexKit.
 Read first:
-- plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/plan.md
+- plans/20260404-2140-runtime-stabilization-and-full-runtime-suite-remediation/plan.md
 - docs/control-agent/control-agent-codexkit/plan-contract.md
 - docs/control-agent/control-agent-codexkit/verification-policy.md
 - docs/control-agent/control-agent-codexkit/skill-inventory.md
 
-Current phase: Phase 3: Phase 12 Archive and Preview Parity
+Current phase: Phase 1: Archive Confirmation Contract Alignment
 
 Need:
 - map current phase tasks to owned workstreams
@@ -98,7 +104,7 @@ Do not implement code.
 ```text
 You are fullstack-developer for CodexKit.
 Read first:
-- plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/plan.md
+- plans/20260404-2140-runtime-stabilization-and-full-runtime-suite-remediation/plan.md
 - docs/control-agent/control-agent-codexkit/plan-contract.md
 - the current phase section and acceptance criteria
 - docs/control-agent/control-agent-codexkit/verification-policy.md
@@ -126,12 +132,12 @@ Before coding, list:
 ```text
 You are spec-test-designer for CodexKit.
 Read first:
-- plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/plan.md
+- plans/20260404-2140-runtime-stabilization-and-full-runtime-suite-remediation/plan.md
 - docs/control-agent/control-agent-codexkit/plan-contract.md
 - docs/control-agent/control-agent-codexkit/verification-policy.md
 - docs/control-agent/control-agent-codexkit/skill-inventory.md
 
-Current phase: Phase 3: Phase 12 Archive and Preview Parity
+Current phase: Phase 1: Archive Confirmation Contract Alignment
 Pinned base ref: <BASE_SHA>
 
 Source of truth:
@@ -156,7 +162,7 @@ Need:
 ```text
 You are tester for CodexKit.
 Read first:
-- plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/plan.md
+- plans/20260404-2140-runtime-stabilization-and-full-runtime-suite-remediation/plan.md
 - docs/control-agent/control-agent-codexkit/plan-contract.md
 - docs/control-agent/control-agent-codexkit/verification-policy.md
 - latest spec-test-design report, if it exists
@@ -183,7 +189,7 @@ Rules:
 ```text
 You are code-reviewer for CodexKit.
 Read first:
-- plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/plan.md
+- plans/20260404-2140-runtime-stabilization-and-full-runtime-suite-remediation/plan.md
 - docs/control-agent/control-agent-codexkit/plan-contract.md
 - docs/control-agent/control-agent-codexkit/verification-policy.md
 
@@ -204,7 +210,7 @@ Output findings first:
 ```text
 You are lead verdict for CodexKit.
 Read first:
-- plans/20260330-0000-phase-11-12-stabilization-and-parity-remediation/plan.md
+- plans/20260404-2140-runtime-stabilization-and-full-runtime-suite-remediation/plan.md
 - docs/control-agent/control-agent-codexkit/plan-contract.md
 - implementation summary
 - spec-test-design report
