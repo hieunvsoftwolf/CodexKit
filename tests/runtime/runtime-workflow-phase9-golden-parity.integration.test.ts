@@ -4,7 +4,6 @@ import path from "node:path";
 import { afterEach, describe, expect, test } from "vitest";
 import type { ValidationArtifactRef, ValidationMetricResult } from "../../packages/codexkit-core/src/index.ts";
 import { RuntimeController } from "../../packages/codexkit-daemon/src/index.ts";
-import { parseCliFailure } from "./helpers/cli-json.ts";
 import { createDurableNoteArtifact, writePhase9EvidenceBundle } from "./helpers/phase9-evidence.ts";
 import { createGitRuntimeFixture } from "./helpers/runtime-fixture.ts";
 
@@ -46,15 +45,6 @@ function runCliFreshSession(rootDir: string, args: string[]): Record<string, unk
     ...process.env,
     PHASE9_FRESH_SESSION_MARKER: "1"
   });
-}
-
-function runCliFailure(rootDir: string, args: string[]): Record<string, unknown> {
-  try {
-    runCli(rootDir, args);
-    return { code: "UNEXPECTED_SUCCESS" };
-  } catch (error) {
-    return parseCliFailure(error);
-  }
 }
 
 function metricArtifactRef(label: string, refPath: string): ValidationArtifactRef {
@@ -299,10 +289,34 @@ describe("phase 9 golden parity evidence suite", () => {
       artifactRefs.push({ label: "debug-report", path: debugPath });
     }
 
-    const fixDeferred = runCliFailure(fixture.rootDir, ["fix", "phase9 deferred behavior"]);
-    const teamDeferred = runCliFailure(fixture.rootDir, ["team", "cook", "phase9 deferred behavior"]);
-    const deferredContractsHold = (fixDeferred.details as { code?: string } | undefined)?.code === "WF_FIX_DEFERRED_WAVE2"
-      && (teamDeferred.details as { code?: string } | undefined)?.code === "WF_TEAM_DEFERRED_WAVE2";
+    const fix = runCli(fixture.rootDir, ["fix", "phase9", "runnable", "contract", "--quick"]);
+    const fixDiagnostics = Array.isArray(fix.diagnostics)
+      ? fix.diagnostics.filter((entry): entry is { code?: string } => Boolean(entry) && typeof entry === "object")
+      : [];
+    const fixReportPath = String(fix.fixReportPath ?? "");
+    if (existsSync(fixReportPath)) {
+      artifactRefs.push({ label: "fix-report", path: fixReportPath });
+    }
+    const team = runCli(fixture.rootDir, ["team", "cook", "phase9", "runnable", "contract"]);
+    const teamDiagnostics = Array.isArray(team.diagnostics)
+      ? team.diagnostics.filter((entry): entry is { code?: string } => Boolean(entry) && typeof entry === "object")
+      : [];
+    const teamReportPath = String(team.teamReportPath ?? "");
+    if (existsSync(teamReportPath)) {
+      artifactRefs.push({ label: "team-report", path: teamReportPath });
+    }
+    const runnableContractsHold = fix.workflow === "fix"
+      && fix.mode === "quick"
+      && (fix.checkpointIds as string[]).join(",") === "fix-mode,fix-diagnose,fix-route,fix-implement,fix-verify"
+      && fix.completed === true
+      && existsSync(fixReportPath)
+      && fixDiagnostics.some((entry) => entry.code === "FIX_ROUTE_LOCKED")
+      && team.workflow === "team"
+      && team.template === "cook"
+      && (team.checkpointIds as string[]).join(",") === "team-bootstrap,team-monitor,team-shutdown"
+      && team.teamStatus === "deleted"
+      && existsSync(teamReportPath)
+      && teamDiagnostics.some((entry) => entry.code === "TEAM_WORKFLOW_COMPLETED");
 
     const cookAuto = runCli(fixture.rootDir, ["cook", "--auto", planPath]);
     const controller = new RuntimeController(fixture.rootDir);
@@ -317,7 +331,7 @@ describe("phase 9 golden parity evidence suite", () => {
       artifactRefs.push({ label: "docs-impact-report", path: finalize.docsImpact.reportPath });
       artifactRefs.push({ label: "git-handoff-report", path: finalize.gitHandoff.reportPath });
     }
-    nfr52 = finalizeContractHolds && deferredContractsHold;
+    nfr52 = finalizeContractHolds && runnableContractsHold;
     const restatementCandidateTexts = collectRestatementCandidateTexts({ cook, cookRunView });
     const restatementEvents = countRestatementEvents({
       handoffFields: planHandoffFields,
@@ -413,9 +427,11 @@ describe("phase 9 golden parity evidence suite", () => {
         artifactRefs: [
           metricArtifactRef("finalize-report", finalize.finalizeReportPath),
           metricArtifactRef("docs-impact-report", finalize.docsImpact.reportPath),
-          metricArtifactRef("git-handoff-report", finalize.gitHandoff.reportPath)
+          metricArtifactRef("git-handoff-report", finalize.gitHandoff.reportPath),
+          ...(existsSync(fixReportPath) ? [metricArtifactRef("fix-report", fixReportPath)] : []),
+          ...(existsSync(teamReportPath) ? [metricArtifactRef("team-report", teamReportPath)] : [])
         ],
-        evidence: ["finalize/docs/git durable report artifacts exist and deferred workflows return typed diagnostics"]
+        evidence: ["finalize/docs/git durable report artifacts exist and runnable fix/team workflows publish durable reports"]
       },
       {
         metricId: "NFR-6.1",
@@ -440,8 +456,8 @@ describe("phase 9 golden parity evidence suite", () => {
     ];
 
     const blockers: string[] = [];
-    if (!deferredContractsHold) {
-      blockers.push("fix/team deferred diagnostic contracts changed unexpectedly");
+    if (!runnableContractsHold) {
+      blockers.push("fix/team runnable workflow contract returned unexpected output");
     }
     if (metricResults.some((metric) => metric.status !== "pass" && metric.required)) {
       blockers.push("one or more required golden metrics are failing or missing");

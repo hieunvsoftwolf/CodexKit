@@ -348,7 +348,7 @@ describe("phase 1 CLI", () => {
   );
 
   test(
-    "supports phase 6 wave-1 review/test/debug commands and returns typed deferred diagnostics for fix/team workflows",
+    "supports phase 6 wave-1 review/test/debug commands and runs fix/team workflows with typed diagnostics",
     { timeout: 90_000 },
     async () => {
       const fixture = await createRuntimeFixture("codexkit-runtime-cli-workflow-phase6-wave1");
@@ -386,13 +386,27 @@ describe("phase 1 CLI", () => {
         "debug-conclusion"
       ]);
 
-      const fixDeferred = runCliFailure(fixture.rootDir, ["fix", "intermittent", "test", "failure", "--quick"]);
-      expect(fixDeferred.code).toBe("CLI_USAGE");
-      expect((fixDeferred.details as { code?: string }).code).toBe("WF_FIX_DEFERRED_WAVE2");
+      const fix = runCli(fixture.rootDir, ["fix", "intermittent", "test", "failure", "--quick"]);
+      expect(fix.workflow).toBe("fix");
+      expect(fix.mode).toBe("quick");
+      expect(fix.route).toBe("quick");
+      expect(fix.approvalPolicy).toBe("human-in-the-loop");
+      expect(fix.checkpointIds).toEqual(["fix-mode", "fix-diagnose", "fix-route", "fix-implement", "fix-verify"]);
+      expect(fix.completed).toBe(true);
+      const fixReportPath = String(fix.fixReportPath ?? "");
+      expect(existsSync(fixReportPath)).toBe(true);
+      const fixDiagnostics = fix.diagnostics as Array<{ code?: string }>;
+      expect(fixDiagnostics.some((entry) => entry.code === "FIX_ROUTE_LOCKED")).toBe(true);
 
-      const teamDeferred = runCliFailure(fixture.rootDir, ["team", "review", "payment", "flow"]);
-      expect(teamDeferred.code).toBe("CLI_USAGE");
-      expect((teamDeferred.details as { code?: string }).code).toBe("WF_TEAM_DEFERRED_WAVE2");
+      const team = runCli(fixture.rootDir, ["team", "review", "payment", "flow"]);
+      expect(team.workflow).toBe("team");
+      expect(team.template).toBe("review");
+      expect(team.checkpointIds).toEqual(["team-bootstrap", "team-monitor", "team-shutdown"]);
+      expect(team.teamStatus).toBe("deleted");
+      const teamReportPath = String(team.teamReportPath ?? "");
+      expect(existsSync(teamReportPath)).toBe(true);
+      const teamDiagnostics = team.diagnostics as Array<{ code?: string }>;
+      expect(teamDiagnostics.some((entry) => entry.code === "TEAM_WORKFLOW_COMPLETED")).toBe(true);
     }
   );
 
