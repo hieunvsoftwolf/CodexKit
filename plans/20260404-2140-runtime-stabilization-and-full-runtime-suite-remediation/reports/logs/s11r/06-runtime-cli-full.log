@@ -1,0 +1,40 @@
+
+ RUN  v3.2.4 /Users/hieunv/Claude Agent/CodexKit-p02-fix-team-s9r
+
+{
+  "code": "CLI_USAGE",
+  "message": "compat caller identity is session-derived; --caller-* flags are not supported",
+  "details": null
+}
+{
+  "code": "MESSAGE_PERMISSION_DENIED",
+  "message": "CLI caller can only pull user mailboxes",
+  "details": null
+}
+{
+  "code": "CLI_USAGE",
+  "message": "message sender identity is session-derived; --from-kind/--from-id/--from-worker are not supported",
+  "details": null
+}
+{
+  "code": "CLI_USAGE",
+  "message": "approval requester identity is session-derived; --requester-worker is not supported",
+  "details": null
+}
+ ✓ tests/runtime/runtime-cli.integration.test.ts (10 tests) 49315ms
+   ✓ phase 1 CLI > supports create, list, show, update, and resume inspection flows  6284ms
+   ✓ phase 1 CLI > compat call rejects self-asserted caller flags  1547ms
+   ✓ phase 1 CLI > message pull blocks non-user mailboxes for CLI callers  4404ms
+   ✓ phase 1 CLI > message send rejects spoofed --from-kind/--from-worker flags  5158ms
+   ✓ phase 1 CLI > approval request rejects spoofed --requester-worker flag  3991ms
+   ✓ phase 1 CLI > supports workflow command surface for brainstorm, plan, and cook through implementation boundary  2991ms
+   ✓ phase 1 CLI > plan validate/red-team/archive subcommands require archive approval continuation before mutation and return deterministic outputs  7257ms
+   ✓ phase 1 CLI > generated fast and parallel cook handoff commands are runnable  5261ms
+   ✓ phase 1 CLI > supports phase 6 wave-1 review/test/debug commands and runs fix/team workflows with typed diagnostics  8781ms
+   ✓ phase 1 CLI > worker spawn derives team from team-owned task when --team is omitted  3628ms
+
+ Test Files  1 passed (1)
+      Tests  10 passed (10)
+   Start at  00:59:26
+   Duration  51.44s (transform 513ms, setup 0ms, collect 541ms, tests 49.31s, environment 0ms, prepare 498ms)
+

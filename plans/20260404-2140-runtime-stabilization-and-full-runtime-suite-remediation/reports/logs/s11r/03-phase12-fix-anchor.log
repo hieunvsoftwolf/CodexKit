@@ -1,0 +1,11 @@
+
+ RUN  v3.2.4 /Users/hieunv/Claude Agent/CodexKit-p02-fix-team-s9r
+
+ ✓ tests/runtime/runtime-workflow-phase12-port-parity-cli.integration.test.ts (4 tests | 3 skipped) 4610ms
+   ✓ phase 12 phase 4 workflow port parity CLI > real cdx fix covers explicit entry plus chooser continuation and publishes durable artifacts  4607ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 3 skipped (4)
+   Start at  00:58:31
+   Duration  6.16s (transform 262ms, setup 0ms, collect 246ms, tests 4.61s, environment 1ms, prepare 452ms)
+

@@ -1,0 +1,10 @@
+PASS | fix.workflow===fix | workflow=fix
+PASS | fix.mode===quick | mode=quick
+PASS | fix.completed===true | completed=true
+PASS | fix.fixReportPath absolute+exists | fixReportPath=/Users/hieunv/Claude Agent/CodexKit-p02-fix-team-s9r/.codexkit/runtime/artifacts/run_ef6c5d588f4fce97/fix-report.md
+PASS | fix diagnostics include FIX_ROUTE_LOCKED | codes=FIX_ROUTE_LOCKED
+PASS | team.workflow===team | workflow=team
+PASS | team.template===cook | template=cook
+PASS | team.teamStatus===deleted | teamStatus=deleted
+PASS | team.teamReportPath absolute+exists | teamReportPath=/Users/hieunv/Claude Agent/CodexKit-p02-fix-team-s9r/.codexkit/runtime/artifacts/run_631ed861f3d0199c/team-workflow-report.md
+PASS | team diagnostics include TEAM_WORKFLOW_COMPLETED | codes=TEAM_WORKFLOW_COMPLETED

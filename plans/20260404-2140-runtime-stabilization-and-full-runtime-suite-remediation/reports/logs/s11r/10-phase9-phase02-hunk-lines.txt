@@ -1,0 +1,81 @@
+   280	    }
+   281	    const qa = runCli(fixture.rootDir, ["test", "workflow", "phase9", "--coverage"]);
+   282	    const qaPath = String(qa.testReportPath ?? "");
+   283	    if (existsSync(qaPath)) {
+   284	      artifactRefs.push({ label: "test-report", path: qaPath });
+   285	    }
+   286	    const debug = runCli(fixture.rootDir, ["debug", "phase9", "database", "drift", "--branch", "database"]);
+   287	    const debugPath = String(debug.debugReportPath ?? "");
+   288	    if (existsSync(debugPath)) {
+   289	      artifactRefs.push({ label: "debug-report", path: debugPath });
+   290	    }
+   291	
+   292	    const fix = runCli(fixture.rootDir, ["fix", "phase9", "runnable", "contract", "--quick"]);
+   293	    const fixDiagnostics = Array.isArray(fix.diagnostics)
+   294	      ? fix.diagnostics.filter((entry): entry is { code?: string } => Boolean(entry) && typeof entry === "object")
+   295	      : [];
+   296	    const fixReportPath = String(fix.fixReportPath ?? "");
+   297	    if (existsSync(fixReportPath)) {
+   298	      artifactRefs.push({ label: "fix-report", path: fixReportPath });
+   299	    }
+   300	    const team = runCli(fixture.rootDir, ["team", "cook", "phase9", "runnable", "contract"]);
+   301	    const teamDiagnostics = Array.isArray(team.diagnostics)
+   302	      ? team.diagnostics.filter((entry): entry is { code?: string } => Boolean(entry) && typeof entry === "object")
+   303	      : [];
+   304	    const teamReportPath = String(team.teamReportPath ?? "");
+   305	    if (existsSync(teamReportPath)) {
+   306	      artifactRefs.push({ label: "team-report", path: teamReportPath });
+   307	    }
+   308	    const runnableContractsHold = fix.workflow === "fix"
+   309	      && fix.mode === "quick"
+   310	      && (fix.checkpointIds as string[]).join(",") === "fix-mode,fix-diagnose,fix-route,fix-implement,fix-verify"
+   311	      && fix.completed === true
+   312	      && existsSync(fixReportPath)
+   313	      && fixDiagnostics.some((entry) => entry.code === "FIX_ROUTE_LOCKED")
+   314	      && team.workflow === "team"
+   315	      && team.template === "cook"
+   316	      && (team.checkpointIds as string[]).join(",") === "team-bootstrap,team-monitor,team-shutdown"
+   317	      && team.teamStatus === "deleted"
+   318	      && existsSync(teamReportPath)
+   319	      && teamDiagnostics.some((entry) => entry.code === "TEAM_WORKFLOW_COMPLETED");
+   320	
+   321	    const cookAuto = runCli(fixture.rootDir, ["cook", "--auto", planPath]);
+   322	    const controller = new RuntimeController(fixture.rootDir);
+   323	    cleanups.push(() => controller.close());
+   324	    const finalize = controller.finalize({ runId: String(cookAuto.runId), planPathHint: planPath });
+   325	    const finalizeContractHolds = finalize.checkpointIds.join(",") === "finalize-sync,finalize-docs,finalize-git"
+   326	      && existsSync(finalize.finalizeReportPath)
+   327	      && existsSync(finalize.docsImpact.reportPath)
+   328	      && existsSync(finalize.gitHandoff.reportPath);
+   329	    if (finalizeContractHolds) {
+   330	      artifactRefs.push({ label: "finalize-report", path: finalize.finalizeReportPath });
+   331	      artifactRefs.push({ label: "docs-impact-report", path: finalize.docsImpact.reportPath });
+   332	      artifactRefs.push({ label: "git-handoff-report", path: finalize.gitHandoff.reportPath });
+   333	    }
+   334	    nfr52 = finalizeContractHolds && runnableContractsHold;
+   335	    const restatementCandidateTexts = collectRestatementCandidateTexts({ cook, cookRunView });
+   336	    const restatementEvents = countRestatementEvents({
+   337	      handoffFields: planHandoffFields,
+   338	      restatementCandidateTexts
+   339	    });
+   340	    const nfr63 = handoffTargetsCookPlan && planHandoffFields.length > 0 && restatementEvents === 0;
+   341	    const nfr63EvidenceArtifact = createDurableNoteArtifact({
+   342	      suiteId: "validation-golden",
+   343	      label: "golden-restatement-check",
+   344	      markdown: [
+   345	        "# Fresh Session Restatement Check",
+   346	        "",
+   347	        "- Accepted decision provenance: raw plan -> cook handoff fields only",
+   348	        `- Plan-owned raw handoff fields scanned: ${planHandoffFields.length}`,
+   349	        `- Plan handoff command: ${handoffCommand}`,
+   350	        `- Plan path: ${planPath}`,
+   351	        `- Plan mode: ${planMode}`,
+   352	        `- Plan diagnostics scanned for continuation guidance: ${planDiagnostics.length}`,
+   353	        `- Raw handoff fields: ${planHandoffFields.map((field) => `${field.source}=${field.rawValue}`).join(" | ")}`,
+   354	        `- Executed fresh-session command: cdx cook ${planPath} --json`,
+   355	        `- Fresh-session invocation marker: PHASE9_FRESH_SESSION_MARKER=1`,
+   356	        `- Upstream plan run id: ${String(plan.runId ?? "unknown")}`,
+   357	        `- Continuation cook run id: ${String(cook.runId ?? "unknown")}`,
+   358	        `- Prompt/diagnostic surfaces inspected: ${restatementCandidateTexts.length}`,
+   359	        `- Restatement events detected: ${restatementEvents}`,
+   360	        `- Result: ${nfr63 ? "pass" : "fail"}`,

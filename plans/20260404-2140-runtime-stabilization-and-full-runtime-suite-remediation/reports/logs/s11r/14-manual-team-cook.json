@@ -1,0 +1,24 @@
+{
+  "runId": "run_631ed861f3d0199c",
+  "workflow": "team",
+  "template": "cook",
+  "context": "phase9 runnable contract",
+  "teamId": "team_adb5c4b46ea78d20",
+  "teamStatus": "deleted",
+  "workerCount": 4,
+  "taskCount": 7,
+  "checkpointIds": [
+    "team-bootstrap",
+    "team-monitor",
+    "team-shutdown"
+  ],
+  "teamReportPath": "/Users/hieunv/Claude Agent/CodexKit-p02-fix-team-s9r/.codexkit/runtime/artifacts/run_631ed861f3d0199c/team-workflow-report.md",
+  "teamReportArtifactId": "artifact_76efd4681cf629b3",
+  "diagnostics": [
+    {
+      "code": "TEAM_WORKFLOW_COMPLETED",
+      "cause": "Template 'cook' executed with team/task/worker/message/claim primitives.",
+      "nextStep": "Inspect team-workflow-report.md for bootstrap, monitor, and shutdown details."
+    }
+  ]
+}

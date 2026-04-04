@@ -1,0 +1,11 @@
+
+ RUN  v3.2.4 /Users/hieunv/Claude Agent/CodexKit-p02-fix-team-s9r
+
+ ✓ tests/runtime/runtime-workflow-phase12-port-parity-cli.integration.test.ts (4 tests | 3 skipped) 3271ms
+   ✓ phase 12 phase 4 workflow port parity CLI > real cdx team creates a runnable team workflow with checkpointed output and durable artifacts  3268ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 3 skipped (4)
+   Start at  00:58:47
+   Duration  4.77s (transform 274ms, setup 0ms, collect 280ms, tests 3.27s, environment 0ms, prepare 462ms)
+

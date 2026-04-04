@@ -1,0 +1,25 @@
+{
+  "runId": "run_ef6c5d588f4fce97",
+  "workflow": "fix",
+  "checkpointIds": [
+    "fix-mode",
+    "fix-diagnose",
+    "fix-route",
+    "fix-implement",
+    "fix-verify"
+  ],
+  "issue": "intermittent test failure",
+  "mode": "quick",
+  "route": "quick",
+  "approvalPolicy": "human-in-the-loop",
+  "diagnostics": [
+    {
+      "code": "FIX_ROUTE_LOCKED",
+      "cause": "Fix route 'quick' executed with 'human-in-the-loop' approval policy.",
+      "nextStep": "Review fix-report.md and continue with finalize or downstream workflow as needed."
+    }
+  ],
+  "fixReportPath": "/Users/hieunv/Claude Agent/CodexKit-p02-fix-team-s9r/.codexkit/runtime/artifacts/run_ef6c5d588f4fce97/fix-report.md",
+  "fixReportArtifactId": "artifact_7ee5a09158a351d0",
+  "completed": true
+}

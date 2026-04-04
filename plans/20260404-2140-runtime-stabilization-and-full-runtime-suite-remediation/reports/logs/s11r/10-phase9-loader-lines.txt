@@ -1,0 +1,60 @@
+     1	import { execFileSync } from "node:child_process";
+     2	import { existsSync, readFileSync } from "node:fs";
+     3	import path from "node:path";
+     4	import { afterEach, describe, expect, test } from "vitest";
+     5	import type { ValidationArtifactRef, ValidationMetricResult } from "../../packages/codexkit-core/src/index.ts";
+     6	import { RuntimeController } from "../../packages/codexkit-daemon/src/index.ts";
+     7	import { createDurableNoteArtifact, writePhase9EvidenceBundle } from "./helpers/phase9-evidence.ts";
+     8	import { createGitRuntimeFixture } from "./helpers/runtime-fixture.ts";
+     9	
+    10	const cleanups: Array<() => Promise<void> | void> = [];
+    11	const FROZEN_CLAUDEKIT_PLAN_COOK_TRACE_PATH = path.join(
+    12	  process.cwd(),
+    13	  "plans",
+    14	  "20260313-1128-phase-0-preflight-clean-restart",
+    15	  "reports",
+    16	  "phase-9-frozen-claudekit-plan-cook-trace.json"
+    17	);
+    18	
+    19	interface FrozenClaudekitPlanCookTrace {
+    20	  traceId: string;
+    21	  fixtureId: string;
+    22	  sourceRef: string;
+    23	  operatorActions: Array<{ checkpoint: string; command: string }>;
+    24	}
+    25	
+    26	function loadFrozenClaudekitPlanCookTrace(): FrozenClaudekitPlanCookTrace {
+    27	  const parsed = JSON.parse(readFileSync(FROZEN_CLAUDEKIT_PLAN_COOK_TRACE_PATH, "utf8")) as FrozenClaudekitPlanCookTrace;
+    28	  if (typeof parsed.traceId !== "string" || !Array.isArray(parsed.operatorActions) || parsed.operatorActions.length === 0) {
+    29	    throw new Error("invalid frozen ClaudeKit plan->cook trace artifact");
+    30	  }
+    31	  return parsed;
+    32	}
+    33	
+    34	function runCli(rootDir: string, args: string[], env: NodeJS.ProcessEnv = process.env): Record<string, unknown> {
+    35	  const output = execFileSync(path.resolve(process.cwd(), "cdx"), [...args, "--json"], {
+    36	    cwd: rootDir,
+    37	    encoding: "utf8",
+    38	    env
+    39	  });
+    40	  return JSON.parse(output) as Record<string, unknown>;
+    41	}
+    42	
+    43	function runCliFreshSession(rootDir: string, args: string[]): Record<string, unknown> {
+    44	  return runCli(rootDir, args, {
+    45	    ...process.env,
+    46	    PHASE9_FRESH_SESSION_MARKER: "1"
+    47	  });
+    48	}
+    49	
+    50	function metricArtifactRef(label: string, refPath: string): ValidationArtifactRef {
+    51	  return {
+    52	    label,
+    53	    path: refPath,
+    54	    durability: "durable"
+    55	  };
+    56	}
+    57	
+    58	function normalizeText(value: string): string {
+    59	  return value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+    60	}

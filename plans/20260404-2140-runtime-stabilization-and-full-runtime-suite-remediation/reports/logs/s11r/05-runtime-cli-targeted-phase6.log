@@ -1,0 +1,11 @@
+
+ RUN  v3.2.4 /Users/hieunv/Claude Agent/CodexKit-p02-fix-team-s9r
+
+ ✓ tests/runtime/runtime-cli.integration.test.ts (10 tests | 9 skipped) 9754ms
+   ✓ phase 1 CLI > supports phase 6 wave-1 review/test/debug commands and runs fix/team workflows with typed diagnostics  9751ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 9 skipped (10)
+   Start at  00:59:04
+   Duration  11.41s (transform 396ms, setup 0ms, collect 449ms, tests 9.75s, environment 1ms, prepare 395ms)
+

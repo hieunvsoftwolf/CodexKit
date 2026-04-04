@@ -1,0 +1,10 @@
+{
+  "pid": 61037,
+  "rootDir": "/Users/hieunv/Claude Agent/CodexKit-p02-fix-team-s9r",
+  "databasePath": "/Users/hieunv/Claude Agent/CodexKit-p02-fix-team-s9r/.codexkit/state/runtime.sqlite",
+  "ready": true,
+  "mode": "oneshot",
+  "startedAt": "2026-04-04T18:01:51.531Z",
+  "lastCycleAt": "2026-04-04T18:01:51.597Z",
+  "cursor": 173
+}
