@@ -1,0 +1,256 @@
+{
+  "schemaVersion": "phase9-validation-evidence-v2",
+  "baseSha": "8a7195c2a98253dd1060f9680b422b75d139068d",
+  "candidateSha": "308867621e6c3d77746302b08a624445f7b84213",
+  "generatedAt": "2026-04-05T23:27:35.551Z",
+  "freshUntil": "2026-04-12T23:27:35.551Z",
+  "freshnessRule": "NFR-8.4-host-matrix-results-must-be-younger-than-7-days",
+  "suiteId": "validation-chaos",
+  "fixtureIds": [
+    "interrupted-run",
+    "retained-failed-worker",
+    "git-clean",
+    "parallelizable-repo"
+  ],
+  "metricResults": [
+    {
+      "metricId": "NFR-1.1",
+      "mappedNfrIds": [
+        "NFR-1.1"
+      ],
+      "required": true,
+      "status": "pass",
+      "fixtureRefs": [
+        "interrupted-run"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        {
+          "label": "chaos-restart-continuity",
+          "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-chaos/chaos-restart-continuity-e656d235cd0a.md",
+          "durability": "durable"
+        }
+      ],
+      "evidence": [
+        "resume after controller restart recovers active run id"
+      ]
+    },
+    {
+      "metricId": "NFR-1.4",
+      "mappedNfrIds": [
+        "NFR-1.4"
+      ],
+      "required": true,
+      "status": "pass",
+      "fixtureRefs": [
+        "interrupted-run"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        {
+          "label": "chaos-reclaim-operator-state",
+          "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-chaos/chaos-reclaim-operator-state-2f7a1ae2363b.md",
+          "durability": "durable"
+        }
+      ],
+      "evidence": [
+        "lease-expired reclaim candidate surfaced on first resume action"
+      ]
+    },
+    {
+      "metricId": "NFR-3.7",
+      "mappedNfrIds": [
+        "NFR-3.7"
+      ],
+      "required": true,
+      "status": "pass",
+      "fixtureRefs": [
+        "interrupted-run"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        {
+          "label": "chaos-reclaim-operator-state",
+          "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-chaos/chaos-reclaim-operator-state-2f7a1ae2363b.md",
+          "durability": "durable"
+        }
+      ],
+      "evidence": [
+        "resume emitted one concrete continuation command for reclaim-blocked state"
+      ]
+    },
+    {
+      "metricId": "NFR-5.4",
+      "mappedNfrIds": [
+        "NFR-5.4"
+      ],
+      "required": true,
+      "status": "pass",
+      "fixtureRefs": [
+        "interrupted-run",
+        "retained-failed-worker"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        {
+          "label": "chaos-crash-ledger-artifact-history",
+          "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-chaos/chaos-crash-ledger-artifact-history-d90facc580d2.md",
+          "durability": "durable"
+        },
+        {
+          "label": "chaos-split-artifact",
+          "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-chaos/chaos-split-artifact-1bec82a9cbf3.log",
+          "durability": "durable"
+        }
+      ],
+      "evidence": [
+        "worker crash, artifact-publish/task-update split, and artifact-history/ledger assertions retained recoverable state"
+      ]
+    },
+    {
+      "metricId": "NFR-5.5",
+      "mappedNfrIds": [
+        "NFR-5.5"
+      ],
+      "required": true,
+      "status": "pass",
+      "fixtureRefs": [
+        "interrupted-run"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        {
+          "label": "chaos-reclaim-operator-state",
+          "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-chaos/chaos-reclaim-operator-state-2f7a1ae2363b.md",
+          "durability": "durable"
+        }
+      ],
+      "evidence": [
+        "resume reclaim blocker diagnostic included code/cause/next-step continuation command"
+      ]
+    },
+    {
+      "metricId": "NFR-6.4",
+      "mappedNfrIds": [
+        "NFR-6.4"
+      ],
+      "required": true,
+      "status": "pass",
+      "fixtureRefs": [
+        "interrupted-run"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        {
+          "label": "chaos-approval-resume-state",
+          "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-chaos/chaos-approval-resume-state-fb9506c31ba0.md",
+          "durability": "durable"
+        }
+      ],
+      "evidence": [
+        "resume surfaced unresolved pending approvals and explicit approval continuation command"
+      ]
+    },
+    {
+      "metricId": "NFR-7.4",
+      "mappedNfrIds": [
+        "NFR-7.4"
+      ],
+      "required": true,
+      "status": "fail",
+      "fixtureRefs": [
+        "parallelizable-repo"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        {
+          "label": "chaos-parallel-reliability-benchmark",
+          "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-chaos/chaos-parallel-reliability-benchmark-b56a96e06399.md",
+          "durability": "durable"
+        }
+      ],
+      "evidence": [
+        "parallel benchmark failed/retried-task rate stayed within +10% of the sequential baseline"
+      ]
+    }
+  ],
+  "hostManifest": {
+    "os": "darwin 23.6.0",
+    "cpu": "Apple M1 Pro",
+    "ramBytes": 17179869184,
+    "filesystem": "/",
+    "nodeVersion": "v24.13.0",
+    "gitVersion": "git version 2.39.5 (Apple Git-154)",
+    "codexCliVersion": "codex-cli 0.115.0-alpha.27"
+  },
+  "artifactRefs": [
+    {
+      "label": "chaos-crash-before-artifact-dir",
+      "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-chaos/chaos-crash-before-artifact-dir-28de65df54d0.txt",
+      "durability": "durable"
+    },
+    {
+      "label": "chaos-split-artifact",
+      "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-chaos/chaos-split-artifact-1bec82a9cbf3.log",
+      "durability": "durable"
+    },
+    {
+      "label": "chaos-interrupted-finalize-report",
+      "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-chaos/chaos-interrupted-finalize-report-3004758e3337.md",
+      "durability": "durable"
+    },
+    {
+      "label": "chaos-resume-report",
+      "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-chaos/chaos-resume-report-7ce5ddfd074c.md",
+      "durability": "durable"
+    },
+    {
+      "label": "chaos-parallel-reliability-benchmark",
+      "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-chaos/chaos-parallel-reliability-benchmark-b56a96e06399.md",
+      "durability": "durable"
+    },
+    {
+      "label": "chaos-restart-continuity",
+      "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-chaos/chaos-restart-continuity-e656d235cd0a.md",
+      "durability": "durable"
+    },
+    {
+      "label": "chaos-reclaim-operator-state",
+      "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-chaos/chaos-reclaim-operator-state-2f7a1ae2363b.md",
+      "durability": "durable"
+    },
+    {
+      "label": "chaos-crash-ledger-artifact-history",
+      "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-chaos/chaos-crash-ledger-artifact-history-d90facc580d2.md",
+      "durability": "durable"
+    },
+    {
+      "label": "chaos-approval-resume-state",
+      "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-chaos/chaos-approval-resume-state-fb9506c31ba0.md",
+      "durability": "durable"
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 1,
+    "blocked": 0,
+    "requiredNonPass": 1
+  },
+  "blockers": [
+    "one or more required chaos/recovery metrics are non-pass"
+  ]
+}

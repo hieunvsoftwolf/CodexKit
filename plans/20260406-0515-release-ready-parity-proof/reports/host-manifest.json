@@ -1,0 +1,9 @@
+{
+  "os": "darwin 23.6.0",
+  "cpu": "Apple M1 Pro",
+  "ramBytes": 17179869184,
+  "filesystem": "/",
+  "nodeVersion": "v24.13.0",
+  "gitVersion": "git version 2.39.5 (Apple Git-154)",
+  "codexCliVersion": "codex-cli 0.115.0-alpha.27"
+}

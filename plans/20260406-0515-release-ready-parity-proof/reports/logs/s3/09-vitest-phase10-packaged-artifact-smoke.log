@@ -1,0 +1,14 @@
+
+ RUN  v3.2.4 /Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only
+
+ ✓ tests/runtime/runtime-workflow-phase10-packaged-artifact-smoke.integration.test.ts (4 tests) 67196ms
+   ✓ phase 10 packaged-artifact smoke harness > fresh repo packaged install proves init preview/apply, installOnly, and doctor through installed cdx bin  10013ms
+   ✓ phase 10 packaged-artifact smoke harness > git-backed repo packaged install supports init -> doctor -> brainstorm -> plan -> cook quickstart  12970ms
+   ✓ phase 10 packaged-artifact smoke harness > install-only repos remain gated for worker-backed workflows via packaged install  11011ms
+   ✓ phase 10 packaged-artifact smoke harness > wrapped-runner config-file and env-over-config precedence are proven through packaged install  12067ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  06:28:05
+   Duration  68.82s (transform 357ms, setup 0ms, collect 377ms, tests 67.20s, environment 0ms, prepare 398ms)
+

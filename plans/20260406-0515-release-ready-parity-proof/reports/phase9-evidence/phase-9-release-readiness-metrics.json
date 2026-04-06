@@ -1,0 +1,631 @@
+{
+  "generatedAt": "2026-04-05T23:27:54.094Z",
+  "baseSha": "8a7195c2a98253dd1060f9680b422b75d139068d",
+  "candidateSha": "308867621e6c3d77746302b08a624445f7b84213",
+  "metricRows": [
+    {
+      "metricId": "NFR-1.1",
+      "status": "pass",
+      "fixtureRefs": [
+        "interrupted-run"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        "chaos-restart-continuity:/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-chaos/chaos-restart-continuity-e656d235cd0a.md"
+      ],
+      "freshness": "fresh until 2026-04-12T23:27:35.551Z",
+      "notes": []
+    },
+    {
+      "metricId": "NFR-1.2",
+      "status": "blocked",
+      "fixtureRefs": [],
+      "hostManifestRefs": [],
+      "artifactRefs": [],
+      "freshness": "blocked: no accepted evidence",
+      "notes": [
+        "no accepted evidence for metric"
+      ]
+    },
+    {
+      "metricId": "NFR-1.3",
+      "status": "blocked",
+      "fixtureRefs": [],
+      "hostManifestRefs": [],
+      "artifactRefs": [],
+      "freshness": "blocked: no accepted evidence",
+      "notes": [
+        "no accepted evidence for metric"
+      ]
+    },
+    {
+      "metricId": "NFR-1.4",
+      "status": "pass",
+      "fixtureRefs": [
+        "interrupted-run"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        "chaos-reclaim-operator-state:/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-chaos/chaos-reclaim-operator-state-2f7a1ae2363b.md"
+      ],
+      "freshness": "fresh until 2026-04-12T23:27:35.551Z",
+      "notes": []
+    },
+    {
+      "metricId": "NFR-1.5",
+      "status": "pass",
+      "fixtureRefs": [
+        "git-clean",
+        "fresh-session-handoff"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        "plan-artifact:/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/plan-artifact-a44ed07404b5.md"
+      ],
+      "freshness": "fresh until 2026-04-12T23:27:51.170Z",
+      "notes": []
+    },
+    {
+      "metricId": "NFR-2.1",
+      "status": "blocked",
+      "fixtureRefs": [],
+      "hostManifestRefs": [],
+      "artifactRefs": [],
+      "freshness": "blocked: no accepted evidence",
+      "notes": [
+        "no accepted evidence for metric"
+      ]
+    },
+    {
+      "metricId": "NFR-2.2",
+      "status": "blocked",
+      "fixtureRefs": [],
+      "hostManifestRefs": [],
+      "artifactRefs": [],
+      "freshness": "blocked: no accepted evidence",
+      "notes": [
+        "no accepted evidence for metric"
+      ]
+    },
+    {
+      "metricId": "NFR-2.3",
+      "status": "blocked",
+      "fixtureRefs": [],
+      "hostManifestRefs": [],
+      "artifactRefs": [],
+      "freshness": "blocked: no accepted evidence",
+      "notes": [
+        "no accepted evidence for metric"
+      ]
+    },
+    {
+      "metricId": "NFR-2.4",
+      "status": "blocked",
+      "fixtureRefs": [],
+      "hostManifestRefs": [],
+      "artifactRefs": [],
+      "freshness": "blocked: no accepted evidence",
+      "notes": [
+        "no accepted evidence for metric"
+      ]
+    },
+    {
+      "metricId": "NFR-2.5",
+      "status": "blocked",
+      "fixtureRefs": [],
+      "hostManifestRefs": [],
+      "artifactRefs": [],
+      "freshness": "blocked: no accepted evidence",
+      "notes": [
+        "no accepted evidence for metric"
+      ]
+    },
+    {
+      "metricId": "NFR-3.1",
+      "status": "blocked",
+      "fixtureRefs": [],
+      "hostManifestRefs": [],
+      "artifactRefs": [],
+      "freshness": "blocked: no accepted evidence",
+      "notes": [
+        "no accepted evidence for metric"
+      ]
+    },
+    {
+      "metricId": "NFR-3.2",
+      "status": "pass",
+      "fixtureRefs": [
+        "git-clean"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        "brainstorm-decision-report:/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/brainstorm-decision-report-233d56cbbac1.md",
+        "review-report:/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/review-report-66d05e913076.md",
+        "test-report:/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/test-report-52e605952b81.md",
+        "debug-report:/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/debug-report-98c8ba0c9c21.md"
+      ],
+      "freshness": "fresh until 2026-04-12T23:27:51.170Z",
+      "notes": []
+    },
+    {
+      "metricId": "NFR-3.3",
+      "status": "blocked",
+      "fixtureRefs": [],
+      "hostManifestRefs": [],
+      "artifactRefs": [],
+      "freshness": "blocked: no accepted evidence",
+      "notes": [
+        "no accepted evidence for metric"
+      ]
+    },
+    {
+      "metricId": "NFR-3.4",
+      "status": "blocked",
+      "fixtureRefs": [],
+      "hostManifestRefs": [],
+      "artifactRefs": [],
+      "freshness": "blocked: no accepted evidence",
+      "notes": [
+        "no accepted evidence for metric"
+      ]
+    },
+    {
+      "metricId": "NFR-3.5",
+      "status": "pass",
+      "fixtureRefs": [
+        "git-clean"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        "plan-artifact:/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/plan-artifact-a44ed07404b5.md"
+      ],
+      "freshness": "fresh until 2026-04-12T23:27:51.170Z",
+      "notes": []
+    },
+    {
+      "metricId": "NFR-3.6",
+      "status": "pass",
+      "fixtureRefs": [
+        "git-clean"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        "golden-plan-cook-comparative-trace:/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/golden-plan-cook-comparative-trace-4727d2bce18b.md",
+        "frozen-claudekit-plan-cook-trace-source:/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/frozen-claudekit-plan-cook-trace-source-7cb3e7f26ad1.json"
+      ],
+      "freshness": "fresh until 2026-04-12T23:27:51.170Z",
+      "notes": []
+    },
+    {
+      "metricId": "NFR-3.7",
+      "status": "pass",
+      "fixtureRefs": [
+        "interrupted-run"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        "chaos-reclaim-operator-state:/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-chaos/chaos-reclaim-operator-state-2f7a1ae2363b.md"
+      ],
+      "freshness": "fresh until 2026-04-12T23:27:35.551Z",
+      "notes": []
+    },
+    {
+      "metricId": "NFR-4.1",
+      "status": "fail",
+      "fixtureRefs": [
+        "fresh-no-git",
+        "git-clean",
+        "interrupted-run",
+        "retained-failed-worker"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        "migration-checklist:/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-migration/migration-checklist-d325674f3850.md"
+      ],
+      "freshness": "fresh until 2026-04-12T23:27:21.844Z",
+      "notes": []
+    },
+    {
+      "metricId": "NFR-4.2",
+      "status": "pass",
+      "fixtureRefs": [
+        "claudekit-migrated"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        "migration-checklist:/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-migration/migration-checklist-d325674f3850.md"
+      ],
+      "freshness": "fresh until 2026-04-12T23:27:21.844Z",
+      "notes": []
+    },
+    {
+      "metricId": "NFR-4.3",
+      "status": "pass",
+      "fixtureRefs": [
+        "claudekit-migrated"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        "migration-checklist:/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-migration/migration-checklist-d325674f3850.md"
+      ],
+      "freshness": "fresh until 2026-04-12T23:27:21.844Z",
+      "notes": []
+    },
+    {
+      "metricId": "NFR-4.4",
+      "status": "pass",
+      "fixtureRefs": [
+        "git-clean"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        "migration-checklist:/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-migration/migration-checklist-d325674f3850.md"
+      ],
+      "freshness": "fresh until 2026-04-12T23:27:21.844Z",
+      "notes": []
+    },
+    {
+      "metricId": "NFR-4.5",
+      "status": "pass",
+      "fixtureRefs": [
+        "fresh-no-git"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        "migration-checklist:/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-migration/migration-checklist-d325674f3850.md"
+      ],
+      "freshness": "fresh until 2026-04-12T23:27:21.844Z",
+      "notes": []
+    },
+    {
+      "metricId": "NFR-4.6",
+      "status": "pass",
+      "fixtureRefs": [
+        "host-capability-gap"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        "migration-checklist:/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-migration/migration-checklist-d325674f3850.md"
+      ],
+      "freshness": "fresh until 2026-04-12T23:27:21.844Z",
+      "notes": []
+    },
+    {
+      "metricId": "NFR-5.1",
+      "status": "blocked",
+      "fixtureRefs": [],
+      "hostManifestRefs": [],
+      "artifactRefs": [],
+      "freshness": "blocked: no accepted evidence",
+      "notes": [
+        "no accepted evidence for metric"
+      ]
+    },
+    {
+      "metricId": "NFR-5.2",
+      "status": "pass",
+      "fixtureRefs": [
+        "git-clean"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        "finalize-report:/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/finalize-report-71b854f223ea.md",
+        "docs-impact-report:/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/docs-impact-report-fe53f128206a.md",
+        "git-handoff-report:/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/git-handoff-report-e02a54b1e949.md",
+        "fix-report:/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/fix-report-0b6e84554ed0.md",
+        "team-report:/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/team-report-09dd20520b69.md"
+      ],
+      "freshness": "fresh until 2026-04-12T23:27:51.170Z",
+      "notes": []
+    },
+    {
+      "metricId": "NFR-5.3",
+      "status": "blocked",
+      "fixtureRefs": [],
+      "hostManifestRefs": [],
+      "artifactRefs": [],
+      "freshness": "blocked: no accepted evidence",
+      "notes": [
+        "no accepted evidence for metric"
+      ]
+    },
+    {
+      "metricId": "NFR-5.4",
+      "status": "pass",
+      "fixtureRefs": [
+        "interrupted-run",
+        "retained-failed-worker"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        "chaos-crash-ledger-artifact-history:/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-chaos/chaos-crash-ledger-artifact-history-d90facc580d2.md",
+        "chaos-split-artifact:/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-chaos/chaos-split-artifact-1bec82a9cbf3.log"
+      ],
+      "freshness": "fresh until 2026-04-12T23:27:35.551Z",
+      "notes": []
+    },
+    {
+      "metricId": "NFR-5.5",
+      "status": "pass",
+      "fixtureRefs": [
+        "interrupted-run"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        "chaos-reclaim-operator-state:/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-chaos/chaos-reclaim-operator-state-2f7a1ae2363b.md"
+      ],
+      "freshness": "fresh until 2026-04-12T23:27:35.551Z",
+      "notes": []
+    },
+    {
+      "metricId": "NFR-5.6",
+      "status": "blocked",
+      "fixtureRefs": [],
+      "hostManifestRefs": [],
+      "artifactRefs": [],
+      "freshness": "blocked: no accepted evidence",
+      "notes": [
+        "no accepted evidence for metric"
+      ]
+    },
+    {
+      "metricId": "NFR-6.1",
+      "status": "pass",
+      "fixtureRefs": [
+        "fresh-session-handoff"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        "brainstorm-decision-report:/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/brainstorm-decision-report-233d56cbbac1.md"
+      ],
+      "freshness": "fresh until 2026-04-12T23:27:51.170Z",
+      "notes": []
+    },
+    {
+      "metricId": "NFR-6.2",
+      "status": "blocked",
+      "fixtureRefs": [],
+      "hostManifestRefs": [],
+      "artifactRefs": [],
+      "freshness": "blocked: no accepted evidence",
+      "notes": [
+        "no accepted evidence for metric"
+      ]
+    },
+    {
+      "metricId": "NFR-6.3",
+      "status": "pass",
+      "fixtureRefs": [
+        "fresh-session-handoff"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        "golden-restatement-check:/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/golden-restatement-check-8feacb12d24d.md"
+      ],
+      "freshness": "fresh until 2026-04-12T23:27:51.170Z",
+      "notes": []
+    },
+    {
+      "metricId": "NFR-6.4",
+      "status": "pass",
+      "fixtureRefs": [
+        "interrupted-run"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        "chaos-approval-resume-state:/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-chaos/chaos-approval-resume-state-fb9506c31ba0.md"
+      ],
+      "freshness": "fresh until 2026-04-12T23:27:35.551Z",
+      "notes": []
+    },
+    {
+      "metricId": "NFR-6.5",
+      "status": "blocked",
+      "fixtureRefs": [],
+      "hostManifestRefs": [],
+      "artifactRefs": [],
+      "freshness": "blocked: no accepted evidence",
+      "notes": [
+        "no accepted evidence for metric"
+      ]
+    },
+    {
+      "metricId": "NFR-7.1",
+      "status": "blocked",
+      "fixtureRefs": [],
+      "hostManifestRefs": [],
+      "artifactRefs": [],
+      "freshness": "blocked: no accepted evidence",
+      "notes": [
+        "no accepted evidence for metric"
+      ]
+    },
+    {
+      "metricId": "NFR-7.2",
+      "status": "blocked",
+      "fixtureRefs": [],
+      "hostManifestRefs": [],
+      "artifactRefs": [],
+      "freshness": "blocked: no accepted evidence",
+      "notes": [
+        "no accepted evidence for metric"
+      ]
+    },
+    {
+      "metricId": "NFR-7.3",
+      "status": "blocked",
+      "fixtureRefs": [],
+      "hostManifestRefs": [],
+      "artifactRefs": [],
+      "freshness": "blocked: no accepted evidence",
+      "notes": [
+        "no accepted evidence for metric"
+      ]
+    },
+    {
+      "metricId": "NFR-7.4",
+      "status": "fail",
+      "fixtureRefs": [
+        "parallelizable-repo"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        "chaos-parallel-reliability-benchmark:/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-chaos/chaos-parallel-reliability-benchmark-b56a96e06399.md"
+      ],
+      "freshness": "fresh until 2026-04-12T23:27:35.551Z",
+      "notes": []
+    },
+    {
+      "metricId": "NFR-8.1",
+      "status": "blocked",
+      "fixtureRefs": [
+        "host-capability-gap"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        "migration-checklist:/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-migration/migration-checklist-d325674f3850.md",
+        "host-matrix-smoke:/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-migration/host-matrix-smoke-02c5f15d4b27.json"
+      ],
+      "freshness": "fresh until 2026-04-12T23:27:21.844Z",
+      "notes": [
+        "blocked pending additional host/runtime prerequisites"
+      ]
+    },
+    {
+      "metricId": "NFR-8.2",
+      "status": "pass",
+      "fixtureRefs": [
+        "host-capability-gap"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        "migration-checklist:/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-migration/migration-checklist-d325674f3850.md"
+      ],
+      "freshness": "fresh until 2026-04-12T23:27:21.844Z",
+      "notes": []
+    },
+    {
+      "metricId": "NFR-8.3",
+      "status": "pass",
+      "fixtureRefs": [
+        "host-capability-gap"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        "migration-checklist:/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-migration/migration-checklist-d325674f3850.md"
+      ],
+      "freshness": "fresh until 2026-04-12T23:27:21.844Z",
+      "notes": []
+    },
+    {
+      "metricId": "NFR-8.4",
+      "status": "fail",
+      "fixtureRefs": [
+        "host-capability-gap"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        "migration-checklist:/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-migration/migration-checklist-d325674f3850.md",
+        "host-matrix-smoke:/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-migration/host-matrix-smoke-02c5f15d4b27.json"
+      ],
+      "freshness": "fresh until 2026-04-12T23:27:21.844Z",
+      "notes": [
+        "host matrix evidence is missing, stale, blocked, or rejected"
+      ]
+    }
+  ],
+  "openBlockers": [
+    "NFR-1.2 is blocked",
+    "NFR-1.3 is blocked",
+    "NFR-2.1 is blocked",
+    "NFR-2.2 is blocked",
+    "NFR-2.3 is blocked",
+    "NFR-2.4 is blocked",
+    "NFR-2.5 is blocked",
+    "NFR-3.1 is blocked",
+    "NFR-3.3 is blocked",
+    "NFR-3.4 is blocked",
+    "NFR-4.1 is fail",
+    "NFR-5.1 is blocked",
+    "NFR-5.3 is blocked",
+    "NFR-5.6 is blocked",
+    "NFR-6.2 is blocked",
+    "NFR-6.5 is blocked",
+    "NFR-7.1 is blocked",
+    "NFR-7.2 is blocked",
+    "NFR-7.3 is blocked",
+    "NFR-7.4 is fail",
+    "NFR-8.1 is blocked",
+    "NFR-8.4 is fail"
+  ],
+  "releasePass": false,
+  "migrationReady": false,
+  "acceptedBundles": [
+    {
+      "suiteId": "validation-golden",
+      "accepted": true,
+      "reason": "accepted",
+      "freshness": "fresh until 2026-04-12T23:27:51.170Z"
+    },
+    {
+      "suiteId": "validation-chaos",
+      "accepted": true,
+      "reason": "accepted",
+      "freshness": "fresh until 2026-04-12T23:27:35.551Z"
+    },
+    {
+      "suiteId": "validation-migration",
+      "accepted": true,
+      "reason": "accepted",
+      "freshness": "fresh until 2026-04-12T23:27:21.844Z"
+    }
+  ]
+}

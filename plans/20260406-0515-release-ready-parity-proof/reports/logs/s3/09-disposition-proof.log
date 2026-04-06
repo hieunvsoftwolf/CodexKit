@@ -1,0 +1,7 @@
+[copy] release-readiness-report.md
+[copy] phase9-evidence files
+[extract] host-manifest from validation-migration evidence
+zsh:1: command not found: jq
+[extract] host-manifest via node fallback (jq unavailable)
+[copy] packaged-artifact smoke log
+optional_report_count=0

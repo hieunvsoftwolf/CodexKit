@@ -1,0 +1,346 @@
+{
+  "schemaVersion": "phase9-validation-evidence-v2",
+  "baseSha": "8a7195c2a98253dd1060f9680b422b75d139068d",
+  "candidateSha": "308867621e6c3d77746302b08a624445f7b84213",
+  "generatedAt": "2026-04-05T23:27:21.844Z",
+  "freshUntil": "2026-04-12T23:27:21.844Z",
+  "freshnessRule": "NFR-8.4-host-matrix-results-must-be-younger-than-7-days",
+  "suiteId": "validation-migration",
+  "fixtureIds": [
+    "fresh-no-git",
+    "git-clean",
+    "claudekit-migrated",
+    "interrupted-run",
+    "retained-failed-worker",
+    "host-capability-gap"
+  ],
+  "metricResults": [
+    {
+      "metricId": "NFR-4.1",
+      "mappedNfrIds": [
+        "NFR-4.1"
+      ],
+      "required": true,
+      "status": "fail",
+      "fixtureRefs": [
+        "fresh-no-git",
+        "git-clean",
+        "interrupted-run",
+        "retained-failed-worker"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        {
+          "label": "migration-checklist",
+          "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-migration/migration-checklist-d325674f3850.md",
+          "durability": "durable"
+        }
+      ],
+      "evidence": [
+        "fresh-install: install-only gate verified by blocked worker-backed review command",
+        "doctor-broken-state: missing release manifest detected",
+        "resume-interrupted-run: pending approval continuation surfaced",
+        "finalize-contract-after-migration: finalize artifact trio confirmed",
+        "golden-fixture-proof: golden local executable fallback proof passed on required fixtures",
+        "chaos-fixture-proof: chaos required fixture proof missing or non-pass"
+      ]
+    },
+    {
+      "metricId": "NFR-4.2",
+      "mappedNfrIds": [
+        "NFR-4.2"
+      ],
+      "required": true,
+      "status": "pass",
+      "fixtureRefs": [
+        "claudekit-migrated"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        {
+          "label": "migration-checklist",
+          "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-migration/migration-checklist-d325674f3850.md",
+          "durability": "durable"
+        }
+      ],
+      "evidence": [
+        "migrated-install-non-destructive: README preserved"
+      ]
+    },
+    {
+      "metricId": "NFR-4.3",
+      "mappedNfrIds": [
+        "NFR-4.3"
+      ],
+      "required": true,
+      "status": "pass",
+      "fixtureRefs": [
+        "claudekit-migrated"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        {
+          "label": "migration-checklist",
+          "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-migration/migration-checklist-d325674f3850.md",
+          "durability": "durable"
+        }
+      ],
+      "evidence": [
+        "migrated-install-non-destructive: README preserved"
+      ]
+    },
+    {
+      "metricId": "NFR-4.4",
+      "mappedNfrIds": [
+        "NFR-4.4"
+      ],
+      "required": true,
+      "status": "pass",
+      "fixtureRefs": [
+        "git-clean"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        {
+          "label": "migration-checklist",
+          "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-migration/migration-checklist-d325674f3850.md",
+          "durability": "durable"
+        }
+      ],
+      "evidence": [
+        "doctor-broken-state: missing release manifest detected"
+      ]
+    },
+    {
+      "metricId": "NFR-4.5",
+      "mappedNfrIds": [
+        "NFR-4.5"
+      ],
+      "required": true,
+      "status": "pass",
+      "fixtureRefs": [
+        "fresh-no-git"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        {
+          "label": "migration-checklist",
+          "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-migration/migration-checklist-d325674f3850.md",
+          "durability": "durable"
+        }
+      ],
+      "evidence": [
+        "fresh-install: install-only gate verified by blocked worker-backed review command"
+      ]
+    },
+    {
+      "metricId": "NFR-4.6",
+      "mappedNfrIds": [
+        "NFR-4.6"
+      ],
+      "required": true,
+      "status": "pass",
+      "fixtureRefs": [
+        "host-capability-gap"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        {
+          "label": "migration-checklist",
+          "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-migration/migration-checklist-d325674f3850.md",
+          "durability": "durable"
+        }
+      ],
+      "evidence": [
+        "host-capability-gap: host gap blocked explicitly"
+      ]
+    },
+    {
+      "metricId": "NFR-8.1",
+      "mappedNfrIds": [
+        "NFR-8.1"
+      ],
+      "required": true,
+      "status": "blocked",
+      "fixtureRefs": [
+        "host-capability-gap"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        {
+          "label": "migration-checklist",
+          "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-migration/migration-checklist-d325674f3850.md",
+          "durability": "durable"
+        },
+        {
+          "label": "host-matrix-smoke",
+          "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-migration/host-matrix-smoke-02c5f15d4b27.json",
+          "durability": "durable"
+        }
+      ],
+      "evidence": [
+        "host-matrix-smoke: fewer than two real Codex CLI versions discovered for host matrix smoke"
+      ],
+      "notes": "blocked pending additional host/runtime prerequisites"
+    },
+    {
+      "metricId": "NFR-8.2",
+      "mappedNfrIds": [
+        "NFR-8.2"
+      ],
+      "required": true,
+      "status": "pass",
+      "fixtureRefs": [
+        "host-capability-gap"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        {
+          "label": "migration-checklist",
+          "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-migration/migration-checklist-d325674f3850.md",
+          "durability": "durable"
+        }
+      ],
+      "evidence": [
+        "host-capability-gap: host gap blocked explicitly"
+      ]
+    },
+    {
+      "metricId": "NFR-8.3",
+      "mappedNfrIds": [
+        "NFR-8.3"
+      ],
+      "required": true,
+      "status": "pass",
+      "fixtureRefs": [
+        "host-capability-gap"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        {
+          "label": "migration-checklist",
+          "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-migration/migration-checklist-d325674f3850.md",
+          "durability": "durable"
+        }
+      ],
+      "evidence": [
+        "host-capability-gap: host gap blocked explicitly"
+      ]
+    }
+  ],
+  "hostManifest": {
+    "os": "darwin 23.6.0",
+    "cpu": "Apple M1 Pro",
+    "ramBytes": 17179869184,
+    "filesystem": "/",
+    "nodeVersion": "v24.13.0",
+    "gitVersion": "git version 2.39.5 (Apple Git-154)",
+    "codexCliVersion": "codex-cli 0.115.0-alpha.27"
+  },
+  "artifactRefs": [
+    {
+      "label": "migration-resume-report",
+      "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-migration/migration-resume-report-06d16008a9b0.md",
+      "durability": "durable"
+    },
+    {
+      "label": "migration-finalize-report",
+      "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-migration/migration-finalize-report-c3a1b3c22197.md",
+      "durability": "durable"
+    },
+    {
+      "label": "migration-golden-fixture-proof-local",
+      "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-migration/migration-golden-fixture-proof-local-a5d5196be614.md",
+      "durability": "durable"
+    },
+    {
+      "label": "migration-chaos-fixture-proof-local",
+      "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-migration/migration-chaos-fixture-proof-local-a70376ca464a.md",
+      "durability": "durable"
+    },
+    {
+      "label": "host-matrix-smoke",
+      "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-migration/host-matrix-smoke-02c5f15d4b27.json",
+      "durability": "durable"
+    },
+    {
+      "label": "migration-fresh-install-row-evidence",
+      "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-migration/migration-fresh-install-row-evidence-fe2a4ffc904b.md",
+      "durability": "durable"
+    },
+    {
+      "label": "migration-migrated-install-non-destructive-row-evidence",
+      "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-migration/migration-migrated-install-non-destructive-row-evidence-897afd7024e3.md",
+      "durability": "durable"
+    },
+    {
+      "label": "migration-doctor-broken-state-row-evidence",
+      "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-migration/migration-doctor-broken-state-row-evidence-44f458e45674.md",
+      "durability": "durable"
+    },
+    {
+      "label": "migration-resume-interrupted-run-row-evidence",
+      "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-migration/migration-resume-interrupted-run-row-evidence-18539e740849.md",
+      "durability": "durable"
+    },
+    {
+      "label": "migration-host-capability-gap-row-evidence",
+      "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-migration/migration-host-capability-gap-row-evidence-0b24d80a97d6.md",
+      "durability": "durable"
+    },
+    {
+      "label": "migration-finalize-contract-after-migration-row-evidence",
+      "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-migration/migration-finalize-contract-after-migration-row-evidence-f10947798b88.md",
+      "durability": "durable"
+    },
+    {
+      "label": "migration-golden-fixture-proof-row-evidence",
+      "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-migration/migration-golden-fixture-proof-row-evidence-499aa34333af.md",
+      "durability": "durable"
+    },
+    {
+      "label": "migration-chaos-fixture-proof-row-evidence",
+      "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-migration/migration-chaos-fixture-proof-row-evidence-6dda2b8a3df4.md",
+      "durability": "durable"
+    },
+    {
+      "label": "migration-host-matrix-smoke-row-evidence",
+      "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-migration/migration-host-matrix-smoke-row-evidence-67c4d9ac848f.md",
+      "durability": "durable"
+    },
+    {
+      "label": "migration-checklist",
+      "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-migration/migration-checklist-d325674f3850.md",
+      "durability": "durable"
+    }
+  ],
+  "summary": {
+    "passed": 7,
+    "failed": 1,
+    "blocked": 1,
+    "requiredNonPass": 2
+  },
+  "blockers": [
+    "chaos-fixture-proof: fail - chaos required fixture proof missing or non-pass",
+    "host-matrix-smoke: blocked - fewer than two real Codex CLI versions discovered for host matrix smoke",
+    "one or more required migration metrics are non-pass"
+  ]
+}

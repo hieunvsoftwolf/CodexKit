@@ -1,0 +1,307 @@
+{
+  "schemaVersion": "phase9-validation-evidence-v2",
+  "baseSha": "8a7195c2a98253dd1060f9680b422b75d139068d",
+  "candidateSha": "308867621e6c3d77746302b08a624445f7b84213",
+  "generatedAt": "2026-04-05T23:27:51.170Z",
+  "freshUntil": "2026-04-12T23:27:51.170Z",
+  "freshnessRule": "NFR-8.4-host-matrix-results-must-be-younger-than-7-days",
+  "suiteId": "validation-golden",
+  "fixtureIds": [
+    "git-clean",
+    "fresh-session-handoff"
+  ],
+  "metricResults": [
+    {
+      "metricId": "NFR-1.5",
+      "mappedNfrIds": [
+        "NFR-1.5"
+      ],
+      "required": true,
+      "status": "pass",
+      "fixtureRefs": [
+        "git-clean",
+        "fresh-session-handoff"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        {
+          "label": "plan-artifact",
+          "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/plan-artifact-a44ed07404b5.md",
+          "durability": "durable"
+        }
+      ],
+      "evidence": [
+        "plan handoff command includes absolute cook continuation"
+      ]
+    },
+    {
+      "metricId": "NFR-3.2",
+      "mappedNfrIds": [
+        "NFR-3.2"
+      ],
+      "required": true,
+      "status": "pass",
+      "fixtureRefs": [
+        "git-clean"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        {
+          "label": "brainstorm-decision-report",
+          "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/brainstorm-decision-report-233d56cbbac1.md",
+          "durability": "durable"
+        },
+        {
+          "label": "review-report",
+          "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/review-report-66d05e913076.md",
+          "durability": "durable"
+        },
+        {
+          "label": "test-report",
+          "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/test-report-52e605952b81.md",
+          "durability": "durable"
+        },
+        {
+          "label": "debug-report",
+          "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/debug-report-98c8ba0c9c21.md",
+          "durability": "durable"
+        }
+      ],
+      "evidence": [
+        "unambiguous brainstorm/plan/review/test/debug/init/doctor command shapes executed without chooser prompts"
+      ]
+    },
+    {
+      "metricId": "NFR-3.5",
+      "mappedNfrIds": [
+        "NFR-3.5"
+      ],
+      "required": true,
+      "status": "pass",
+      "fixtureRefs": [
+        "git-clean"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        {
+          "label": "plan-artifact",
+          "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/plan-artifact-a44ed07404b5.md",
+          "durability": "durable"
+        }
+      ],
+      "evidence": [
+        "cook post-implementation pending approval exposes default continuation command"
+      ]
+    },
+    {
+      "metricId": "NFR-3.6",
+      "mappedNfrIds": [
+        "NFR-3.6"
+      ],
+      "required": true,
+      "status": "pass",
+      "fixtureRefs": [
+        "git-clean"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        {
+          "label": "golden-plan-cook-comparative-trace",
+          "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/golden-plan-cook-comparative-trace-4727d2bce18b.md",
+          "durability": "durable"
+        },
+        {
+          "label": "frozen-claudekit-plan-cook-trace-source",
+          "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/frozen-claudekit-plan-cook-trace-source-7cb3e7f26ad1.json",
+          "durability": "durable"
+        }
+      ],
+      "evidence": [
+        "plan->cook operator actions are no worse than +1 versus frozen ClaudeKit comparative trace"
+      ]
+    },
+    {
+      "metricId": "NFR-5.2",
+      "mappedNfrIds": [
+        "NFR-5.2"
+      ],
+      "required": true,
+      "status": "pass",
+      "fixtureRefs": [
+        "git-clean"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        {
+          "label": "finalize-report",
+          "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/finalize-report-71b854f223ea.md",
+          "durability": "durable"
+        },
+        {
+          "label": "docs-impact-report",
+          "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/docs-impact-report-fe53f128206a.md",
+          "durability": "durable"
+        },
+        {
+          "label": "git-handoff-report",
+          "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/git-handoff-report-e02a54b1e949.md",
+          "durability": "durable"
+        },
+        {
+          "label": "fix-report",
+          "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/fix-report-0b6e84554ed0.md",
+          "durability": "durable"
+        },
+        {
+          "label": "team-report",
+          "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/team-report-09dd20520b69.md",
+          "durability": "durable"
+        }
+      ],
+      "evidence": [
+        "finalize/docs/git durable report artifacts exist and runnable fix/team workflows publish durable reports"
+      ]
+    },
+    {
+      "metricId": "NFR-6.1",
+      "mappedNfrIds": [
+        "NFR-6.1"
+      ],
+      "required": true,
+      "status": "pass",
+      "fixtureRefs": [
+        "fresh-session-handoff"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        {
+          "label": "brainstorm-decision-report",
+          "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/brainstorm-decision-report-233d56cbbac1.md",
+          "durability": "durable"
+        }
+      ],
+      "evidence": [
+        "brainstorm handoff bundle contains required handoff contract fields"
+      ]
+    },
+    {
+      "metricId": "NFR-6.3",
+      "mappedNfrIds": [
+        "NFR-6.3"
+      ],
+      "required": true,
+      "status": "pass",
+      "fixtureRefs": [
+        "fresh-session-handoff"
+      ],
+      "hostManifestRefs": [
+        "bundle://host-manifest/current"
+      ],
+      "artifactRefs": [
+        {
+          "label": "golden-restatement-check",
+          "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/golden-restatement-check-8feacb12d24d.md",
+          "durability": "durable"
+        }
+      ],
+      "evidence": [
+        "fresh-session continuation did not require operator restatement for accepted upstream decisions"
+      ]
+    }
+  ],
+  "hostManifest": {
+    "os": "darwin 23.6.0",
+    "cpu": "Apple M1 Pro",
+    "ramBytes": 17179869184,
+    "filesystem": "/",
+    "nodeVersion": "v24.13.0",
+    "gitVersion": "git version 2.39.5 (Apple Git-154)",
+    "codexCliVersion": "codex-cli 0.115.0-alpha.27"
+  },
+  "artifactRefs": [
+    {
+      "label": "brainstorm-decision-report",
+      "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/brainstorm-decision-report-233d56cbbac1.md",
+      "durability": "durable"
+    },
+    {
+      "label": "review-report",
+      "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/review-report-66d05e913076.md",
+      "durability": "durable"
+    },
+    {
+      "label": "test-report",
+      "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/test-report-52e605952b81.md",
+      "durability": "durable"
+    },
+    {
+      "label": "debug-report",
+      "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/debug-report-98c8ba0c9c21.md",
+      "durability": "durable"
+    },
+    {
+      "label": "fix-report",
+      "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/fix-report-0b6e84554ed0.md",
+      "durability": "durable"
+    },
+    {
+      "label": "team-report",
+      "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/team-report-09dd20520b69.md",
+      "durability": "durable"
+    },
+    {
+      "label": "finalize-report",
+      "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/finalize-report-71b854f223ea.md",
+      "durability": "durable"
+    },
+    {
+      "label": "docs-impact-report",
+      "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/docs-impact-report-fe53f128206a.md",
+      "durability": "durable"
+    },
+    {
+      "label": "git-handoff-report",
+      "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/git-handoff-report-e02a54b1e949.md",
+      "durability": "durable"
+    },
+    {
+      "label": "plan-artifact",
+      "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/plan-artifact-a44ed07404b5.md",
+      "durability": "durable"
+    },
+    {
+      "label": "golden-plan-cook-comparative-trace",
+      "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/golden-plan-cook-comparative-trace-4727d2bce18b.md",
+      "durability": "durable"
+    },
+    {
+      "label": "frozen-claudekit-plan-cook-trace-source",
+      "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/frozen-claudekit-plan-cook-trace-source-7cb3e7f26ad1.json",
+      "durability": "durable"
+    },
+    {
+      "label": "golden-restatement-check",
+      "path": "/Users/hieunv/Claude Agent/CodexKit-rrp-s3-verification-only/.tmp/phase9-durable-artifacts/validation-golden/golden-restatement-check-8feacb12d24d.md",
+      "durability": "durable"
+    }
+  ],
+  "summary": {
+    "passed": 7,
+    "failed": 0,
+    "blocked": 0,
+    "requiredNonPass": 0
+  },
+  "blockers": []
+}
